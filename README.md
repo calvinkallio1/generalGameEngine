@@ -4,8 +4,8 @@ This project is based around SDL to create a framework on which to build games e
 
 ## Installation
 
-First to install, you have to clone the library into your game repository. From here forward, the project will be referred to as `*my_game*`
+First to install, you have to clone the library into your game repository. From here forward, the project will be referred to as *my_game
 
-``mkdir my_game && cd my_game
-  git init 
-  git submodule add ``
+`mkdir my_game && cd my_game`
+
+```
