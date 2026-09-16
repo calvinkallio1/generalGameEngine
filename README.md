@@ -37,7 +37,7 @@ This is the minimal project structure for a working game. What is in each file d
 
 ## CMakeLists.txt
 
-This is what should be in the CMakeLists file. It should not to be updated from here as long as project structure is maintained.
+This is what should be in the CMakeLists file. It should not need to be updated from here as long as project structure is maintained.
 
 ```
 cmake_minimum_required(VERSION 3.21)
@@ -76,11 +76,31 @@ cmake --build build -j
 ./build/my_game #Runs the game
 ```
 
+## Architecture 
 
+### The Loop 
+
+Every frame, engine_run performs these actions:
+
+- `poll_input` #Fill e->input from SDL events and device state
+- `audio_update` #Keep music looping, sound effects 
+- `handle_input` #Only on the top scene
+- `apply_pending` #Perform queued operations 
+- Update scenes
+- `debug_flush`
+- `present`
+
+### Scenes and Scene Stack
+
+A Scene is a structure of optional callbacks (`on_enter`, `on_exit`, `handle_input`, `update`, `render`), plus 2 flags (`blocks_render_below`, `blocks_update_below`). The engine itself can keep a stack of up to 8 Scenes. The scenes are pushed onto a stack of scenes, and each is looped through by the engine to update them. The request changes with push, pop, and replace methods. Each scene is its own file, and each scene must be included in `scenes.h`. Finally, the two flags determine whether or not the scenes *below* them on the stack update/render while that scene is on the top. For example, a pause scene might want to stop the lower scenes from updating, but not from rendering.
+
+### Modules 
+
+The engine is built based on modules, which can be easily configured/added to. Each module serves a specific purpose, which will be covered in the docs.
 
 ## TODO 
 
--Write docs
-  -API reference
-  -Demos
+- Write docs
+  - API reference
+  - Demos
 ```
