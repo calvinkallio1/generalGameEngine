@@ -10,6 +10,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)   # clangd / editor support
 option(ENGINE_WITH_IMAGE "PNG/JPG loading via SDL_image (vendored/SDL_image)" OFF)
 option(ENGINE_WITH_TTF   "TrueType fonts via SDL_ttf (vendored/SDL_ttf)"    OFF)
 
+# Everything vendored builds static: SDL uses its own SDL_SHARED/SDL_STATIC switches,
+# SDL_image and SDL_ttf use the standard BUILD_SHARED_LIBS. A shared SDL_image cannot
+# link against a static SDL, so all three must agree.
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
 # ---- SDL3 (vendored submodule, built as part of this project) ----
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)   # link statically, no .dylib to ship
 set(SDL_STATIC ON  CACHE BOOL "" FORCE)
