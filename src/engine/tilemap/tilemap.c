@@ -1,5 +1,9 @@
 #include "tilemap.h"
+#include "assets.h"
+#include "debug.h"
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 uint8_t tilemap_at(const Tilemap *m, int tx, int ty) {
   if (tx < 0 || ty < 0 || tx >= m->w || ty >= m->h) return 0;
@@ -47,4 +51,46 @@ void tilemap_move(const Tilemap *m, Rect *box, Vec2 *vel, float dt, bool *on_gro
     else            { box->y = ceilf(box->y / m->tile) * m->tile; }
     vel->y = 0;
   }
+}
+
+bool tilemap_load_csv(Tilemap *m, const char *relative_path, int tile_size,
+                      Texture *tileset, const bool *solid) {
+  char path[1024];
+  FILE *f = fopen(assets_path(relative_path, path, sizeof path), "rb");
+  if (!f) { LOG("tilemap: cannot open %s", path); return false; }
+
+  /* pass 1: measure. width = commas on the first line + 1, height = non-empty lines */
+  int w = 0, h = 0, c, in_row = 0;
+  while ((c = fgetc(f)) != EOF) {
+    if (c == ',' && h == 0) ++w;
+    if (c != '\n' && c != '\r' && c != ' ') in_row = 1;
+    if (c == '\n' && in_row) { ++h; in_row = 0; }
+  }
+  if (in_row) ++h;                       /* last line without a trailing newline */
+  ++w;
+  if (h <= 0) { LOG("tilemap: %s is empty", path); fclose(f); return false; }
+
+  /* pass 2: read */
+  uint8_t *tiles = calloc((size_t)w * (size_t)h, 1);
+  if (!tiles) { fclose(f); return false; }
+  rewind(f);
+  for (int i = 0; i < w * h; ++i) {
+    long gid;
+    if (fscanf(f, " %ld", &gid) != 1) { LOG("tilemap: bad cell %d in %s", i, path); break; }
+    tiles[i] = gid > 0 ? (uint8_t)(gid - 1) : 0;
+    if (fscanf(f, " ,") < 0) break;      /* eat the separator if present */
+  }
+  fclose(f);
+
+  m->w = w; m->h = h; m->tile = tile_size;
+  m->tiles = tiles;
+  m->solid = solid;
+  m->tileset = sprite_from(tileset, tile_size, tile_size);
+  return true;
+}
+
+void tilemap_free(Tilemap *m) {
+  free((void *)m->tiles);               /* const on the struct guards static arrays; ours is malloc'd */
+  m->tiles = NULL;
+  m->w = m->h = 0;
 }
