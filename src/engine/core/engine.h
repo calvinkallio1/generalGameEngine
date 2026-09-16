@@ -2,6 +2,8 @@
 #include <SDL3/SDL.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "types.h"
+#include "types.h"
 #include "input.h"
 #include "scene.h"
 #include "save.h"
@@ -27,15 +29,15 @@ typedef struct EngineConfig {
   bool   text;                 /* init SDL_ttf (only if built with ENGINE_WITH_TTF) */
   bool   gamepad;              /* open gamepads as they appear */
   Scene *pause_scene;          /* pushed automatically when the window loses focus (NULL = don't) */
-  SDL_Color clear_color;       /* zero alpha -> dark blue-grey */
+  Color  clear_color;          /* zero alpha -> dark blue-grey */
 } EngineConfig;
 
 typedef enum { OP_PUSH, OP_POP, OP_REPLACE } SceneOp;
 typedef struct PendingOp { SceneOp op; Scene *scene; } PendingOp;
 
 typedef struct Engine {
-  SDL_Window   *window;
-  SDL_Renderer *renderer;
+  SDL_Window   *window;      /* internal */
+  SDL_Renderer *renderer;    /* internal: games draw through draw.h */
   Input         input;
   bool          running;
 
@@ -51,7 +53,7 @@ typedef struct Engine {
   bool  debug_overlay;            /* F3 */
   float fps;                      /* smoothed */
   uint64_t frame;
-  SDL_Color clear_color;
+  Color clear_color;
   Scene *pause_scene;
 
   Scene    *stack[SCENE_STACK_MAX];

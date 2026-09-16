@@ -1,6 +1,7 @@
 #include "sprite.h"
+#include "draw.h"
 
-Sprite sprite_from(SDL_Texture *tex, int frame_w, int frame_h) {
+Sprite sprite_from(Texture *tex, int frame_w, int frame_h) {
   Sprite s = { tex, frame_w, frame_h, 1 };
   float w = 0, h = 0;
   if (tex && SDL_GetTextureSize(tex, &w, &h)) s.columns = (int)w / frame_w;
@@ -28,14 +29,14 @@ void anim_step(AnimState *st, const Anim *a, float dt) {
 
 int anim_frame(const AnimState *st, const Anim *a) { return a->first + st->frame; }
 
-void sprite_draw_scaled(SDL_Renderer *r, const Sprite *s, int frame, float x, float y, float scale, double angle, SDL_FlipMode flip) {
+void sprite_draw_scaled(const Sprite *s, int frame, float x, float y, float scale, double angle, Flip flip) {
   if (!s->tex) return;
-  SDL_FRect src = { (float)((frame % s->columns) * s->frame_w), (float)((frame / s->columns) * s->frame_h),
+  Rect src = { (float)((frame % s->columns) * s->frame_w), (float)((frame / s->columns) * s->frame_h),
                     (float)s->frame_w, (float)s->frame_h };
-  SDL_FRect dst = { x, y, s->frame_w * scale, s->frame_h * scale };
-  SDL_RenderTextureRotated(r, s->tex, &src, &dst, angle, NULL, flip);
+  Rect dst = { x, y, s->frame_w * scale, s->frame_h * scale };
+  draw_texture_ex(s->tex, &src, dst, angle, flip);
 }
 
-void sprite_draw(SDL_Renderer *r, const Sprite *s, int frame, float x, float y, double angle, SDL_FlipMode flip) {
-  sprite_draw_scaled(r, s, frame, x, y, 1.0f, angle, flip);
+void sprite_draw(const Sprite *s, int frame, float x, float y, double angle, Flip flip) {
+  sprite_draw_scaled(s, frame, x, y, 1.0f, angle, flip);
 }

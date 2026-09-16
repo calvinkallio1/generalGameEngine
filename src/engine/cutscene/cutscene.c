@@ -1,6 +1,7 @@
 #include "cutscene.h"
 #include "dialog.h"
 #include "tween.h"
+#include "draw.h"
 
 static const CutStep *steps;
 static int   count, index_;
@@ -51,7 +52,7 @@ static void on_exit(Engine *e, Scene *s) {
 
 static void handle_input(Engine *e, Scene *s, const Input *in) {
   (void)s;
-  if (key_pressed(in, SDL_SCANCODE_ESCAPE) || pad_pressed(in, SDL_GAMEPAD_BUTTON_START)) { engine_pop(e); return; }
+  if (key_pressed(in, KEY_ESCAPE) || pad_pressed(in, PAD_START)) { engine_pop(e); return; }
   if (index_ < count && steps[index_].kind == CUT_SAY) dialog_update(&dlg, in, e->dt);
 }
 
@@ -85,12 +86,7 @@ static void update(Engine *e, Scene *s, float dt) {
 
 static void render(Engine *e, Scene *s, float alpha) {
   (void)s; (void)alpha;
-  if (fade > 0) {
-    SDL_SetRenderDrawBlendMode(e->renderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(e->renderer, 0, 0, 0, (Uint8)(fade * 255));
-    SDL_FRect full = { 0, 0, (float)e->logical_w, (float)e->logical_h };
-    SDL_RenderFillRect(e->renderer, &full);
-  }
+  if (fade > 0) draw_rect(rect(0, 0, (float)e->logical_w, (float)e->logical_h), rgba(0, 0, 0, (uint8_t)(fade * 255)));
   dialog_render(&dlg, e);
 }
 

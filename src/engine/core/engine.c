@@ -3,6 +3,8 @@
 #include "audio.h"
 #include "text.h"
 #include "debug.h"
+#include "draw.h"
+#include "draw.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -22,7 +24,7 @@ bool engine_init(Engine *e, const EngineConfig *cfg) {
   e->dt          = 1.0f / (float)rate;
   e->user        = cfg->user;
   e->pause_scene = cfg->pause_scene;
-  e->clear_color = cfg->clear_color.a ? cfg->clear_color : (SDL_Color){ 20, 20, 30, 255 };
+  e->clear_color = cfg->clear_color.a ? cfg->clear_color : (Color){ 20, 20, 30, 255 };
   want_gamepad   = cfg->gamepad;
 
   Uint32 flags = SDL_INIT_VIDEO | (cfg->gamepad ? SDL_INIT_GAMEPAD : 0);
@@ -45,6 +47,7 @@ bool engine_init(Engine *e, const EngineConfig *cfg) {
   e->focused = true;
 
   /* Services, in dependency order. Failures are logged and non-fatal. */
+  draw_init(e->renderer);
   assets_init(e->renderer);
   save_init(&e->save, cfg->org, cfg->app);
   if (cfg->audio) e->has_audio = audio_init();
@@ -124,14 +127,14 @@ static void poll_input(Engine *e) {
 
   int n = 0;
   const bool *held = SDL_GetKeyboardState(&n);
-  memcpy(in->keys, held, (size_t)(n < SDL_SCANCODE_COUNT ? n : SDL_SCANCODE_COUNT));
+  memcpy(in->keys, held, (size_t)(n < KEY_COUNT ? n : KEY_COUNT));
 
   in->mouse = SDL_GetMouseState(&in->mouse_x, &in->mouse_y);
   SDL_RenderCoordinatesFromWindow(e->renderer, in->mouse_x, in->mouse_y, &in->mouse_x, &in->mouse_y);
 
   if (gamepad) {
-    for (int b = 0; b < SDL_GAMEPAD_BUTTON_COUNT; ++b) in->pad_buttons[b] = SDL_GetGamepadButton(gamepad, (SDL_GamepadButton)b);
-    for (int a = 0; a < SDL_GAMEPAD_AXIS_COUNT; ++a) {
+    for (int b = 0; b < PAD_BUTTON_COUNT; ++b) in->pad_buttons[b] = SDL_GetGamepadButton(gamepad, (SDL_GamepadButton)b);
+    for (int a = 0; a < AXIS_COUNT; ++a) {
       float v = SDL_GetGamepadAxis(gamepad, (SDL_GamepadAxis)a) / 32767.0f;
       in->pad_axis[a] = (v > 0.2f || v < -0.2f) ? v : 0.0f;   /* dead zone */
     }
@@ -207,8 +210,7 @@ void engine_run(Engine *e) {
 
     /* 3. Render: from the lowest scene that blocks rendering, upward. */
     float alpha = (float)acc / (float)e->ns_per_tick;
-    SDL_SetRenderDrawColor(e->renderer, e->clear_color.r, e->clear_color.g, e->clear_color.b, e->clear_color.a);
-    SDL_RenderClear(e->renderer);
+    draw_clear(e->clear_color);
     int start = 0;
     for (int i = e->stack_len - 1; i >= 0; --i) if (e->stack[i]->blocks_render_below) { start = i; break; }
     for (int i = start; i < e->stack_len; ++i) {
@@ -223,7 +225,7 @@ void engine_run(Engine *e) {
                top ? top->name : "-", e->input.pad_connected ? "yes" : "no");
       debug_text(4, 4, "%s", line);
     }
-    debug_flush(e->renderer, e->debug_overlay);
+    debug_flush(e->debug_overlay);
 
     SDL_RenderPresent(e->renderer);
     e->frame++;

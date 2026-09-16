@@ -14,14 +14,14 @@ Vec2 camera_to_world(const Camera *c, Vec2 s) {
                  (s.y - c->view_h * 0.5f) / c->zoom + c->pos.y + c->offset.y };
 }
 
-SDL_FRect camera_rect(const Camera *c, SDL_FRect r) {
+Rect camera_rect(const Camera *c, Rect r) {
   Vec2 p = camera_to_screen(c, (Vec2){ r.x, r.y });
-  return (SDL_FRect){ p.x, p.y, r.w * c->zoom, r.h * c->zoom };
+  return (Rect){ p.x, p.y, r.w * c->zoom, r.h * c->zoom };
 }
 
-SDL_FRect camera_visible(const Camera *c) {
+Rect camera_visible(const Camera *c) {
   float w = c->view_w / c->zoom, h = c->view_h / c->zoom;
-  return (SDL_FRect){ c->pos.x + c->offset.x - w * 0.5f, c->pos.y + c->offset.y - h * 0.5f, w, h };
+  return (Rect){ c->pos.x + c->offset.x - w * 0.5f, c->pos.y + c->offset.y - h * 0.5f, w, h };
 }
 
 void camera_set_bounds(Camera *c, float x, float y, float w, float h) {

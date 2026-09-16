@@ -1,5 +1,5 @@
 #pragma once
-#include <SDL3/SDL.h>
+#include "types.h"
 #include "mathx.h"
 
 typedef struct Camera {
@@ -13,7 +13,7 @@ typedef struct Camera {
 void      camera_init(Camera *c, int view_w, int view_h);
 Vec2      camera_to_screen(const Camera *c, Vec2 world);
 Vec2      camera_to_world(const Camera *c, Vec2 screen);
-SDL_FRect camera_rect(const Camera *c, SDL_FRect world);
-SDL_FRect camera_visible(const Camera *c);
+Rect camera_rect(const Camera *c, Rect world);
+Rect camera_visible(const Camera *c);
 void      camera_follow(Camera *c, Vec2 target, float smoothing, float dt);   /* smoothing 0 = snap */
 void      camera_set_bounds(Camera *c, float x, float y, float w, float h);

@@ -10,7 +10,7 @@ bool tilemap_solid_at(const Tilemap *m, float wx, float wy) {
   return m->solid[tilemap_at(m, (int)floorf(wx / m->tile), (int)floorf(wy / m->tile))];
 }
 
-bool tilemap_box_hits(const Tilemap *m, const SDL_FRect *b) {
+bool tilemap_box_hits(const Tilemap *m, const Rect *b) {
   int x0 = (int)floorf(b->x / m->tile),                     y0 = (int)floorf(b->y / m->tile);
   int x1 = (int)floorf((b->x + b->w - 0.001f) / m->tile),   y1 = (int)floorf((b->y + b->h - 0.001f) / m->tile);
   for (int ty = y0; ty <= y1; ++ty)
@@ -19,8 +19,8 @@ bool tilemap_box_hits(const Tilemap *m, const SDL_FRect *b) {
   return false;
 }
 
-void tilemap_draw(SDL_Renderer *r, const Tilemap *m, const Camera *c) {
-  SDL_FRect vis = camera_visible(c);
+void tilemap_draw(const Tilemap *m, const Camera *c) {
+  Rect vis = camera_visible(c);
   int x0 = (int)floorf(vis.x / m->tile) - 1, x1 = (int)ceilf((vis.x + vis.w) / m->tile) + 1;
   int y0 = (int)floorf(vis.y / m->tile) - 1, y1 = (int)ceilf((vis.y + vis.h) / m->tile) + 1;
   for (int ty = y0; ty <= y1; ++ty) {
@@ -28,12 +28,12 @@ void tilemap_draw(SDL_Renderer *r, const Tilemap *m, const Camera *c) {
       uint8_t id = tilemap_at(m, tx, ty);
       if (id == 0) continue;
       Vec2 s = camera_to_screen(c, (Vec2){ (float)(tx * m->tile), (float)(ty * m->tile) });
-      sprite_draw_scaled(r, &m->tileset, id, s.x, s.y, c->zoom, 0, SDL_FLIP_NONE);
+      sprite_draw_scaled(&m->tileset, id, s.x, s.y, c->zoom, 0, FLIP_NONE);
     }
   }
 }
 
-void tilemap_move(const Tilemap *m, SDL_FRect *box, Vec2 *vel, float dt, bool *on_ground) {
+void tilemap_move(const Tilemap *m, Rect *box, Vec2 *vel, float dt, bool *on_ground) {
   box->x += vel->x * dt;
   if (tilemap_box_hits(m, box)) {
     if (vel->x > 0) box->x = floorf((box->x + box->w) / m->tile) * m->tile - box->w;
