@@ -1,5 +1,6 @@
 #include "sprite.h"
 #include "draw.h"
+#include <SDL3/SDL.h>
 
 Sprite sprite_from(Texture *tex, int frame_w, int frame_h) {
   Sprite s = { tex, frame_w, frame_h, 1 };
@@ -39,4 +40,12 @@ void sprite_draw_scaled(const Sprite *s, int frame, float x, float y, float scal
 
 void sprite_draw(const Sprite *s, int frame, float x, float y, double angle, Flip flip) {
   sprite_draw_scaled(s, frame, x, y, 1.0f, angle, flip);
+}
+
+void sprite_draw_tinted(const Sprite *s, int frame, float x, float y, Color tint, Flip flip) {
+  SDL_SetTextureColorMod(s->tex, tint.r, tint.g, tint.b);
+  SDL_SetTextureAlphaMod(s->tex, tint.a);
+  sprite_draw(s, frame, x, y, 0, flip);
+  SDL_SetTextureColorMod(s->tex, 255, 255, 255);
+  SDL_SetTextureAlphaMod(s->tex, 255);
 }

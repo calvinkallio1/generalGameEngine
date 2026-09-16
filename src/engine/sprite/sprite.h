@@ -14,3 +14,8 @@ int    anim_frame(const AnimState *st, const Anim *a);      /* absolute sheet fr
 
 void sprite_draw(const Sprite *s, int frame, float x, float y, double angle, Flip flip);
 void sprite_draw_scaled(const Sprite *s, int frame, float x, float y, float scale, double angle, Flip flip);
+
+/* Draw with the texture's colors multiplied by tint (white sheet x tint = tint; alpha
+   fades). Used for palette-free recoloring: layered white silhouettes tinted per entity.
+   The texture's modulation is restored to neutral afterward, so other draws are unaffected. */
+void sprite_draw_tinted(const Sprite *s, int frame, float x, float y, Color tint, Flip flip);
