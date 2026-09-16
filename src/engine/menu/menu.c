@@ -43,3 +43,17 @@ void menu_render(const Menu *m) {
     text_draw(m->font, m->x + (sel ? 12 : 0), m->y + i * m->line_h, c, m->items[i].label);
   }
 }
+
+static void menu_center(Menu *m, Engine *e) {
+  int w = 0, h, widest = 0;
+  for (int i = 0; i < m->count; i++) {
+    text_size(m->font, m->items[i].label, &w, &h);
+    if (w > widest) {
+      widest = w;
+    }
+  }
+  float block_h = m->count * m->line_h;
+  m->x = (e->logical_w - widest) / 2.0f;
+  m->y = (e->logical_h - block_h) / 2.0f;
+  m->hit_w = widest + 12;
+}
