@@ -44,7 +44,7 @@ void menu_render(const Menu *m) {
   }
 }
 
-static void menu_center(Menu *m, Engine *e) {
+void menu_center(Menu *m, Engine *e) {
   int w = 0, h, widest = 0;
   for (int i = 0; i < m->count; i++) {
     text_size(m->font, m->items[i].label, &w, &h);
