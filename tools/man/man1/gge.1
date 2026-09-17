@@ -22,10 +22,20 @@ for its own option list.
 Create a new game project: CMakeLists.txt, src/main.c, src/game_state.h,
 src/scenes.h, a title and a game scene, an assets/ tree, gge.conf, and the
 engine as a git submodule at vendored/engine.
+.RS
+.TP
+.BI \-o " DIR"
+Parent directory to create the project under (default .).
+.TP
+.BI \-e " URL"
+Engine repository to add as the submodule (default: this engine's origin).
+.TP
 .B \-I
-enables SDL_image (PNG),
+Enable SDL_image (PNG loading).
+.TP
 .B \-T
-enables SDL_ttf.
+Enable SDL_ttf (TrueType fonts).
+.RE
 .TP
 .BI "scene [\-o " DIR "] [\-t " TYPE "] [\-H " HEADER "] [\-n] [\-f] " name
 Write
@@ -33,10 +43,25 @@ Write
 from the scene template and declare
 .IB name _scene()
 in src/scenes.h.
-.I TYPE
-sets the two stack flags: \fBfull\fR (blocks update and render below; title,
+.RS
+.TP
+.BI \-o " DIR"
+Output directory (default src/scenes).
+.TP
+.BI \-t " TYPE"
+Sets the two stack flags: \fBfull\fR (blocks update and render below; title,
 gameplay), \fBoverlay\fR (blocks update, shows below; pause, dialog; the
 default), or \fBhud\fR (blocks nothing).
+.TP
+.BI \-H " HEADER"
+Header that receives the declaration (default src/scenes.h).
+.TP
+.B \-n
+Do not touch the header.
+.TP
+.B \-f
+Overwrite the file if it exists.
+.RE
 .TP
 .BI "entity [\-o " DIR "] [\-H] [\-f] " name
 Write
@@ -44,6 +69,17 @@ Write
 and
 .IR .c :
 a pointer-free struct, init/tick functions, and a hitbox helper.
+.RS
+.TP
+.BI \-o " DIR"
+Output directory (default src/entities).
+.TP
+.B \-H
+Header only, for an all-inline entity.
+.TP
+.B \-f
+Overwrite existing files.
+.RE
 .TP
 .BI "config [\-f " FILE "] [\-e " HEADER "] [" key " [" value ]]
 Show, set, or emit project settings. Settings live in
@@ -54,16 +90,39 @@ as
 .BI GGE_ KEY
 macros, which main.c uses to fill EngineConfig. Strings are quoted, numbers
 are bare.
+.RS
+.TP
+.BI \-f " FILE"
+Settings file (default gge.conf).
+.TP
+.BI \-e " HEADER"
+Header to generate (default src/gge_config.h).
+.RE
 .TP
 .BI "man [\-s " SECTION "] [\-k] " topic
 Open a manual page. Function pages are section 3, concept pages section 7,
 this page section 1.
+.RS
+.TP
+.BI \-s " SECTION"
+Force a section: 1 tools, 3 functions, 7 concepts.
+.TP
 .B \-k
-lists pages mentioning
-.IR topic .
+Keyword search: list pages mentioning
+.I topic
+instead of opening one.
+.RE
 .TP
 .BI "ls [\-m " MODULE "] [\-g " REGEX ]
 List every public engine function with its module and one-line description.
+.RS
+.TP
+.BI \-m " MODULE"
+Only this engine folder (sprite, menu, tilemap, ...).
+.TP
+.BI \-g " REGEX"
+Filter function names.
+.RE
 .TP
 .B genman
 Regenerate the section-3 pages from the engine headers. A

@@ -7,7 +7,7 @@ camera_follow \- Move the camera toward target
 .BI "void camera_follow(Camera *c, Vec2 target, float smoothing, float dt);"
 .fi
 .SH DESCRIPTION
-Move the camera toward target. smoothing 0 snaps; larger values lag more (try 5\-10). Call from update, then draw with the interpolated target.
+Move the camera toward target. smoothing is a time constant in seconds: 0 snaps, 0.1\-0.3 is a tight follow, 1.0 is lazy. Call from update.
 .SH MODULE
 camera (src/engine/camera/camera.h)
 .SH SEE ALSO
