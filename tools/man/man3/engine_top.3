@@ -1,0 +1,18 @@
+.TH ENGINE_TOP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+engine_top \- The scene currently on top of the stack, or NULL when empty
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.BI "Scene * engine_top(Engine *e);"
+.fi
+.SH DESCRIPTION
+The scene currently on top of the stack, or NULL when empty. Useful to guard against pushing a scene twice: if (engine_top(e) != shop_scene()) ...
+.PP
+This is a static inline function; it is defined in the header.
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR engine_push (3),
+.BR gge (1),
+.BR gge\-scenes (7)

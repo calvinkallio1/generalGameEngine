@@ -1,0 +1,16 @@
+.TH DRAW_RECT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+draw_rect \- Filled rectangle
+.SH SYNOPSIS
+.nf
+.B #include \(dqdraw.h\(dq
+.BI "void draw_rect(Rect r, Color c);"
+.fi
+.SH DESCRIPTION
+Filled rectangle. Alpha blending is always on, so a translucent full\-screen rect dims everything drawn before it.
+.SH MODULE
+draw (src/engine/draw/draw.h)
+.SH SEE ALSO
+.BR draw_rect_outline (3),
+.BR gge (1),
+.BR gge\-scenes (7)

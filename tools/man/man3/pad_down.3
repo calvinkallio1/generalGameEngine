@@ -1,0 +1,18 @@
+.TH PAD_DOWN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+pad_down \- True while the gamepad button is held (requires EngineConfig.gamepad)
+.SH SYNOPSIS
+.nf
+.B #include \(dqinput.h\(dq
+.BI "bool pad_down(const Input *in, PadButton b);"
+.fi
+.SH DESCRIPTION
+True while the gamepad button is held (requires EngineConfig.gamepad). Axes are in in\->axes[AXIS_*] as \-1..1.
+.PP
+This is a static inline function; it is defined in the header.
+.SH MODULE
+input (src/engine/input/input.h)
+.SH SEE ALSO
+.BR pad_pressed (3),
+.BR gge (1),
+.BR gge\-scenes (7)

@@ -1,0 +1,18 @@
+.TH MOUSE_DOWN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+mouse_down \- True while the mouse button is held
+.SH SYNOPSIS
+.nf
+.B #include \(dqinput.h\(dq
+.BI "bool mouse_down(const Input *in, MouseButton b);"
+.fi
+.SH DESCRIPTION
+True while the mouse button is held. Position is in\->mouse_x / in\->mouse_y in logical pixels.
+.PP
+This is a static inline function; it is defined in the header.
+.SH MODULE
+input (src/engine/input/input.h)
+.SH SEE ALSO
+.BR mouse_pressed (3),
+.BR gge (1),
+.BR gge\-scenes (7)

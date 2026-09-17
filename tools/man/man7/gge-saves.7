@@ -1,0 +1,29 @@
+.TH GGE\-SAVES 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-saves \- saving and loading GameState
+.SH DESCRIPTION
+The save system writes a pointer\-free struct to disk with a header carrying a
+version number.
+.nf
+.ft B
+save_write(&e->save, "slot1", g, sizeof *g, SAVE_VERSION);
+save_load (&e->save, "slot1", g, sizeof *g, SAVE_VERSION);
+save_exists(&e->save, "slot1");
+.ft R
+.fi
+Files live in the per\-user folder derived from
+.B EngineConfig.org
+and
+.B app
+(or the working directory when both are NULL).
+.SS Rules
+GameState must contain no pointers: use fixed arrays and indices. Bump
+SAVE_VERSION whenever the struct layout changes; loads of an older version
+fail cleanly. Scene statics are not saved, so reset them in
+.B on_enter
+from the loaded state.
+.SH SEE ALSO
+.BR save_write (3),
+.BR save_load (3),
+.BR save_exists (3),
+.BR gge\-state (7)

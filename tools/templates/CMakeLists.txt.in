@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.21)
+project(@NAME@ LANGUAGES C)
+
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(ENGINE_WITH_IMAGE @IMAGE@ CACHE BOOL "" FORCE)
+set(ENGINE_WITH_TTF   @TTF@   CACHE BOOL "" FORCE)
+add_subdirectory(vendored/engine)
+
+# gge.conf -> src/gge_config.h (GGE_* macros), regenerated when gge.conf changes
+add_custom_command(
+  OUTPUT  ${CMAKE_CURRENT_SOURCE_DIR}/src/gge_config.h
+  COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/vendored/engine/tools/gge config
+          -f ${CMAKE_CURRENT_SOURCE_DIR}/gge.conf -e ${CMAKE_CURRENT_SOURCE_DIR}/src/gge_config.h
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/gge.conf
+  COMMENT "gge config: emitting src/gge_config.h")
+
+file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
+add_executable(${PROJECT_NAME} ${GAME_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/src/gge_config.h)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(${PROJECT_NAME} PRIVATE engine)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets)

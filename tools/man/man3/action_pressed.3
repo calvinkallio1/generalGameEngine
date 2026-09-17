@@ -1,0 +1,18 @@
+.TH ACTION_PRESSED 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+action_pressed \- True only on the frame any input bound to the action went down
+.SH SYNOPSIS
+.nf
+.B #include \(dqactions.h\(dq
+.BI "bool action_pressed(const ActionMap *m, const Input *in, int a);"
+.fi
+.SH DESCRIPTION
+True only on the frame any input bound to the action went down.
+.PP
+This is a static inline function; it is defined in the header.
+.SH MODULE
+input (src/engine/input/actions.h)
+.SH SEE ALSO
+.BR action_down (3),
+.BR gge (1),
+.BR gge\-scenes (7)

@@ -1,0 +1,18 @@
+.TH KEY_RELEASED 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+key_released \- True only on the frame the key came up
+.SH SYNOPSIS
+.nf
+.B #include \(dqinput.h\(dq
+.BI "bool key_released(const Input *in, Key k);"
+.fi
+.SH DESCRIPTION
+True only on the frame the key came up.
+.PP
+This is a static inline function; it is defined in the header.
+.SH MODULE
+input (src/engine/input/input.h)
+.SH SEE ALSO
+.BR key_pressed (3),
+.BR gge (1),
+.BR gge\-scenes (7)

@@ -1,0 +1,45 @@
+.TH GGE\-ASSETS 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-assets \- where files go and how they are loaded
+.SH DESCRIPTION
+Every path the engine takes is relative to
+.IR <executable>/assets/ .
+CMake copies the project's
+.I assets/
+folder next to the binary after each build, so edit files in the project and
+rebuild.
+.SS Layout
+.nf
+assets/sprites/   .png (ENGINE_WITH_IMAGE) or .bmp sheets
+assets/tiles/     tilesets and Tiled .csv exports
+assets/fonts/     .ttf (ENGINE_WITH_TTF)
+assets/sfx/       .wav
+assets/music/     .wav
+.fi
+.SS Loading
+.BR assets_texture (3)
+caches by path; call it freely in
+.B on_enter
+and never free the result.
+.BR text_load_font (3)
+returns a zero Font on failure, which draws with the debug font.
+.BR audio_load (3)
+returns a Sound the caller frees with
+.BR audio_free (3)
+in
+.BR on_exit .
+.BR tilemap_load_csv (3)
+allocates; free with
+.BR tilemap_free (3).
+Failures log to the console and return NULL/false; nothing aborts, so run the
+game from a terminal when something does not appear.
+.SS Tilesets
+One image, tiles left to right in rows, frame index = tile id. Keep frame 0
+blank. 16 tiles across is a good width; families of variant tiles (autotile
+masks, 9\-slices) go on their own rows so base indices are multiples of 16.
+.SH SEE ALSO
+.BR assets_texture (3),
+.BR assets_path (3),
+.BR text_load_font (3),
+.BR audio_load (3),
+.BR gge\-drawing (7)

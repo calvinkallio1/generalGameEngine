@@ -1,0 +1,17 @@
+.TH MENU_ADD 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+menu_add \- Append an item
+.SH SYNOPSIS
+.nf
+.B #include \(dqmenu.h\(dq
+.BI "void menu_add(Menu *m, const char *label, void (*action)(Engine *));"
+.fi
+.SH DESCRIPTION
+Append an item. label must outlive the menu (a string literal or static buffer). action is called with the Engine when the item is chosen; NULL is allowed for a label that does nothing. Up to 12 items.
+.SH MODULE
+menu (src/engine/menu/menu.h)
+.SH SEE ALSO
+.BR menu_init (3),
+.BR menu_handle_input (3),
+.BR gge (1),
+.BR gge\-scenes (7)

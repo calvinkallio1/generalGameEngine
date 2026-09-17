@@ -1,0 +1,16 @@
+.TH CAMERA_FOLLOW 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+camera_follow \- Move the camera toward target
+.SH SYNOPSIS
+.nf
+.B #include \(dqcamera.h\(dq
+.BI "void camera_follow(Camera *c, Vec2 target, float smoothing, float dt);"
+.fi
+.SH DESCRIPTION
+Move the camera toward target. smoothing 0 snaps; larger values lag more (try 5\-10). Call from update, then draw with the interpolated target.
+.SH MODULE
+camera (src/engine/camera/camera.h)
+.SH SEE ALSO
+.BR camera_set_bounds (3),
+.BR gge (1),
+.BR gge\-scenes (7)

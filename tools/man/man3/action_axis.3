@@ -1,0 +1,18 @@
+.TH ACTION_AXIS 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+action_axis \- \-1..1 from a pair of actions: \-1 while neg is down, +1 while pos is down, or the analog stick value if the actions have axes bound
+.SH SYNOPSIS
+.nf
+.B #include \(dqactions.h\(dq
+.BI "float action_axis(const ActionMap *m, const Input *in, int neg, int pos);"
+.fi
+.SH DESCRIPTION
+\-1..1 from a pair of actions: \-1 while neg is down, +1 while pos is down, or the analog stick value if the actions have axes bound. Normalize the resulting vector before scaling by speed so diagonals are not faster.
+.PP
+This is a static inline function; it is defined in the header.
+.SH MODULE
+input (src/engine/input/actions.h)
+.SH SEE ALSO
+.BR action_down (3),
+.BR gge (1),
+.BR gge\-scenes (7)

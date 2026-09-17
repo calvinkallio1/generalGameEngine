@@ -1,0 +1,16 @@
+.TH CUTSCENE_START 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+cutscene_start \- engine function
+.SH SYNOPSIS
+.nf
+.B #include \(dqcutscene.h\(dq
+.BI "void cutscene_start(Engine *e, const CutStep *steps, int count, void *ctx, Font font, void (*on_finish)(Engine *, void *ctx));"
+.fi
+.SH DESCRIPTION
+No description yet. Add a /** ... */ comment above the prototype in src/engine/cutscene/cutscene.h and run 'gge genman'.
+.SH MODULE
+cutscene (src/engine/cutscene/cutscene.h)
+.SH SEE ALSO
+.BR cutscene_active (3),
+.BR gge (1),
+.BR gge\-scenes (7)

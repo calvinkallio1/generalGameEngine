@@ -1,0 +1,95 @@
+.TH GGE\-SCENES 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-scenes \- how scenes and the scene stack work
+.SH DESCRIPTION
+A scene is one mode of the game: title, gameplay, pause, inventory, dialog.
+It is a
+.B Scene
+struct holding up to five callbacks and two flags:
+.nf
+.ft B
+typedef struct Scene {
+  const char *name;
+  void (*on_enter)(Engine *, Scene *);
+  void (*on_exit)(Engine *, Scene *);
+  void (*handle_input)(Engine *, Scene *, const Input *);
+  void (*update)(Engine *, Scene *, float dt);
+  void (*render)(Engine *, Scene *, float alpha);
+  bool blocks_update_below;
+  bool blocks_render_below;
+} Scene;
+.ft R
+.fi
+NULL callbacks are skipped. Each scene is a singleton: a static
+.B Scene
+inside a getter such as
+.BR title_scene() ,
+which returns its address.
+.SS The stack
+The engine keeps a stack of at most 8 scenes.
+.BR engine_push (3),
+.BR engine_pop (3)
+and
+.BR engine_replace (3)
+queue changes that are applied after the current callback returns, so a scene
+may pop itself from its own handle_input. The loop ends when the stack empties
+or
+.BR engine_quit (3)
+is called.
+.SS Per-frame order
+.IP 1. 3
+.B handle_input
+on the top scene only.
+.IP 2. 3
+Queued stack changes applied.
+.IP 3. 3
+.B update(dt)
+zero or more times at the fixed tick rate, walking down from the top and
+stopping after the first scene whose
+.B blocks_update_below
+is true.
+.IP 4. 3
+Queued stack changes applied.
+.IP 5. 3
+.B render(alpha)
+once, from the lowest scene whose
+.B blocks_render_below
+is true up to the top.
+.SS The two flags
+.TS
+l l l.
+update	render	use
+true	true	title, game over, gameplay itself
+true	false	pause menu, dialog, confirm, shop
+false	false	HUD, toast, minimap
+.TE
+.SS on_enter / on_exit
+.B on_enter
+runs when the scene actually lands on the stack; reset scene\-private
+statics, load assets, build menus, snap the camera.
+.B on_exit
+runs when it leaves, by pop, replace, or shutdown; free sounds, stop music,
+turn off text input.
+.SS alpha
+.B render
+receives how far the simulation is between the last tick and the next, 0..1.
+Draw moving things at
+.BR v2_lerp "(prev, now, alpha)"
+so motion is smooth above the tick rate. It has nothing to do with
+transparency.
+.SS Passing data to a scene
+Give the scene an opener that stores what it needs in a static and pushes:
+.nf
+.ft B
+static int target;
+void shop_scene_open(Engine *e, int cat) { target = cat; engine_push(e, shop_scene()); }
+.ft R
+.fi
+Store indices, never pointers into GameState; a loaded save moves the data.
+.SH SEE ALSO
+.BR engine_push (3),
+.BR engine_pop (3),
+.BR engine_replace (3),
+.BR engine_top (3),
+.BR gge\-state (7),
+.BR gge (1)

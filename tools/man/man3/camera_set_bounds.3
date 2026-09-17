@@ -1,0 +1,16 @@
+.TH CAMERA_SET_BOUNDS 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+camera_set_bounds \- Clamp the camera so it never shows outside the given world rectangle (the level edges)
+.SH SYNOPSIS
+.nf
+.B #include \(dqcamera.h\(dq
+.BI "void camera_set_bounds(Camera *c, float x, float y, float w, float h);"
+.fi
+.SH DESCRIPTION
+Clamp the camera so it never shows outside the given world rectangle (the level edges).
+.SH MODULE
+camera (src/engine/camera/camera.h)
+.SH SEE ALSO
+.BR camera_follow (3),
+.BR gge (1),
+.BR gge\-scenes (7)

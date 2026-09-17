@@ -1,0 +1,16 @@
+.TH AUDIO_FREE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+audio_free \- Release a Sound's samples
+.SH SYNOPSIS
+.nf
+.B #include \(dqaudio.h\(dq
+.BI "void audio_free(Sound *s);"
+.fi
+.SH DESCRIPTION
+Release a Sound's samples. Do not free a sound that is currently the music.
+.SH MODULE
+audio (src/engine/audio/audio.h)
+.SH SEE ALSO
+.BR audio_load (3),
+.BR gge (1),
+.BR gge\-scenes (7)

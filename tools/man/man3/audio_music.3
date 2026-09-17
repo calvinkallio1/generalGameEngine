@@ -1,0 +1,16 @@
+.TH AUDIO_MUSIC 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+audio_music \- Loop s as the music track at gain, replacing any current music
+.SH SYNOPSIS
+.nf
+.B #include \(dqaudio.h\(dq
+.BI "void audio_music(const Sound *s, float gain);"
+.fi
+.SH DESCRIPTION
+Loop s as the music track at gain, replacing any current music. s must outlive the playback.
+.SH MODULE
+audio (src/engine/audio/audio.h)
+.SH SEE ALSO
+.BR audio_music_stop (3),
+.BR gge (1),
+.BR gge\-scenes (7)

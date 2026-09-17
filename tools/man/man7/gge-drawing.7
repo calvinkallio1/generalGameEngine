@@ -1,0 +1,73 @@
+.TH GGE\-DRAWING 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-drawing \- primitives, sprites, text, tilemaps, cameras
+.SH DESCRIPTION
+All drawing happens inside a scene's
+.B render
+callback, in logical pixels (EngineConfig.logical_w x logical_h; the window is
+scaled to fit). Later calls paint over earlier ones. Colors are
+.B Color
+{r,g,b,a} 0..255 built with
+.BR rgb (),
+.BR rgba ()
+or the
+.B COLOR_*
+constants; rectangles are
+.B Rect
+{x,y,w,h} built with
+.BR rect ().
+.SS Primitives (draw.h)
+.BR draw_clear ", " draw_rect ", " draw_rect_outline ", " draw_line ", " draw_point ", "
+.BR draw_texture ", " draw_texture_ex ", " draw_debug_text .
+Alpha blending is always on, so
+.B rgba(0,0,0,160)
+over the whole screen dims whatever was drawn beneath.
+.SS Sprites (sprite.h)
+.BR sprite_from (3)
+slices a texture into equal frames.
+.BR sprite_draw (3),
+.BR sprite_draw_scaled (3),
+.BR sprite_draw_tinted (3)
+draw one frame; frame index = column + row * columns.
+.B Anim
+/
+.B AnimState
+with
+.BR anim_step (3)
+and
+.BR anim_frame (3)
+play ranges of frames. Tinting multiplies a white sheet by a color, which is
+how palette\-free recolouring works: draw layered white silhouettes with
+different tints.
+.SS Text (text.h)
+.BR text_load_font (3)
+(needs ENGINE_WITH_TTF and EngineConfig.text; falls back to the 8px debug
+font when the file is missing),
+.BR text_draw (3),
+.BR text_size (3)
+for measuring and centering.
+.SS Tilemaps and cameras
+A
+.B Tilemap
+is a uint8_t grid plus a tileset sprite; frame 0 is empty. Fill it from code
+or
+.BR tilemap_load_csv (3)
+(Tiled export). A
+.B Camera
+converts world to screen;
+.BR camera_follow (3)
+tracks a target,
+.BR tilemap_draw (3)
+draws only the visible tiles.
+.SS Smooth motion
+Draw at
+.BR v2_lerp "(prev, now, alpha)" ;
+keep prev in a scene static updated at the start of each
+.BR update .
+.SH SEE ALSO
+.BR draw_rect (3),
+.BR sprite_draw (3),
+.BR text_draw (3),
+.BR tilemap_draw (3),
+.BR camera_follow (3),
+.BR gge\-assets (7)

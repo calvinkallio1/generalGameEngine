@@ -1,0 +1,20 @@
+.TH ENGINE_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+engine_init \- Zero *e, start SDL, open the window and renderer at cfg\->logical_w x logical_h scaled by window_scale, apply vsync and logical presentation, then start the services cfg asks for (assets, save, audio, text, gamepad)
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.BI "bool engine_init(Engine *e, const EngineConfig *cfg);"
+.fi
+.SH DESCRIPTION
+Zero *e, start SDL, open the window and renderer at cfg\->logical_w x logical_h scaled by window_scale, apply vsync and logical presentation, then start the services cfg asks for (assets, save, audio, text, gamepad). Zero fields in cfg take defaults (640x360, scale 2, 60 Hz).
+.SH RETURN VALUE
+true on success; false if SDL or the window failed. A service failing (no audio device, TTF not built) is logged and leaves e\->has_audio / e\->has_text false.
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR engine_run (3),
+.BR engine_shutdown (3),
+.BR gge\-scenes (7),
+.BR gge (1),
+.BR gge\-scenes (7)

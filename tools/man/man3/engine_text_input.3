@@ -1,0 +1,17 @@
+.TH ENGINE_TEXT_INPUT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+engine_text_input \- Turn delivery of typed characters on or off
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.BI "void engine_text_input(Engine *e, bool on);"
+.fi
+.SH DESCRIPTION
+Turn delivery of typed characters on or off. While on, Input.text holds the characters typed this frame (UTF\-8, short). Turn on in a scene's on_enter and off in on_exit. Letter keys still report as key presses while on.
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR key_pressed (3),
+.BR gge\-input (7),
+.BR gge (1),
+.BR gge\-scenes (7)

@@ -1,0 +1,18 @@
+.TH TIMER_TICK 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+timer_tick \- Advance a timer by dt
+.SH SYNOPSIS
+.nf
+.B #include \(dqtween.h\(dq
+.BI "bool timer_tick(Timer *t, float dt);"
+.fi
+.SH DESCRIPTION
+Advance a timer by dt. Returns true on the single tick it reaches zero, then stops.
+.PP
+This is a static inline function; it is defined in the header.
+.SH MODULE
+tween (src/engine/tween/tween.h)
+.SH SEE ALSO
+.BR timer_start (3),
+.BR gge (1),
+.BR gge\-scenes (7)

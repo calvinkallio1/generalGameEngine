@@ -1,0 +1,18 @@
+.TH ENGINE_QUIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+engine_quit \- End the main loop after the current frame
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.BI "void engine_quit(Engine *e);"
+.fi
+.SH DESCRIPTION
+End the main loop after the current frame. Usable from any scene or menu action.
+.PP
+This is a static inline function; it is defined in the header.
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR engine_run (3),
+.BR gge (1),
+.BR gge\-scenes (7)

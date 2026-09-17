@@ -1,0 +1,16 @@
+.TH TWEEN_UPDATE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+tween_update \- Advance a tween by dt, writing the new value through its target pointer
+.SH SYNOPSIS
+.nf
+.B #include \(dqtween.h\(dq
+.BI "void tween_update(Tween *tw, float dt);"
+.fi
+.SH DESCRIPTION
+Advance a tween by dt, writing the new value through its target pointer. Call from update.
+.SH MODULE
+tween (src/engine/tween/tween.h)
+.SH SEE ALSO
+.BR tween_start (3),
+.BR gge (1),
+.BR gge\-scenes (7)

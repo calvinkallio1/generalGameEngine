@@ -1,0 +1,262 @@
+#!/bin/sh
+# gge - generalGameEngine project tool
+# Lives in the engine repo; games call it as vendored/engine/tools/gge.
+set -e
+HERE=$(cd "$(dirname "$0")" && pwd)
+TPL="$HERE/templates"
+ENGINE="$HERE/.."
+
+die()   { echo "gge: $*" >&2; exit 1; }
+upper() { echo "$1" | tr 'a-z' 'A-Z'; }
+title() { echo "$1" | sed 's/_/ /g'; }
+ctype() { echo "$1" | awk -F_ '{ for (i = 1; i <= NF; i++) printf "%s%s", toupper(substr($i,1,1)), substr($i,2) }'; }   # my_cat -> MyCat
+
+usage() { cat <<EOF
+usage: gge <command> [options] [args]
+
+  init   [-o DIR] [-e URL] [-I] [-T] <name>       new game project using the engine
+  scene  [-o DIR] [-t TYPE] [-H FILE] [-n] [-f] <name>
+                                                  add a scene file (+ declaration)
+  entity [-o DIR] [-H] [-f] <name>                add an entity .h/.c pair
+  config [-f FILE] [-e HEADER] [key [value]]      show / set / emit project settings
+  man    [-s SECTION] [-k] <topic>                manual pages (functions, concepts)
+  ls     [-m MODULE] [-g PATTERN]                 list engine functions
+  genman                                          rebuild man3 pages from the headers
+
+'gge <command> -h' shows that command's options.
+EOF
+}
+
+# render TEMPLATE OUT NAME [extra sed args...]
+render() {
+  t=$1; o=$2; n=$3; shift 3
+  sed -e "s/@NAME@/$n/g" -e "s/@UPPER@/$(upper "$n")/g" -e "s/@TITLE@/$(title "$n")/g" -e "s/@TYPE@/$(ctype "$n")/g" "$@" "$t" > "$o"
+}
+
+# ---------------------------------------------------------------- scene
+cmd_scene() {
+  out=src/scenes; type=overlay; hdr=src/scenes.h; declare=1; force=0
+  while getopts "o:t:H:nfh" opt; do
+    case $opt in
+      o) out=$OPTARG ;;
+      t) type=$OPTARG ;;
+      H) hdr=$OPTARG ;;
+      n) declare=0 ;;
+      f) force=1 ;;
+      h|*) cat <<EOF; exit 0 ;;
+gge scene [-o DIR] [-t full|overlay|hud] [-H HEADER] [-n] [-f] <name>
+  -o DIR     where to write scene_<name>.c            (default src/scenes)
+  -t TYPE    full:    blocks update + render below     (title, gameplay)
+             overlay: blocks update, shows below       (pause, dialog)  [default]
+             hud:     blocks nothing                   (HUD, toasts)
+  -H HEADER  header that gets 'Scene *<name>_scene(void);' (default src/scenes.h)
+  -n         skip the header declaration
+  -f         overwrite if the file exists
+EOF
+    esac
+  done
+  shift $((OPTIND - 1))
+  name=$1; [ -n "$name" ] || die "scene: missing name (gge scene -h)"
+  case $type in
+    full)    bu=true;  br=true  ;;
+    overlay) bu=true;  br=false ;;
+    hud)     bu=false; br=false ;;
+    *) die "scene: -t must be full, overlay, or hud" ;;
+  esac
+  file="$out/scene_$name.c"
+  [ -e "$file" ] && [ $force -eq 0 ] && die "$file exists (use -f to overwrite)"
+  mkdir -p "$out"
+  render "$TPL/scene.c.in" "$file" "$name" -e "s/@BLOCK_UPDATE@/$bu/" -e "s/@BLOCK_RENDER@/$br/"
+  echo "wrote $file"
+  if [ $declare -eq 1 ]; then
+    [ -e "$hdr" ] || printf '#pragma once\n#include "engine.h"\n' > "$hdr"
+    if grep -q "${name}_scene" "$hdr"; then echo "${name}_scene already declared in $hdr"
+    else printf 'Scene *%s_scene(void);\n' "$name" >> "$hdr"; echo "declared ${name}_scene in $hdr"; fi
+  fi
+}
+
+# ---------------------------------------------------------------- entity
+cmd_entity() {
+  out=src/entities; force=0; header_only=0
+  while getopts "o:fHh" opt; do
+    case $opt in
+      o) out=$OPTARG ;;
+      f) force=1 ;;
+      H) header_only=1 ;;
+      h|*) cat <<EOF; exit 0 ;;
+gge entity [-o DIR] [-H] [-f] <name>
+  -o DIR   where to write <name>.h and <name>.c      (default src/entities)
+  -H       header only (all-inline entity)
+  -f       overwrite existing files
+EOF
+    esac
+  done
+  shift $((OPTIND - 1))
+  name=$1; [ -n "$name" ] || die "entity: missing name (gge entity -h)"
+  mkdir -p "$out"
+  for ext in h c; do
+    [ $header_only -eq 1 ] && [ $ext = c ] && continue
+    f="$out/$name.$ext"
+    [ -e "$f" ] && [ $force -eq 0 ] && die "$f exists (use -f to overwrite)"
+    render "$TPL/entity.$ext.in" "$f" "$name"
+    echo "wrote $f"
+  done
+}
+
+# ---------------------------------------------------------------- init
+cmd_init() {
+  out=.; engine=; image=OFF; ttf=OFF
+  while getopts "o:e:ITh" opt; do
+    case $opt in
+      o) out=$OPTARG ;;
+      e) engine=$OPTARG ;;
+      I) image=ON ;;
+      T) ttf=ON ;;
+      h|*) cat <<EOF; exit 0 ;;
+gge init [-o DIR] [-e ENGINE_URL] [-I] [-T] <name>
+  -o DIR   create the project under DIR               (default .)
+  -e URL   engine repo to add as vendored/engine       (default: this engine's origin)
+  -I       ENGINE_WITH_IMAGE=ON (PNG loading)
+  -T       ENGINE_WITH_TTF=ON   (TrueType fonts)
+EOF
+    esac
+  done
+  shift $((OPTIND - 1))
+  name=$1; [ -n "$name" ] || die "init: missing name (gge init -h)"
+  dir="$out/$name"; [ -e "$dir" ] && die "$dir exists"
+  [ -n "$engine" ] || engine=$(git -C "$ENGINE" remote get-url origin 2>/dev/null || echo "$ENGINE")
+  mkdir -p "$dir/src/scenes" "$dir/src/entities" \
+           "$dir/assets/sprites" "$dir/assets/fonts" "$dir/assets/tiles" "$dir/assets/sfx" "$dir/assets/music"
+  render "$TPL/CMakeLists.txt.in" "$dir/CMakeLists.txt"   "$name" -e "s/@IMAGE@/$image/" -e "s/@TTF@/$ttf/"
+  render "$TPL/main.c.in"         "$dir/src/main.c"       "$name"
+  render "$TPL/game_state.h.in"   "$dir/src/game_state.h" "$name"
+  printf '#pragma once\n#include "engine.h"\n' > "$dir/src/scenes.h"
+  printf 'build/\n.cache/\nsrc/gge_config.h\n' > "$dir/.gitignore"
+  printf 'CompileFlags:\n  CompilationDatabase: build\n' > "$dir/.clangd"
+  printf 'title=%s\nlogical_w=640\nlogical_h=360\nwindow_scale=2\ntick_rate=60\ntile=16\norg=%s\napp=%s\n' \
+         "$(title "$name")" "$(whoami)" "$name" > "$dir/gge.conf"
+  ( cd "$dir" && "$HERE/gge" scene -n -t full title >/dev/null && "$HERE/gge" scene -n -t full game >/dev/null )
+  printf 'Scene *title_scene(void);\nScene *game_scene(void);\n' >> "$dir/src/scenes.h"
+  "$HERE/gge" config -f "$dir/gge.conf" -e "$dir/src/gge_config.h" >/dev/null
+  ( cd "$dir" && git init -q )
+  if ( cd "$dir" && git -c protocol.file.allow=always submodule add -q "$engine" vendored/engine \
+                 && git -c protocol.file.allow=always submodule update --init --recursive -q ); then
+    :
+  else
+    echo "gge: could not add the engine submodule from '$engine'." >&2
+    echo "     run inside $dir:  git submodule add <engine-url> vendored/engine && git submodule update --init --recursive" >&2
+  fi
+  echo "created $dir"
+  echo "next:  cd $dir && cmake -B build && cmake --build build && ./build/$name"
+}
+
+# ---------------------------------------------------------------- config
+emit_header() {   # emit_header CONF HEADER
+  mkdir -p "$(dirname "$2")"
+  {
+    echo '/* generated by "gge config" from gge.conf; edit gge.conf, not this file */'
+    echo '#pragma once'
+    while IFS='=' read -r k v; do
+      [ -z "$k" ] && continue
+      case $k in \#*) continue ;; esac
+      K=GGE_$(upper "$k")
+      case $v in
+        ""|*[!0-9.-]*) echo "#define $K \"$v\"" ;;
+        *)             echo "#define $K $v" ;;
+      esac
+    done < "$1"
+  } > "$2"
+  echo "emitted $2"
+}
+
+cmd_config() {
+  file=gge.conf; header=src/gge_config.h
+  while getopts "f:e:h" opt; do
+    case $opt in
+      f) file=$OPTARG ;;
+      e) header=$OPTARG ;;
+      h|*) cat <<EOF; exit 0 ;;
+gge config [-f FILE] [-e HEADER] [key [value]]
+  (no args)      print all settings and re-emit the header
+  key            print one value
+  key value      set it and re-emit the header
+  -f FILE        settings file             (default gge.conf)
+  -e HEADER      generated C header        (default src/gge_config.h)
+Keys: title logical_w logical_h window_scale tick_rate tile org app
+Each key becomes GGE_<KEY> in the header (strings quoted, numbers bare).
+EOF
+    esac
+  done
+  shift $((OPTIND - 1))
+  [ -e "$file" ] || die "no $file (run from the project root, or pass -f FILE)"
+  if [ $# -eq 1 ]; then grep "^$1=" "$file" | cut -d= -f2-; return; fi
+  if [ $# -eq 2 ]; then
+    if grep -q "^$1=" "$file"; then sed -i.bak "s|^$1=.*|$1=$2|" "$file" && rm -f "$file.bak"
+    else echo "$1=$2" >> "$file"; fi
+  fi
+  [ $# -eq 0 ] && cat "$file"
+  emit_header "$file" "$header"
+}
+
+# ---------------------------------------------------------------- man / ls / genman
+cmd_man() {
+  section=; search=0
+  while getopts "s:kh" opt; do
+    case $opt in
+      s) section=$OPTARG ;;
+      k) search=1 ;;
+      h|*) cat <<EOF; exit 0 ;;
+gge man [-s SECTION] [-k] <topic>
+  -s N     section: 1 tools, 3 functions, 7 concepts
+  -k       keyword search: list pages mentioning <topic>
+Topics: any engine function (sprite_draw, engine_push ...) or a concept page:
+  scenes, state, input, drawing, assets, saves, gge
+EOF
+    esac
+  done
+  shift $((OPTIND - 1))
+  [ -n "$1" ] || die "man: missing topic (gge man -h)"
+  export MANPATH="$HERE/man${MANPATH:+:$MANPATH}"
+  if [ $search -eq 1 ]; then
+    grep -il -- "$1" "$HERE"/man/man*/* 2>/dev/null | sed 's|.*/||; s|\.[0-9]$||' | sort -u; return
+  fi
+  if [ -n "$section" ]; then exec man "$section" "$1"; fi
+  if man -w "$1" >/dev/null 2>&1; then exec man "$1"; fi
+  if man -w "gge-$1" >/dev/null 2>&1; then exec man "gge-$1"; fi
+  die "no manual page for '$1' (try gge man -k $1, or gge genman)"
+}
+
+cmd_ls() {
+  module=; pat=
+  while getopts "m:g:h" opt; do
+    case $opt in
+      m) module=$OPTARG ;;
+      g) pat=$OPTARG ;;
+      h|*) cat <<EOF; exit 0 ;;
+gge ls [-m MODULE] [-g PATTERN]
+  -m MODULE   only this engine folder (sprite, menu, tilemap, ...)
+  -g REGEX    filter function names
+EOF
+    esac
+  done
+  python3 "$HERE/genman.py" --list ${module:+--module "$module"} ${pat:+--grep "$pat"}
+}
+
+cmd_genman() {
+  python3 "$HERE/genman.py" --out "$HERE/man/man3" "$@"
+}
+
+# ---------------------------------------------------------------- dispatch
+cmd=$1; [ $# -gt 0 ] && shift
+case "$cmd" in
+  init)    cmd_init "$@" ;;
+  scene)   cmd_scene "$@" ;;
+  entity)  cmd_entity "$@" ;;
+  config)  cmd_config "$@" ;;
+  man)     cmd_man "$@" ;;
+  ls)      cmd_ls "$@" ;;
+  genman)  cmd_genman "$@" ;;
+  help)    [ -n "$1" ] && exec "$0" "$1" -h || usage ;;
+  ""|-h|--help) usage ;;
+  *) die "unknown command '$cmd' (try gge -h)" ;;
+esac

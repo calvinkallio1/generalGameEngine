@@ -1,0 +1,17 @@
+.TH DRAW_TEXTURE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+draw_texture \- Copy a texture region (src, or NULL for the whole texture) into dst, scaling to fit
+.SH SYNOPSIS
+.nf
+.B #include \(dqdraw.h\(dq
+.BI "void draw_texture(Texture *t, const Rect *src, Rect dst);"
+.fi
+.SH DESCRIPTION
+Copy a texture region (src, or NULL for the whole texture) into dst, scaling to fit.
+.SH MODULE
+draw (src/engine/draw/draw.h)
+.SH SEE ALSO
+.BR draw_texture_ex (3),
+.BR sprite_draw (3),
+.BR gge (1),
+.BR gge\-scenes (7)

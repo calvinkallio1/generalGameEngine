@@ -1,0 +1,18 @@
+.TH ACTION_BIND_AXIS 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+action_bind_axis \- Bind action a to a gamepad axis with a sign, so a stick direction counts as the action past a dead zone
+.SH SYNOPSIS
+.nf
+.B #include \(dqactions.h\(dq
+.BI "void action_bind_axis(ActionMap *m, int a, PadAxis ax, float sign);"
+.fi
+.SH DESCRIPTION
+Bind action a to a gamepad axis with a sign, so a stick direction counts as the action past a dead zone. sign +1 for positive travel, \-1 for negative.
+.PP
+This is a static inline function; it is defined in the header.
+.SH MODULE
+input (src/engine/input/actions.h)
+.SH SEE ALSO
+.BR action_axis (3),
+.BR gge (1),
+.BR gge\-scenes (7)

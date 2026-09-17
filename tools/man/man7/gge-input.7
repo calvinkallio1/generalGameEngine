@@ -1,0 +1,67 @@
+.TH GGE\-INPUT 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-input \- keys, mouse, gamepad, actions, text input
+.SH DESCRIPTION
+Input is polled once per frame into
+.B Engine.input
+and passed to the top scene's
+.B handle_input
+as
+.BR "const Input *in" .
+Only the top scene receives it.
+.SS Raw queries
+.BR key_down (3)
+(held),
+.BR key_pressed (3)
+(this frame),
+.BR key_released (3);
+the same three for
+.BR mouse_* (3)
+with
+.B MOUSE_LEFT/RIGHT/MIDDLE
+and for
+.BR pad_* (3)
+with
+.BR PAD_* .
+Key names are
+.BR KEY_A ", " KEY_ESCAPE ", " KEY_ENTER ", " KEY_BACKSPACE ", " KEY_SPACE ...
+from keys.h. Mouse position is
+.BR in->mouse_x ", " in->mouse_y
+in logical pixels.
+.SS Actions
+Bind named actions to keys, pad buttons and axes so scenes never hard\-code
+keys:
+.nf
+.ft B
+enum { LEFT, RIGHT, JUMP };
+static ActionMap keys;
+action_map_init(&keys);
+action_bind_key(&keys, JUMP, KEY_SPACE);
+action_bind_pad(&keys, JUMP, PAD_SOUTH);
+if (action_pressed(&keys, in, JUMP)) ...
+float x = action_axis(&keys, in, LEFT, RIGHT);   /* -1..1 */
+.ft R
+.fi
+.SS Text input
+.BR engine_text_input (3)
+turns on delivery of typed characters into
+.B in->text
+(a short string per frame). Turn it on in
+.B on_enter
+and off in
+.BR on_exit .
+Letter keys still register as key presses while it is on.
+.SS Where to read input
+Only in
+.BR handle_input
+(display rate) for one\-shot reactions, or via
+.B &e->input
+inside
+.B update
+(tick rate) for movement. Never move things from handle_input.
+.SH SEE ALSO
+.BR key_pressed (3),
+.BR action_bind_key (3),
+.BR action_axis (3),
+.BR engine_text_input (3),
+.BR gge\-scenes (7)

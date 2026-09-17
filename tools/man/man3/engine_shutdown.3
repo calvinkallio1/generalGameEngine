@@ -1,0 +1,16 @@
+.TH ENGINE_SHUTDOWN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+engine_shutdown \- Pop every remaining scene (their on_exit runs), stop services in reverse order, and quit SDL
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.BI "void engine_shutdown(Engine *e);"
+.fi
+.SH DESCRIPTION
+Pop every remaining scene (their on_exit runs), stop services in reverse order, and quit SDL. Safe to call after engine_run returns.
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR engine_init (3),
+.BR gge (1),
+.BR gge\-scenes (7)

@@ -1,0 +1,16 @@
+.TH MENU_CENTER 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+menu_center \- Position the menu block in the middle of the logical screen based on its widest label and item count
+.SH SYNOPSIS
+.nf
+.B #include \(dqmenu.h\(dq
+.BI "void menu_center(Menu *m, Engine *e);"
+.fi
+.SH DESCRIPTION
+Position the menu block in the middle of the logical screen based on its widest label and item count. Call after the last menu_add.
+.SH MODULE
+menu (src/engine/menu/menu.h)
+.SH SEE ALSO
+.BR menu_init (3),
+.BR gge (1),
+.BR gge\-scenes (7)

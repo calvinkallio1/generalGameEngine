@@ -1,0 +1,20 @@
+.TH ACTION_BIND_KEY 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+action_bind_key \- Bind action a (your own enum value, < ACTION_MAX) to a keyboard key
+.SH SYNOPSIS
+.nf
+.B #include \(dqactions.h\(dq
+.BI "void action_bind_key(ActionMap *m, int a, Key key);"
+.fi
+.SH DESCRIPTION
+Bind action a (your own enum value, < ACTION_MAX) to a keyboard key. Each action holds up to two keys; the third call replaces the second.
+.PP
+This is a static inline function; it is defined in the header.
+.SH MODULE
+input (src/engine/input/actions.h)
+.SH SEE ALSO
+.BR action_bind_pad (3),
+.BR action_bind_axis (3),
+.BR action_down (3),
+.BR gge (1),
+.BR gge\-scenes (7)

@@ -1,0 +1,17 @@
+.TH CAMERA_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+camera_init \- Reset a camera for a view of view_w x view_h logical pixels, positioned at the origin with zoom 1
+.SH SYNOPSIS
+.nf
+.B #include \(dqcamera.h\(dq
+.BI "void camera_init(Camera *c, int view_w, int view_h);"
+.fi
+.SH DESCRIPTION
+Reset a camera for a view of view_w x view_h logical pixels, positioned at the origin with zoom 1.
+.SH MODULE
+camera (src/engine/camera/camera.h)
+.SH SEE ALSO
+.BR camera_follow (3),
+.BR camera_to_screen (3),
+.BR gge (1),
+.BR gge\-scenes (7)

@@ -21,13 +21,37 @@ typedef struct Input {
   bool  quit_requested;
 } Input;
 
+/** True while the key is held.
+ *  @see key_pressed, key_released, gge-input
+ */
 static inline bool key_down(const Input *in, Key k)     { return in->keys[k]; }
+/** True only on the frame the key went down. Use for one-shot reactions (open a menu, jump).
+ *  @see key_down, key_released
+ */
 static inline bool key_pressed(const Input *in, Key k)  { return in->keys[k] && !in->prev_keys[k]; }
+/** True only on the frame the key came up.
+ *  @see key_pressed
+ */
 static inline bool key_released(const Input *in, Key k) { return !in->keys[k] && in->prev_keys[k]; }
 
+/** True while the mouse button is held. Position is in->mouse_x / in->mouse_y in logical pixels.
+ *  @see mouse_pressed
+ */
 static inline bool mouse_down(const Input *in, MouseButton b)     { return (in->mouse & SDL_BUTTON_MASK(b)) != 0; }
+/** True only on the frame the button went down.
+ *  @see mouse_down, mouse_released
+ */
 static inline bool mouse_pressed(const Input *in, MouseButton b)  { return (in->mouse & SDL_BUTTON_MASK(b)) && !(in->prev_mouse & SDL_BUTTON_MASK(b)); }
+/** True only on the frame the button came up.
+ *  @see mouse_pressed
+ */
 static inline bool mouse_released(const Input *in, MouseButton b) { return !(in->mouse & SDL_BUTTON_MASK(b)) && (in->prev_mouse & SDL_BUTTON_MASK(b)); }
 
+/** True while the gamepad button is held (requires EngineConfig.gamepad). Axes are in in->axes[AXIS_*] as -1..1.
+ *  @see pad_pressed
+ */
 static inline bool pad_down(const Input *in, PadButton b)    { return in->pad_buttons[b]; }
+/** True only on the frame the gamepad button went down.
+ *  @see pad_down
+ */
 static inline bool pad_pressed(const Input *in, PadButton b) { return in->pad_buttons[b] && !in->prev_pad_buttons[b]; }

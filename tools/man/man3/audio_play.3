@@ -1,0 +1,16 @@
+.TH AUDIO_PLAY 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+audio_play \- Play a sound once at gain 0..1 on a free channel
+.SH SYNOPSIS
+.nf
+.B #include \(dqaudio.h\(dq
+.BI "void audio_play(const Sound *s, float gain);"
+.fi
+.SH DESCRIPTION
+Play a sound once at gain 0..1 on a free channel. Dropped silently if every channel is busy.
+.SH MODULE
+audio (src/engine/audio/audio.h)
+.SH SEE ALSO
+.BR audio_music (3),
+.BR gge (1),
+.BR gge\-scenes (7)

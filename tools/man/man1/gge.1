@@ -1,0 +1,105 @@
+.TH GGE 1 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge \- generalGameEngine project tool
+.SH SYNOPSIS
+.B gge
+.I command
+.RI [ options ]
+.RI [ args ]
+.SH DESCRIPTION
+.B gge
+scaffolds and documents games built on generalGameEngine. It lives in the
+engine repository at
+.I tools/gge
+and is normally run from a game's root as
+.IR vendored/engine/tools/gge .
+Every command accepts
+.B \-h
+for its own option list.
+.SH COMMANDS
+.TP
+.BI "init [\-o " DIR "] [\-e " URL "] [\-I] [\-T] " name
+Create a new game project: CMakeLists.txt, src/main.c, src/game_state.h,
+src/scenes.h, a title and a game scene, an assets/ tree, gge.conf, and the
+engine as a git submodule at vendored/engine.
+.B \-I
+enables SDL_image (PNG),
+.B \-T
+enables SDL_ttf.
+.TP
+.BI "scene [\-o " DIR "] [\-t " TYPE "] [\-H " HEADER "] [\-n] [\-f] " name
+Write
+.IR src/scenes/scene_ name .c
+from the scene template and declare
+.IB name _scene()
+in src/scenes.h.
+.I TYPE
+sets the two stack flags: \fBfull\fR (blocks update and render below; title,
+gameplay), \fBoverlay\fR (blocks update, shows below; pause, dialog; the
+default), or \fBhud\fR (blocks nothing).
+.TP
+.BI "entity [\-o " DIR "] [\-H] [\-f] " name
+Write
+.IR src/entities/ name .h
+and
+.IR .c :
+a pointer-free struct, init/tick functions, and a hitbox helper.
+.TP
+.BI "config [\-f " FILE "] [\-e " HEADER "] [" key " [" value ]]
+Show, set, or emit project settings. Settings live in
+.I gge.conf
+as key=value lines and are emitted to
+.I src/gge_config.h
+as
+.BI GGE_ KEY
+macros, which main.c uses to fill EngineConfig. Strings are quoted, numbers
+are bare.
+.TP
+.BI "man [\-s " SECTION "] [\-k] " topic
+Open a manual page. Function pages are section 3, concept pages section 7,
+this page section 1.
+.B \-k
+lists pages mentioning
+.IR topic .
+.TP
+.BI "ls [\-m " MODULE "] [\-g " REGEX ]
+List every public engine function with its module and one-line description.
+.TP
+.B genman
+Regenerate the section-3 pages from the engine headers. A
+.B /** ... */
+comment directly above a prototype becomes the DESCRIPTION;
+.B @return
+and
+.B @see
+lines are honored. Without one, the trailing comment on the prototype line is
+used.
+.SH FILES
+.TP
+.I gge.conf
+Project settings (title, logical_w, logical_h, window_scale, tick_rate, tile,
+org, app).
+.TP
+.I src/gge_config.h
+Generated from gge.conf; do not edit, do not commit.
+.TP
+.I tools/templates/*.in
+Templates with @NAME@, @UPPER@, @TITLE@, @TYPE@ placeholders.
+.SH EXAMPLES
+.nf
+gge init \-I \-T \-o ~/games cat_simulator
+gge scene \-t hud minimap
+gge scene \-o src/ui \-t overlay shop
+gge entity dog
+gge config tick_rate 120
+gge man engine_push
+gge man scenes
+gge ls \-m tilemap
+.fi
+.SH SEE ALSO
+.BR gge\-scenes (7),
+.BR gge\-state (7),
+.BR gge\-input (7),
+.BR gge\-drawing (7),
+.BR gge\-assets (7),
+.BR gge\-saves (7)

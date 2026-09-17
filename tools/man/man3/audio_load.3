@@ -1,0 +1,20 @@
+.TH AUDIO_LOAD 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+audio_load \- Load a .wav from assets/
+.SH SYNOPSIS
+.nf
+.B #include \(dqaudio.h\(dq
+.BI "Sound audio_load(const char *relative_path);"
+.fi
+.SH DESCRIPTION
+Load a .wav from assets/. Requires EngineConfig.audio = true.
+.SH RETURN VALUE
+a Sound; zero (and logged) on failure. Free with audio_free in on_exit.
+.SH MODULE
+audio (src/engine/audio/audio.h)
+.SH SEE ALSO
+.BR audio_play (3),
+.BR audio_free (3),
+.BR gge\-assets (7),
+.BR gge (1),
+.BR gge\-scenes (7)

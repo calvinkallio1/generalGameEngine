@@ -1,0 +1,17 @@
+.TH TEXT_DRAW 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+text_draw \- Draw s at x,y (top\-left) in color with font f
+.SH SYNOPSIS
+.nf
+.B #include \(dqtext.h\(dq
+.BI "void text_draw(Font f, float x, float y, Color color, const char *s);"
+.fi
+.SH DESCRIPTION
+Draw s at x,y (top\-left) in color with font f. Rendered strings are cached per font/color/string, so drawing the same label each frame is cheap; a label that changes every frame is not.
+.SH MODULE
+text (src/engine/text/text.h)
+.SH SEE ALSO
+.BR text_size (3),
+.BR draw_debug_text (3),
+.BR gge (1),
+.BR gge\-scenes (7)

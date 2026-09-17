@@ -1,0 +1,18 @@
+.TH ENGINE_RUN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+engine_run \- Run the main loop: poll input, apply queued scene changes, run fixed\-rate update ticks (up to 8 per frame to catch up), render with an interpolation alpha, present
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.BI "void engine_run(Engine *e);"
+.fi
+.SH DESCRIPTION
+Run the main loop: poll input, apply queued scene changes, run fixed\-rate update ticks (up to 8 per frame to catch up), render with an interpolation alpha, present. Returns when engine_quit was called or the scene stack is empty.
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR engine_init (3),
+.BR engine_quit (3),
+.BR gge\-scenes (7),
+.BR gge (1),
+.BR gge\-scenes (7)

@@ -1,0 +1,16 @@
+.TH DRAW_TEXTURE_EX 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+draw_texture_ex \- As draw_texture with rotation about dst's center (degrees, clockwise) and a Flip (FLIP_NONE, FLIP_H, FLIP_V, FLIP_HV)
+.SH SYNOPSIS
+.nf
+.B #include \(dqdraw.h\(dq
+.BI "void draw_texture_ex(Texture *t, const Rect *src, Rect dst, double angle_degrees, Flip flip);"
+.fi
+.SH DESCRIPTION
+As draw_texture with rotation about dst's center (degrees, clockwise) and a Flip (FLIP_NONE, FLIP_H, FLIP_V, FLIP_HV).
+.SH MODULE
+draw (src/engine/draw/draw.h)
+.SH SEE ALSO
+.BR draw_texture (3),
+.BR gge (1),
+.BR gge\-scenes (7)

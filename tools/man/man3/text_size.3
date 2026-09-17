@@ -1,0 +1,17 @@
+.TH TEXT_SIZE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+text_size \- Measure s in font f, writing pixel width and height through w and h
+.SH SYNOPSIS
+.nf
+.B #include \(dqtext.h\(dq
+.BI "void text_size(Font f, const char *s, int *w, int *h);"
+.fi
+.SH DESCRIPTION
+Measure s in font f, writing pixel width and height through w and h. Neither pointer may be NULL. Use to center or right\-align text.
+.SH MODULE
+text (src/engine/text/text.h)
+.SH SEE ALSO
+.BR text_draw (3),
+.BR text_line_height (3),
+.BR gge (1),
+.BR gge\-scenes (7)

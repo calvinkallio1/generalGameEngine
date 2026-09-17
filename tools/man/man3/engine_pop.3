@@ -1,0 +1,17 @@
+.TH ENGINE_POP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+engine_pop \- Queue removal of the top scene
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.BI "void engine_pop(Engine *e);"
+.fi
+.SH DESCRIPTION
+Queue removal of the top scene. Its on_exit runs when applied. A scene may pop itself. When the last scene is popped the loop ends.
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR engine_push (3),
+.BR engine_replace (3),
+.BR gge (1),
+.BR gge\-scenes (7)

@@ -1,0 +1,18 @@
+.TH SAVE_LOAD 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+save_load \- Read a slot into out
+.SH SYNOPSIS
+.nf
+.B #include \(dqsave.h\(dq
+.BI "bool save_load(const Save *s, const char *slot, void *out, size_t size, uint32_t version);"
+.fi
+.SH DESCRIPTION
+Read a slot into out. Fails (without touching out) if the file is missing, the version differs, or the size does not match.
+.SH RETURN VALUE
+true on success.
+.SH MODULE
+save (src/engine/save/save.h)
+.SH SEE ALSO
+.BR save_write (3),
+.BR gge (1),
+.BR gge\-scenes (7)

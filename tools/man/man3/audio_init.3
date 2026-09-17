@@ -1,0 +1,20 @@
+.TH AUDIO_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+audio_init \- Set master gains 0..1 for effects and music separately (an options menu writes these)
+.SH SYNOPSIS
+.nf
+.B #include \(dqaudio.h\(dq
+.BI "bool audio_init(void);"
+.fi
+.SH DESCRIPTION
+Set master gains 0..1 for effects and music separately (an options menu writes these).
+/
+void  audio_set_master(float sfx_gain, float music_gain);
+
+/* engine\-internal
+.SH MODULE
+audio (src/engine/audio/audio.h)
+.SH SEE ALSO
+.BR audio_play (3),
+.BR gge (1),
+.BR gge\-scenes (7)

@@ -1,0 +1,20 @@
+.TH SAVE_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+save_init \- Remove a slot file
+.SH SYNOPSIS
+.nf
+.B #include \(dqsave.h\(dq
+.BI "void save_init(Save *s, const char *org, const char *app);"
+.fi
+.SH DESCRIPTION
+Remove a slot file.
+/
+bool save_delete(const Save *s, const char *slot);
+
+/* engine\-internal
+.SH MODULE
+save (src/engine/save/save.h)
+.SH SEE ALSO
+.BR save_write (3),
+.BR gge (1),
+.BR gge\-scenes (7)

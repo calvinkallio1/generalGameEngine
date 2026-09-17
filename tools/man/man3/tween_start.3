@@ -1,0 +1,17 @@
+.TH TWEEN_START 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+tween_start \- Animate *target from its current value to `to` over duration seconds using ease
+.SH SYNOPSIS
+.nf
+.B #include \(dqtween.h\(dq
+.BI "void tween_start(Tween *tw, float *target, float to, float duration, EaseFn ease);"
+.fi
+.SH DESCRIPTION
+Animate *target from its current value to `to` over duration seconds using ease. target must stay valid for the tween's life (a scene static or GameState field).
+.SH MODULE
+tween (src/engine/tween/tween.h)
+.SH SEE ALSO
+.BR tween_update (3),
+.BR tween_done (3),
+.BR gge (1),
+.BR gge\-scenes (7)

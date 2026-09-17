@@ -1,0 +1,21 @@
+.TH ENGINE_PUSH 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+engine_push \- Queue s to be placed on top of the scene stack
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.BI "void engine_push(Engine *e, Scene *s);"
+.fi
+.SH DESCRIPTION
+Queue s to be placed on top of the scene stack. Applied after the current callback returns, so it is safe from handle_input, update, or a menu action. The scene's on_enter runs when the push is applied, not when this is called. Scenes are singletons: pushing one already on the stack shares its state.
+.SH RETURN VALUE
+none; a full stack (8 scenes) drops the push and logs.
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR engine_pop (3),
+.BR engine_replace (3),
+.BR engine_top (3),
+.BR gge\-scenes (7),
+.BR gge (1),
+.BR gge\-scenes (7)

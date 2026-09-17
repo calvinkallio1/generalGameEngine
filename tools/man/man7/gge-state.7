@@ -1,0 +1,52 @@
+.TH GGE\-STATE 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-state \- where game state lives and why
+.SH DESCRIPTION
+Three kinds of state, three homes.
+.SS Gameplay state: GameState
+Everything a save must remember: positions, health, inventory, flags,
+timers, the RNG seed, entity arrays. One pointer\-free struct, composed of
+per\-mechanic structs (Player, Cat, Expedition ...), pointed to by
+.B EngineConfig.user
+and reached from any callback as
+.BR "GameState *g = e->user" .
+The engine never reads it. Because it holds no pointers, a save is
+.BR memcpy :
+.BR save_write (3)
+and
+.BR save_load (3)
+take
+.BR "sizeof(GameState)" .
+Refer to entities by index, never by pointer.
+.SS Presentation state: scene statics
+How a scene looks right now: menu highlight, camera, tweens, fonts, loaded
+sprites, the previous\-tick positions used for interpolation. File\-level
+.B static
+variables in the scene's .c, reset in
+.BR on_enter .
+.SS Resources: engine caches
+Textures are cached by
+.BR assets_texture (3)
+and freed at shutdown. Sounds are owned by whoever called
+.BR audio_load (3).
+.SS The test
+Quick\-save with
+.BR "snapshot = *g" ,
+play, restore with
+.BR "*g = snapshot" .
+Anything that did not come back is in the wrong place.
+.SS Randomness
+.B GameState.rng
+is a uint64_t seed; every
+.BR rng_range (3)
+call takes its address. Seed once at new game (from the clock, or a constant
+for repeatable testing) and never again. Never roll from
+.B render
+or
+.BR handle_input ;
+they run at display rate and would desynchronise saves.
+.SH SEE ALSO
+.BR gge\-scenes (7),
+.BR gge\-saves (7),
+.BR rng_range (3),
+.BR save_write (3)

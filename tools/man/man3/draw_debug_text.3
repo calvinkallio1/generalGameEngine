@@ -1,0 +1,16 @@
+.TH DRAW_DEBUG_TEXT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+draw_debug_text \- Text in the built\-in 8x8 font
+.SH SYNOPSIS
+.nf
+.B #include \(dqdraw.h\(dq
+.BI "void draw_debug_text(float x, float y, Color c, const char *s);"
+.fi
+.SH DESCRIPTION
+Text in the built\-in 8x8 font. Always available; ideal for overlays and placeholder UI.
+.SH MODULE
+draw (src/engine/draw/draw.h)
+.SH SEE ALSO
+.BR text_draw (3),
+.BR gge (1),
+.BR gge\-scenes (7)
