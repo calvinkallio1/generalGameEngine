@@ -1,0 +1,157 @@
+.TH GGE\-OVERVIEW 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-overview \- map of the engine: what each module does and where to look things up
+.SH DESCRIPTION
+generalGameEngine is a small 2D game framework in C on top of SDL3. A game built on it is a set of \fBscenes\fR (title, gameplay, pause ...) that the engine runs on a stack, a single pointer\-free \fBGameState\fR struct that holds everything a save must remember, and calls into the engine's \fBmodules\fR for drawing, input, audio, tiles, text and the rest. The engine never reads your game state and never calls SDL on your behalf in ways you cannot see: every service is a plain C function documented in this manual.
+.PP
+This page is the table of contents. Each module has a section\-7 page (\fBgge man <module>\fR) explaining how its pieces fit together, with complete examples, and every public function, struct, enum and macro has a section\-3 page (\fBgge man <name>\fR). \fBgge man api\fR lists all of them by module; \fBgge ls\fR and \fBgge ls \-t\fR print one\-line summaries.
+.PP
+.SH THE THREE THINGS TO UNDERSTAND FIRST
+.TP
+\fBThe loop\fR
+Every frame the engine polls input, lets the top scene handle it, runs zero or more fixed\-rate \fBupdate(dt)\fR ticks, then calls \fBrender(alpha)\fR once and presents. Read gge\-engine(7).
+.TP
+\fBThe scene stack\fR
+A scene is a struct of five optional callbacks and two flags. Push a pause scene over gameplay and gameplay freezes but keeps drawing; pop it and play resumes. Read gge\-scenes(7).
+.TP
+\fBWhere state lives\fR
+Gameplay data goes in one pointer\-free GameState reached through \fBe\->user\fR; how things look right now (camera, menus, tweens, loaded sprites) lives in file\-level statics of the scene that owns them. Read gge\-state(7) and gge\-entities(7).
+.SH MODULES
+Each entry names the header, what the module is for, and its page.
+.PP
+.TP
+\fBcore (engine.h, scene.h, engine_main.h)\fR
+The window, the main loop, the scene stack, EngineConfig. gge\-engine(7), gge\-scenes(7).
+.TP
+\fBtypes (types.h)\fR
+Color, Rect, Point, Texture, Flip and the COLOR_* constants. gge\-types(7).
+.TP
+\fBmath (mathx.h, collide.h, rng.h)\fR
+Vec2 arithmetic, lerp/clamp helpers, rectangle and circle overlap tests, a seedable random generator. gge\-math(7).
+.TP
+\fBinput (input.h, keys.h, actions.h)\fR
+The per\-frame Input snapshot; key/mouse/gamepad queries; ActionMap for named, rebindable actions; text entry. gge\-input(7).
+.TP
+\fBdraw (draw.h)\fR
+Rectangles, lines, points, textures, the built\-in 8x8 font. Everything on screen ends in one of these. gge\-drawing(7).
+.TP
+\fBassets (assets.h)\fR
+Loads images from assets/ into cached Textures; builds paths for your own data files. gge\-assets(7).
+.TP
+\fBsprite (sprite.h)\fR
+Sprite sheets, frame indexing, Anim/AnimState playback, tinting. gge\-sprite(7).
+.TP
+\fBtext (text.h)\fR
+TrueType fonts, drawing and measuring strings, with a debug\-font fallback. gge\-text(7).
+.TP
+\fBcamera (camera.h)\fR
+World\-to\-screen conversion, smooth following, level bounds, zoom. gge\-camera(7).
+.TP
+\fBtilemap (tilemap.h)\fR
+Tile grids from code or Tiled CSV exports, drawing through a camera, solid\-tile collision and movement. gge\-tilemap(7).
+.TP
+\fBaudio (audio.h)\fR
+WAV sound effects on eight channels, one looping music track, master volumes. gge\-audio(7).
+.TP
+\fBmenu (menu.h)\fR
+Vertical lists of selectable items driven by keyboard, gamepad and mouse. gge\-menu(7).
+.TP
+\fBdialog (dialog.h)\fR
+A typewriter speech box with speaker name and word wrap. gge\-dialog(7).
+.TP
+\fBcutscene (cutscene.h)\fR
+Scripted sequences of waits, moves, lines, fades and callbacks, run as a scene. gge\-cutscene(7).
+.TP
+\fBtween (tween.h)\fR
+Timers, easing curves, float tweens and screen shake. gge\-tween(7).
+.TP
+\fBsave (save.h)\fR
+Versioned binary save slots for GameState. gge\-saves(7).
+.TP
+\fBdebug (debug.h)\fR
+LOG/WARN/ASSERT and the F3 overlay's debug shapes and text. gge\-debug(7).
+.SH CONCEPT PAGES
+.TP
+\fBgge\-state(7)\fR
+GameState versus scene statics versus engine caches, and the quick\-save test that tells them apart.
+.TP
+\fBgge\-entities(7)\fR
+The entity pattern: fixed arrays, alive flags, indices instead of pointers, init/tick/hitbox functions, spawning and despawning, entity\-to\-entity interaction.
+.TP
+\fBgge\-drawing(7)\fR
+Logical pixels, draw order, layers, smooth motion with alpha, the HUD\-over\-world pattern.
+.TP
+\fBgge\-build(7)\fR
+Project layout, CMakeLists.txt, the build options, gge.conf, adding a module to the engine.
+.TP
+\fBgge(1)\fR
+The \fBgge\fR command: creating projects, scenes and entities, opening these pages.
+.SH WHICH HEADER TO INCLUDE
+Every engine header is included by bare name from anywhere in a game (\fB#include "camera.h"\fR). \fBengine.h\fR brings in types.h, input.h (with keys.h), scene.h and save.h, so a scene file that only pushes scenes and reads keys needs nothing else. Everything beyond that is explicit, and a missing include shows up as an "implicit declaration" error naming the function:
+.PP
+.RS 4
+.EX
+draw_*                         draw.h
+assets_texture, assets_path    assets.h
+Sprite, Anim, sprite_*, anim_* sprite.h
+Font, text_*                   text.h
+Camera, camera_*               camera.h
+Tilemap, tilemap_*             tilemap.h
+ActionMap, action_*            actions.h
+Vec2, v2_*, lerpf, clampf ...  mathx.h
+rect_at, rect_overlaps ...     collide.h
+rng_*                          rng.h
+Sound, audio_*                 audio.h
+Menu, menu_*                   menu.h
+Dialog, dialog_*               dialog.h
+CutStep, cutscene_*, CUT_*     cutscene.h
+Timer, Tween, Shake, ease_*    tween.h
+LOG, WARN, ASSERT, debug_*     debug.h
+snprintf                       <stdio.h>     (C library, for building strings)
+fabsf, floorf, sinf ...        <math.h>
+memset, strlen, strcpy         <string.h>
+.EE
+.RE
+.PP
+Including a header twice is harmless (all have include guards), so include what each file uses and nothing more.
+.PP
+.SH HOW A FRAME FLOWS THROUGH THE MODULES
+.PP
+.RS 4
+.EX
+engine_run
+  poll_input        \-> Engine.input                       (input)
+  audio_update      \-> keeps music looping                (audio)
+  top\->handle_input \-> key_pressed / menu_handle_input    (input, menu, dialog)
+  apply_pending     \-> queued push/pop/replace            (core)
+  update(dt) x N    \-> tilemap_move, anim_step, tween_update,
+                       timer_tick, camera_follow, rng_*   (tilemap, sprite, tween, camera, math)
+  apply_pending
+  render(alpha)     \-> tilemap_draw, sprite_draw, draw_rect,
+                       text_draw, menu_render, dialog_render
+  debug_flush       \-> F3 overlay                         (debug)
+  present
+.EE
+.RE
+.PP
+.SH WHERE TO LOOK WHEN SOMETHING IS WRONG
+.IP \(bu 2
+Nothing appears: run from a terminal; assets and fonts log their failures (gge\-assets(7)).
+.IP \(bu 2
+Movement jitters or speeds vary with frame rate: simulate in update with dt, draw with alpha (gge\-engine(7), gge\-drawing(7)).
+.IP \(bu 2
+A key press fires every frame: use key_pressed, not key_down (gge\-input(7)).
+.IP \(bu 2
+Something did not come back after loading a save: it lives in the wrong place (gge\-state(7)).
+.IP \(bu 2
+A scene change seems delayed: pushes and pops apply after the current callback returns (gge\-scenes(7)).
+.IP \(bu 2
+Build errors about SDL_ttf or PNG: the option is off (gge\-build(7)).
+.SH SEE ALSO
+.BR gge (1),
+.BR gge\-api (7),
+.BR gge\-engine (7),
+.BR gge\-scenes (7),
+.BR gge\-state (7),
+.BR gge\-entities (7),
+.BR gge\-build (7)

@@ -1,17 +1,18 @@
 .TH CAMERA_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-camera_init \- Reset a camera for a view of view_w x view_h logical pixels, positioned at the origin with zoom 1
+camera_init \- Reset a camera for a view of view_w x view_h logical pixels (normally e\->logical_w, e\->logical_h), positioned at the origin with zoom 1, no bounds and no offset
 .SH SYNOPSIS
 .nf
 .B #include \(dqcamera.h\(dq
 .BI "void camera_init(Camera *c, int view_w, int view_h);"
 .fi
 .SH DESCRIPTION
-Reset a camera for a view of view_w x view_h logical pixels, positioned at the origin with zoom 1.
+Reset a camera for a view of view_w x view_h logical pixels (normally e\->logical_w, e\->logical_h), positioned at the origin with zoom 1, no bounds and no offset. Call in on_enter, then set pos (or camera_follow with smoothing 0) so the first frame is not centered on 0,0.
 .SH MODULE
 camera (src/engine/camera/camera.h)
 .SH SEE ALSO
 .BR camera_follow (3),
 .BR camera_to_screen (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Camera (3),
+.BR gge\-api (7),
+.BR gge (1)

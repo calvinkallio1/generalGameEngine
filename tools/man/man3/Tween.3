@@ -1,0 +1,49 @@
+.TH TWEEN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Tween \- Animates one float from its current value to a target over a duration with an easing curve, by writing through a pointer
+.SH SYNOPSIS
+.nf
+.B #include \(dqtween.h\(dq
+.ft B
+typedef struct Tween {
+  float *target;
+  float  from, to, duration, elapsed;
+  EaseFn ease;
+  bool   active;
+} Tween;
+.ft R
+.fi
+.SH DESCRIPTION
+Animates one float from its current value to a target over a duration with an easing curve, by writing through a pointer. Presentation state: keep tweens in scene statics and point them at scene statics (a panel's x, a fade alpha, a zoom) or at GameState floats that are purely visual. Start with tween_start(), advance with tween_update() once per update; tween_done() reports completion. One Tween animates one float; a Vec2 needs two.
+.SH FIELDS
+.TP
+.B target
+the float being animated; must outlive the tween
+.TP
+.B from
+value when the tween started
+.TP
+.B to
+destination
+.TP
+.B duration
+seconds
+.TP
+.B elapsed
+seconds so far
+.TP
+.B ease
+curve applied to elapsed/duration
+.TP
+.B active
+true until elapsed reaches duration
+.SH MODULE
+tween (src/engine/tween/tween.h)
+.SH SEE ALSO
+.BR tween_start (3),
+.BR tween_update (3),
+.BR tween_done (3),
+.BR EaseFn (3),
+.BR gge\-tween (7),
+.BR gge\-api (7),
+.BR gge (1)

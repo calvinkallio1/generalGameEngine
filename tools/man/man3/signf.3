@@ -1,25 +1,20 @@
 .TH SIGNF 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-signf \- engine function
+signf \- Sign of v as a float: 1 for positive, \-1 for negative, 0 for zero
 .SH SYNOPSIS
 .nf
 .B #include \(dqmathx.h\(dq
 .BI "float signf(float v);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/mathx.h and run 'gge genman'.
+Sign of v as a float: 1 for positive, \-1 for negative, 0 for zero. Facing direction from a velocity, or which way to apply friction.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+\-1, 0 or 1.
 .SH MODULE
 math (src/engine/math/mathx.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR clampf (3),
+.BR gge\-api (7),
+.BR gge (1)

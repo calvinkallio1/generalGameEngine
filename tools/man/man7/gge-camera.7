@@ -1,0 +1,143 @@
+.TH GGE\-CAMERA 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-camera \- world versus screen coordinates, following, bounds, zoom, shake
+.SH DESCRIPTION
+A \fBCamera\fR (camera.h) is a window onto a world larger than the screen. It holds a world position that appears at the center of the view, a zoom, the view size, optional world bounds, and an offset for shake. Two conversions do all the work: \fBcamera_to_screen\fR for drawing and \fBcamera_to_world\fR for the mouse. Games whose whole world fits on screen (puzzle, card, single\-screen arcade) do not need one.
+.PP
+.SH SETUP
+.PP
+.RS 4
+.EX
+static Camera cam;                                     /* presentation state */
+static void on_enter(Engine *e, Scene *s) {
+  GameState *g = e\->user;
+  camera_init(&cam, e\->logical_w, e\->logical_h);      /* zoom 1, no bounds, at the origin */
+  camera_set_bounds(&cam, 0, 0, map.w * map.tile, map.h * map.tile);
+  camera_follow(&cam, g\->player.pos, 0, 0);            /* smoothing 0: snap to the player now */
+}
+.EE
+.RE
+.PP
+The camera is derived from state, so it lives in a scene static and is rebuilt in on_enter; nothing about it is saved.
+.PP
+.SH FOLLOWING
+Call camera_follow(3) every tick, after the target moved:
+.PP
+.RS 4
+.EX
+static void update(Engine *e, Scene *s, float dt) {
+  ... move the player ...
+  camera_follow(&cam, rect_center(player_hitbox(&g\->player)), 0.15f, dt);
+}
+.EE
+.RE
+.PP
+\fBsmoothing\fR is a time constant in seconds: 0 snaps, 0.1 to 0.3 is a tight follow that still smooths out steps, 0.5 to 1.0 drifts lazily. The motion is frame\-rate independent (it uses smooth_t(3)). Follow the center of the hitbox, not the top\-left, or the player sits off\-center.
+.PP
+Variations, all done by choosing the target:
+.TP
+\fBLook\-ahead\fR
+target = player + facing * 40, so the player sees more of where they are going.
+.TP
+\fBDead zone\fR
+only move the target when the player leaves a box around the current camera position: compute the box in world space from \fBcam.pos\fR, and set target to push the box edge.
+.TP
+\fBRoom\-locked (Zelda)\fR
+target = center of the room the player is in; a large smoothing (0.3) glides between rooms, or 0 snaps.
+.TP
+\fBVertical only on landing\fR
+keep target.y at the last ground height until on_ground; platformers feel steadier.
+.TP
+\fBTwo targets (versus)\fR
+target = midpoint of the players; zoom out when they are far apart.
+.TP
+\fBCinematic\fR
+tween \fBcam.pos\fR directly from a cutscene CUT_DO callback (gge\-cutscene(7)); stop calling camera_follow while it plays.
+.SH BOUNDS
+camera_set_bounds(3) gives the world rectangle the camera may show; camera_follow clamps so the view never leaves it. A world smaller than the view pins to the top\-left; for a level narrower than the screen, center it by drawing with a fixed offset instead of a camera, or pad the map. Bounds are applied only inside camera_follow; setting \fBcam.pos\fR directly bypasses them.
+.PP
+.SH CONVERTING
+.TP
+\fBcamera_to_screen(c, world)\fR
+where to draw a world point, in logical pixels.
+.TP
+\fBcamera_rect(c, r)\fR
+a world rectangle on screen, scaled by zoom (hitboxes, world\-space UI).
+.TP
+\fBcamera_to_world(c, screen)\fR
+the world point under a screen position (the mouse).
+.TP
+\fBcamera_visible(c)\fR
+the world rectangle on screen, for culling.
+.PP
+.RS 4
+.EX
+/* drawing an entity */
+Vec2 s = camera_to_screen(&cam, en\->pos);
+sprite_draw_scaled(&sheet, frame, s.x, s.y, cam.zoom, 0, flip);
+/* the tile under the mouse */
+Vec2 w = camera_to_world(&cam, v2(in\->mouse_x, in\->mouse_y));
+int tx = (int)floorf(w.x / map.tile), ty = (int)floorf(w.y / map.tile);
+/* skip what is off screen */
+if (!rect_overlaps(camera_visible(&cam), enemy_hitbox(en))) continue;
+.EE
+.RE
+.PP
+Draw with \fBsprite_draw_scaled(..., cam.zoom, ...)\fR when zoom is not 1, so sprites scale with the world; tilemap_draw(3) does this itself.
+.PP
+.SH ZOOM
+\fBcam.zoom\fR scales the world about the view center: 2 shows half as much world at twice the size. Integer zooms keep pixel art crisp. Change it with the wheel or a key, and clamp it: \fBcam.zoom = clampf(cam.zoom + in\->wheel * 0.5f, 1, 4)\fR. Bounds account for zoom automatically. HUD elements are not zoomed because they do not go through the camera.
+.PP
+.SH SHAKE
+Shake through \fBoffset\fR, never through \fBpos\fR, so following and bounds are untouched:
+.PP
+.RS 4
+.EX
+static Shake shake;
+/* on impact */          shake_start(&shake, 6, 20);
+/* every tick */         shake_update(&shake, dt); cam.offset = v2(shake.ox, shake.oy);
+.EE
+.RE
+.PP
+See gge\-tween(7) for Shake.
+.PP
+.SH SMOOTH SCROLLING
+The camera moves in update, once per tick, so with interpolation\-drawn entities (gge\-drawing(7)) the camera itself may step visibly on high\-refresh displays. Interpolate it too: keep \fBprev_cam\fR in a static, set it at the top of update, and in render use a copy of the camera whose \fBpos\fR is \fBv2_lerp(prev_cam, cam.pos, alpha)\fR for all conversions:
+.PP
+.RS 4
+.EX
+Camera view = cam; view.pos = v2_lerp(prev_cam, cam.pos, alpha);
+Vec2 s = camera_to_screen(&view, ...);
+.EE
+.RE
+.PP
+.SH PARALLAX
+Backgrounds that move slower than the world are drawn with a scaled camera position: \fBfloat bx = \-view.pos.x * 0.5f;\fR and the far background at \fBbx\fR modulo its width, tiled twice to cover the screen. Layers at 0.25, 0.5, 0.75 give depth.
+.PP
+.SH SPLIT SCREEN
+Two cameras with \fBview_w = e\->logical_w / 2\fR, drawn one after the other with an x offset added to the results of camera_to_screen for the second. There is no clipping, so draw the second half's background rectangle first and keep sprites inside by culling with camera_visible.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+Updating the camera in render: it then lags one frame and is not interpolated correctly. Update it in update.
+.IP \(bu 2
+Following a top\-left position: the player appears in the lower\-right quadrant. Follow the center.
+.IP \(bu 2
+Forgetting the camera for one kind of thing: it stays fixed on screen while the world scrolls. Every world\-space draw goes through the conversion; every HUD draw does not.
+.IP \(bu 2
+Setting bounds smaller than the view: the view pins to the corner; make the level at least a screen in each dimension or center it manually.
+.SH SEE ALSO
+.BR Camera (3),
+.BR camera_init (3),
+.BR camera_follow (3),
+.BR camera_set_bounds (3),
+.BR camera_to_screen (3),
+.BR camera_to_world (3),
+.BR camera_rect (3),
+.BR camera_visible (3),
+.BR smooth_t (3),
+.BR Shake (3),
+.BR tilemap_draw (3),
+.BR gge\-drawing (7),
+.BR gge\-tilemap (7),
+.BR gge\-tween (7)

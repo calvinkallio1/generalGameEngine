@@ -1,16 +1,17 @@
 .TH ENGINE_SHUTDOWN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-engine_shutdown \- Pop every remaining scene (their on_exit runs), stop services in reverse order, and quit SDL
+engine_shutdown \- Pop every remaining scene (their on_exit runs, top first), stop services in reverse order (text, audio, textures, gamepad, renderer, window) and quit SDL
 .SH SYNOPSIS
 .nf
 .B #include \(dqengine.h\(dq
 .BI "void engine_shutdown(Engine *e);"
 .fi
 .SH DESCRIPTION
-Pop every remaining scene (their on_exit runs), stop services in reverse order, and quit SDL. Safe to call after engine_run returns.
+Pop every remaining scene (their on_exit runs, top first), stop services in reverse order (text, audio, textures, gamepad, renderer, window) and quit SDL. Safe to call after engine_run returns; call it exactly once. Sounds loaded with audio_load() that were not freed in an on_exit are leaked, harmlessly, at this point.
 .SH MODULE
 core (src/engine/core/engine.h)
 .SH SEE ALSO
 .BR engine_init (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_run (3),
+.BR gge\-api (7),
+.BR gge (1)

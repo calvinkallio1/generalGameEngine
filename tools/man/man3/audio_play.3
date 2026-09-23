@@ -1,16 +1,18 @@
 .TH AUDIO_PLAY 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-audio_play \- Play a sound once at gain 0..1 on a free channel
+audio_play \- Play a sound once at gain 0..1 (1 = as recorded; the master effects gain is applied on top) on a free channel
 .SH SYNOPSIS
 .nf
 .B #include \(dqaudio.h\(dq
 .BI "void audio_play(const Sound *s, float gain);"
 .fi
 .SH DESCRIPTION
-Play a sound once at gain 0..1 on a free channel. Dropped silently if every channel is busy.
+Play a sound once at gain 0..1 (1 = as recorded; the master effects gain is applied on top) on a free channel. Fire\-and\-forget: there is no handle, no stop, no way to tell when it ended. Eight effects can play at once; a ninth is dropped silently. Call from update (tick rate) or handle_input (on the press), never from render, which would play it every frame.
 .SH MODULE
 audio (src/engine/audio/audio.h)
 .SH SEE ALSO
 .BR audio_music (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR audio_set_master (3),
+.BR Sound (3),
+.BR gge\-api (7),
+.BR gge (1)

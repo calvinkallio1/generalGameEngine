@@ -1,0 +1,127 @@
+.TH GGE\-DEBUG 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-debug \- logging, assertions, the F3 overlay, and debugging habits
+.SH DESCRIPTION
+debug.h is three macros and three queue functions. LOG, WARN and ASSERT go to the terminal; debug_rect, debug_line and debug_text queue shapes and strings that are drawn over the finished frame while the F3 overlay is on. The overlay also shows a status line: frames per second, stack depth, the top scene's name, and whether a gamepad is connected.
+.PP
+.SH LOGGING
+.PP
+.RS 4
+.EX
+LOG("level %d loaded: %dx%d tiles", n, map.w, map.h);
+WARN("enemy array full; spawn dropped");
+ASSERT(g\->player.hp >= 0);
+.EE
+.RE
+.PP
+LOG(3) is printf\-style to stderr; run the game from a terminal to see it. Every engine failure (missing image, font, sound, CSV; rejected save; full scene stack) is logged rather than fatal, so the terminal is the first place to look when something does not appear. WARN(3) is the same at warning priority. ASSERT(3) stops a Debug build with file and line when its condition is false and compiles out in Release, so never put side effects inside it.
+.PP
+Log sparingly from update (60 lines per second scrolls fast); log state changes (scene enters, level loads, deaths) and errors. A LOG in on_enter of every scene is a cheap trace of the scene stack over time.
+.PP
+.SH THE F3 OVERLAY
+Press F3 in the running game. The engine draws its status line at the top\-left, then everything queued this frame:
+.TP
+\fBdebug_rect(r, c)\fR
+an outline, in logical screen pixels (convert world rectangles with camera_rect first).
+.TP
+\fBdebug_line(x1, y1, x2, y2, c)\fR
+a line.
+.TP
+\fBdebug_text(x, y, fmt, ...)\fR
+printf\-formatted yellow 8x8 text.
+The queues are cleared every frame whether or not the overlay is shown, so the calls can stay in the code permanently; they cost a few writes when hidden. Limits: 256 shapes and 32 strings per frame.
+.PP
+.RS 4
+.EX
+/* in render or update, wherever the data is at hand */
+debug_rect(camera_rect(&cam, player_hitbox(&g\->player)), COLOR_GREEN);
+for (int i = 0; i < MAX_DOGS; ++i) if (g\->dogs[i].alive)
+  debug_rect(camera_rect(&cam, dog_hitbox(&g\->dogs[i])), COLOR_RED);
+debug_line(ps.x, ps.y, ps.x + g\->player.vel.x * 0.2f, ps.y + g\->player.vel.y * 0.2f, COLOR_YELLOW);
+debug_text(4, 20, "pos %.0f,%.0f  vel %.0f,%.0f  ground %d", g\->player.pos.x, g\->player.pos.y,
+           g\->player.vel.x, g\->player.vel.y, g\->player.on_ground);
+debug_text(4, 30, "dogs alive %d  state %d", count_alive(g), g\->dogs[0].state);
+.EE
+.RE
+.PP
+Start your text at y = 20; the engine's line is at y = 4. \fBe\->debug_overlay\fR is readable and writable, so a scene can force the overlay on or check it to draw extra diagnostics of its own with the normal draw calls.
+.PP
+.SH DEBUG KEYS
+Give yourself keys in the gameplay scene's handle_input, behind \fB#ifndef NDEBUG\fR or a \fBDEBUG_KEYS\fR macro so they vanish from release builds:
+.PP
+.RS 4
+.EX
+static GameState snapshot;
+#ifndef NDEBUG
+if (key_pressed(in, KEY_F5)) snapshot = *g;                     /* quick save */
+if (key_pressed(in, KEY_F9)) *g = snapshot;                     /* quick load */
+if (key_pressed(in, KEY_F6)) { g\->level++; engine_replace(e, game_scene()); }
+if (key_pressed(in, KEY_F7)) g\->player.invincible = !g\->player.invincible;
+if (key_pressed(in, KEY_F8)) g\->time_scale = g\->time_scale == 1 ? 0.2f : 1;
+#endif
+.EE
+.RE
+.PP
+The F5/F9 pair is also the test for what belongs in GameState (gge\-state(7)). CMake's Debug configuration does not define NDEBUG; Release does.
+.PP
+.SH REPRODUCING BUGS
+.IP \(bu 2
+Fix the seed: set \fBFIXED_SEED\fR (or the seed in game_state_init) to a constant; the same inputs then produce the same run.
+.IP \(bu 2
+Log the seed at new game so a crash report can be replayed.
+.IP \(bu 2
+Save the GameState on crash\-prone moments with save_write to a "debug" slot and load it from a debug key.
+.IP \(bu 2
+Because update is deterministic and separate from rendering, a bug that depends on frame rate is almost always something done in render or handle_input that should be in update.
+.SH COMMON SYMPTOMS
+.TP
+\fBNothing draws, black window\fR
+the scene's render is NULL, or draw calls are in update, or the scene beneath is blocked by a full\-screen scene on top. Check the F3 status line for the stack.
+.TP
+\fBAn image is missing\fR
+terminal shows "assets: ... : Couldn't open"; the path is relative to assets/, case\-sensitive on Linux and macOS, and PNG needs ENGINE_WITH_IMAGE (gge\-build(7)).
+.TP
+\fBText is the 8x8 font\fR
+the font failed to load, EngineConfig.text is false, or the engine was built without ENGINE_WITH_TTF; the terminal says which.
+.TP
+\fBA key fires every frame\fR
+key_down where key_pressed was meant.
+.TP
+\fBMovement speed depends on the monitor\fR
+movement in handle_input or render.
+.TP
+\fBJitter on a 144 Hz screen\fR
+draw at v2_lerp(prev, now, alpha) (gge\-drawing(7)).
+.TP
+\fBFalling through floors at high speed\fR
+over a tile per tick; cap the speed or sub\-step tilemap_move.
+.TP
+\fBPause does nothing\fR
+the pause scene lacks blocks_update_below, or it was pushed under something.
+.TP
+\fBA save loads as failure\fR
+SAVE_VERSION changed, or the struct size changed without a bump; the log says "rejected".
+.TP
+\fBCrash on scene change\fR
+a static pointer into an entity that a load moved; use indices.
+.TP
+\fBSound plays constantly\fR
+audio_play in render.
+.SH PERFORMANCE
+The F3 fps is the first tool. Typical causes of slow frames: text that changes every frame (gge\-text(7)), thousands of draw_point calls, nested entity loops over large arrays running per tick, loading files in update. \fBe\->frame\fR and \fBSDL_GetTicksNS()\fR (available through SDL3/SDL.h, already included by engine.h) can time a block: \fBuint64_t t0 = SDL_GetTicksNS(); ...; debug_text(4, 40, "ai %.2f ms", (SDL_GetTicksNS() \- t0) / 1e6);\fR.
+.PP
+.SH DEBUGGERS AND SANITIZERS
+The engine builds as ordinary C with \fB\-Wall \-Wextra\fR, so gdb and lldb work directly on the executable (\fBlldb ./build/my_game\fR). AddressSanitizer catches out\-of\-bounds entity indices at once: add \fB\-fsanitize=address\fR to the game's compile and link options in CMakeLists.txt for Debug builds. clangd picks up compile_commands.json from the build folder for editor diagnostics (gge\-build(7)).
+.PP
+.SH SEE ALSO
+.BR LOG (3),
+.BR WARN (3),
+.BR ASSERT (3),
+.BR debug_rect (3),
+.BR debug_line (3),
+.BR debug_text (3),
+.BR draw_debug_text (3),
+.BR Engine (3),
+.BR gge\-state (7),
+.BR gge\-engine (7),
+.BR gge\-build (7)

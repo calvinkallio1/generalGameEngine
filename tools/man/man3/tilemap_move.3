@@ -1,21 +1,18 @@
 .TH TILEMAP_MOVE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-tilemap_move \- engine function
+tilemap_move \- Move an axis\-aligned box through the map by vel * dt, stopping at solid tiles
 .SH SYNOPSIS
 .nf
 .B #include \(dqtilemap.h\(dq
 .BI "void tilemap_move(const Tilemap *m, Rect *box, Vec2 *vel, float dt, bool *on_ground);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/tilemap/tilemap.h and run 'gge genman'.
+Move an axis\-aligned box through the map by vel * dt, stopping at solid tiles. Moves and resolves x first, then y, which is what makes walking along a wall and landing on a floor feel right. On a collision the box is pushed flush against the tile and that velocity component is set to 0; if on_ground is non\-NULL it is set to true only when the box was moving down and hit something. Very fast objects (more than a tile per tick) can tunnel; keep speeds below tile / dt or step the call. The platformer and top\-down movement core: apply gravity to vel\->y, set vel\->x from input, call this once per tick.
 .SH MODULE
 tilemap (src/engine/tilemap/tilemap.h)
 .SH SEE ALSO
-.BR tilemap_at (3),
-.BR tilemap_solid_at (3),
 .BR tilemap_box_hits (3),
-.BR tilemap_draw (3),
-.BR tilemap_load_csv (3),
-.BR tilemap_free (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR rect_at (3),
+.BR Vec2 (3),
+.BR gge\-api (7),
+.BR gge (1)

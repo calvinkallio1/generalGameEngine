@@ -7,12 +7,15 @@ tween_done \- True once the tween has finished (or never started)
 .BI "bool tween_done(const Tween *tw);"
 .fi
 .SH DESCRIPTION
-True once the tween has finished (or never started).
+True once the tween has finished (or never started). Chain tweens by starting the next one when this returns true.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+!tw\->active.
 .SH MODULE
 tween (src/engine/tween/tween.h)
 .SH SEE ALSO
 .BR tween_start (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR tween_update (3),
+.BR gge\-api (7),
+.BR gge (1)

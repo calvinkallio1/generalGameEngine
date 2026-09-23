@@ -1,0 +1,26 @@
+.TH POINT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Point \- A 2D point in float pixels
+.SH SYNOPSIS
+.nf
+.B #include \(dqtypes.h\(dq
+.ft B
+typedef SDL_FPoint  Point;     /* { float x, y } */
+.ft R
+.fi
+.SH DESCRIPTION
+A 2D point in float pixels. Rarely needed by games, which use Vec2 from mathx.h for positions; Point exists for the few SDL calls that want it.
+.SH FIELDS
+.TP
+.B x
+horizontal
+.TP
+.B y
+vertical
+.SH MODULE
+types (src/engine/types/types.h)
+.SH SEE ALSO
+.BR Vec2 (3),
+.BR Rect (3),
+.BR gge\-api (7),
+.BR gge (1)

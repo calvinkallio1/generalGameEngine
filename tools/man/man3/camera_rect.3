@@ -1,16 +1,19 @@
 .TH CAMERA_RECT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-camera_rect \- Convert a world\-space rectangle to screen space
+camera_rect \- Convert a world\-space rectangle to screen space, scaling its size by zoom
 .SH SYNOPSIS
 .nf
 .B #include \(dqcamera.h\(dq
 .BI "Rect camera_rect(const Camera *c, Rect world);"
 .fi
 .SH DESCRIPTION
-Convert a world\-space rectangle to screen space.
+Convert a world\-space rectangle to screen space, scaling its size by zoom. Use to draw hitboxes or world\-space panels with draw_rect.
+.SH RETURN VALUE
+the Rect in logical pixels.
 .SH MODULE
 camera (src/engine/camera/camera.h)
 .SH SEE ALSO
 .BR camera_to_screen (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR draw_rect (3),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,25 +1,20 @@
 .TH RNG_CHANCE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rng_chance \- engine function
+rng_chance \- True with probability p (0..1): rng_chance(&g\->rng, 0.25f) is a one\-in\-four drop
 .SH SYNOPSIS
 .nf
 .B #include \(dqrng.h\(dq
 .BI "bool rng_chance(uint64_t *s, float p);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/rng.h and run 'gge genman'.
+True with probability p (0..1): rng_chance(&g\->rng, 0.25f) is a one\-in\-four drop.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+true p of the time.
 .SH MODULE
 math (src/engine/math/rng.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR rng_float (3),
+.BR gge\-api (7),
+.BR gge (1)

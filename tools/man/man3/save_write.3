@@ -1,20 +1,21 @@
 .TH SAVE_WRITE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-save_write \- Write size bytes of data to a slot file with a header carrying version
+save_write \- Write size bytes of data to the slot file <dir>/<slot>.sav with a header carrying version
 .SH SYNOPSIS
 .nf
 .B #include \(dqsave.h\(dq
 .BI "bool save_write(const Save *s, const char *slot, const void *data, size_t size, uint32_t version);"
 .fi
 .SH DESCRIPTION
-Write size bytes of data to a slot file with a header carrying version. data must be pointer\-free (a GameState).
+Write size bytes of data to the slot file <dir>/<slot>.sav with a header carrying version. data must be pointer\-free (a GameState): the bytes are written raw, so a pointer would be meaningless when read back. The normal call is save_write(&e\->save, "slot1", g, sizeof *g, SAVE_VERSION). Overwrites an existing slot. Fast enough to call on every checkpoint; a few hundred kilobytes is fine.
 .SH RETURN VALUE
-true on success; failures are logged.
+true on success; failures (unwritable folder, disk full) are logged.
 .SH MODULE
 save (src/engine/save/save.h)
 .SH SEE ALSO
 .BR save_load (3),
 .BR save_exists (3),
+.BR save_delete (3),
 .BR gge\-saves (7),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,0 +1,20 @@
+.TH EASEFN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+EaseFn \- An easing curve: maps progress t in 0..1 to an eased 0..1
+.SH SYNOPSIS
+.nf
+.B #include \(dqtween.h\(dq
+.ft B
+typedef float (*EaseFn)(float);
+.ft R
+.fi
+.SH DESCRIPTION
+An easing curve: maps progress t in 0..1 to an eased 0..1. Pass one of the ease_* functions to tween_start(); write your own with the same signature for custom motion.
+.SH MODULE
+tween (src/engine/tween/tween.h)
+.SH SEE ALSO
+.BR ease_linear (3),
+.BR ease_out_quad (3),
+.BR tween_start (3),
+.BR gge\-api (7),
+.BR gge (1)

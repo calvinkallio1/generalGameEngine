@@ -7,13 +7,16 @@ key_pressed \- True only on the frame the key went down
 .BI "bool key_pressed(const Input *in, Key k);"
 .fi
 .SH DESCRIPTION
-True only on the frame the key went down. Use for one\-shot reactions (open a menu, jump).
+True only on the frame the key went down. Use for one\-shot reactions (open a menu, jump, confirm, advance dialog). Holding the key does not repeat it; a second press requires a release first.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+true if the key is down now and was up last frame.
 .SH MODULE
 input (src/engine/input/input.h)
 .SH SEE ALSO
 .BR key_down (3),
 .BR key_released (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR action_pressed (3),
+.BR gge\-api (7),
+.BR gge (1)

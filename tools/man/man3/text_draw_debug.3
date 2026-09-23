@@ -7,10 +7,11 @@ text_draw_debug \- Draw with the built\-in 8x8 font regardless of TTF availabili
 .BI "void text_draw_debug(float x, float y, Color color, const char *s);"
 .fi
 .SH DESCRIPTION
-Draw with the built\-in 8x8 font regardless of TTF availability.
+Draw with the built\-in 8x8 font regardless of TTF availability. Identical to draw_debug_text(); provided so text code can stay in one module.
 .SH MODULE
 text (src/engine/text/text.h)
 .SH SEE ALSO
 .BR draw_debug_text (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR text_draw (3),
+.BR gge\-api (7),
+.BR gge (1)

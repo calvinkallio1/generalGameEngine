@@ -1,0 +1,29 @@
+.TH VEC2 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Vec2 \- A 2D vector of floats: positions, velocities, directions, sizes
+.SH SYNOPSIS
+.nf
+.B #include \(dqmathx.h\(dq
+.ft B
+typedef struct { float x, y; } Vec2;
+.ft R
+.fi
+.SH DESCRIPTION
+A 2D vector of floats: positions, velocities, directions, sizes. The engine's currency for anything with an x and a y in world or screen space. Pointer\-free and tiny, so it lives directly inside entities in GameState. All v2_* helpers take and return Vec2 by value. Same layout as Point.
+.SH FIELDS
+.TP
+.B x
+horizontal component
+.TP
+.B y
+vertical component (positive is down on screen)
+.SH MODULE
+math (src/engine/math/mathx.h)
+.SH SEE ALSO
+.BR v2 (3),
+.BR v2_add (3),
+.BR v2_scale (3),
+.BR v2_norm (3),
+.BR gge\-math (7),
+.BR gge\-api (7),
+.BR gge (1)

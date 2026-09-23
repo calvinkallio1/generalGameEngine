@@ -1,0 +1,19 @@
+.TH ASSERT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+ASSERT \- Stop the program (with a message naming the file and line) if condition c is false, in Debug builds; compiled out in Release builds, so c must have no side effects
+.SH SYNOPSIS
+.nf
+.B #include \(dqdebug.h\(dq
+.ft B
+#define ASSERT(c) SDL_assert(c)
+.ft R
+.fi
+.SH DESCRIPTION
+Stop the program (with a message naming the file and line) if condition c is false, in Debug builds; compiled out in Release builds, so c must have no side effects. Guard invariants: ASSERT(g\->count <= MAX_ENTITIES), ASSERT(index >= 0).
+.SH MODULE
+debug (src/engine/debug/debug.h)
+.SH SEE ALSO
+.BR LOG (3),
+.BR WARN (3),
+.BR gge\-api (7),
+.BR gge (1)

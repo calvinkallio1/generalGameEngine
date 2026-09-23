@@ -1,21 +1,18 @@
 .TH ANIM_STEP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-anim_step \- engine function
+anim_step \- Advance the animation by dt seconds using the timing in a (the Anim that st\->anim refers to)
 .SH SYNOPSIS
 .nf
 .B #include \(dqsprite.h\(dq
 .BI "void anim_step(AnimState *st, const Anim *a, float dt);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/sprite/sprite.h and run 'gge genman'.
+Advance the animation by dt seconds using the timing in a (the Anim that st\->anim refers to). Call once per update tick. Several frames can advance in one call after a long dt. Looping animations wrap; others stop on the last frame and set st\->done, after which the call does nothing until anim_set() restarts them. A count of 1 never advances.
 .SH MODULE
 sprite (src/engine/sprite/sprite.h)
 .SH SEE ALSO
-.BR sprite_from (3),
 .BR anim_set (3),
 .BR anim_frame (3),
-.BR sprite_draw (3),
-.BR sprite_draw_scaled (3),
-.BR sprite_draw_tinted (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Anim (3),
+.BR gge\-api (7),
+.BR gge (1)

@@ -7,11 +7,11 @@ text_size \- Measure s in font f, writing pixel width and height through w and h
 .BI "void text_size(Font f, const char *s, int *w, int *h);"
 .fi
 .SH DESCRIPTION
-Measure s in font f, writing pixel width and height through w and h. Neither pointer may be NULL. Use to center or right\-align text.
+Measure s in font f, writing pixel width and height through w and h. Neither pointer may be NULL. Use to center (x = (e\->logical_w \- w) / 2), right\-align, or lay out a box around text. For the debug font the answer is 8 x strlen by 8.
 .SH MODULE
 text (src/engine/text/text.h)
 .SH SEE ALSO
 .BR text_draw (3),
 .BR text_line_height (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

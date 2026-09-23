@@ -1,0 +1,51 @@
+.TH CAMERA 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Camera \- A window onto a world larger than the screen
+.SH SYNOPSIS
+.nf
+.B #include \(dqcamera.h\(dq
+.ft B
+typedef struct Camera {
+  Vec2  pos;
+  float zoom;
+  int   view_w, view_h;   /* logical size */
+  Vec2  min, max;         /* world bounds; min == max disables */
+  Vec2  offset;           /* added at draw time, e.g. screen shake */
+} Camera;
+.ft R
+.fi
+.SH DESCRIPTION
+A window onto a world larger than the screen. pos is the world point shown at the center of the view; everything drawn through camera_to_screen() or camera_rect() is shifted and zoomed accordingly. Keep one in a scene static (presentation state, not GameState), initialize it in on_enter with camera_init(), move it in update with camera_follow(), and convert every world position in render. Screen shake is applied by writing offset each tick (from a Shake) rather than by moving pos, so follow and bounds are unaffected.
+.SH FIELDS
+.TP
+.B pos
+world position at the center of the view
+.TP
+.B zoom
+scale factor: 1 is one world pixel per logical pixel, 2 magnifies. Sprites drawn with sprite_draw_scaled(..., c\->zoom, ...) match.
+.TP
+.B view_w
+width of the view in logical pixels, normally e\->logical_w
+.TP
+.B view_h
+height of the view in logical pixels
+.TP
+.B min
+top\-left corner of the world bounds set by camera_set_bounds()
+.TP
+.B max
+bottom\-right corner of the bounds; min == max (the initial state) disables clamping
+.TP
+.B offset
+added to pos at conversion time, for screen shake; not clamped
+.SH MODULE
+camera (src/engine/camera/camera.h)
+.SH SEE ALSO
+.BR camera_init (3),
+.BR camera_follow (3),
+.BR camera_to_screen (3),
+.BR camera_visible (3),
+.BR Shake (3),
+.BR gge\-camera (7),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,18 +1,16 @@
 .TH ASSETS_UNLOAD_ALL 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-assets_unload_all \- engine function
+assets_unload_all \- Engine\-internal: destroy every cached texture
 .SH SYNOPSIS
 .nf
 .B #include \(dqassets.h\(dq
 .BI "void assets_unload_all(void);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/assets/assets.h and run 'gge genman'.
+Engine\-internal: destroy every cached texture. Called by engine_shutdown(); games never call it.
 .SH MODULE
 assets (src/engine/assets/assets.h)
 .SH SEE ALSO
-.BR assets_texture (3),
-.BR assets_path (3),
-.BR assets_init (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_shutdown (3),
+.BR gge\-api (7),
+.BR gge (1)

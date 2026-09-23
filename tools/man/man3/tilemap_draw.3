@@ -1,21 +1,18 @@
 .TH TILEMAP_DRAW 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-tilemap_draw \- engine function
+tilemap_draw \- Draw every non\-empty tile visible through the camera, scaled by the camera's zoom
 .SH SYNOPSIS
 .nf
 .B #include \(dqtilemap.h\(dq
 .BI "void tilemap_draw(const Tilemap *m, const Camera *c);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/tilemap/tilemap.h and run 'gge genman'.
+Draw every non\-empty tile visible through the camera, scaled by the camera's zoom. Culls to camera_visible() plus one tile of margin, so map size does not affect cost. Call from render before drawing entities; call twice with two maps for a background and a foreground layer.
 .SH MODULE
 tilemap (src/engine/tilemap/tilemap.h)
 .SH SEE ALSO
-.BR tilemap_at (3),
-.BR tilemap_solid_at (3),
-.BR tilemap_box_hits (3),
-.BR tilemap_move (3),
-.BR tilemap_load_csv (3),
-.BR tilemap_free (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR camera_visible (3),
+.BR sprite_draw_scaled (3),
+.BR Tilemap (3),
+.BR gge\-api (7),
+.BR gge (1)

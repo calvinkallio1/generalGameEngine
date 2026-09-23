@@ -1,73 +1,146 @@
 .TH GGE\-DRAWING 7 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-gge\-drawing \- primitives, sprites, text, tilemaps, cameras
+gge\-drawing \- primitives, logical pixels, draw order, layers, and smooth motion
 .SH DESCRIPTION
-All drawing happens inside a scene's
-.B render
-callback, in logical pixels (EngineConfig.logical_w x logical_h; the window is
-scaled to fit). Later calls paint over earlier ones. Colors are
-.B Color
-{r,g,b,a} 0..255 built with
-.BR rgb (),
-.BR rgba ()
-or the
-.B COLOR_*
-constants; rectangles are
-.B Rect
-{x,y,w,h} built with
-.BR rect ().
-.SS Primitives (draw.h)
-.BR draw_clear ", " draw_rect ", " draw_rect_outline ", " draw_line ", " draw_point ", "
-.BR draw_texture ", " draw_texture_ex ", " draw_debug_text .
-Alpha blending is always on, so
-.B rgba(0,0,0,160)
-over the whole screen dims whatever was drawn beneath.
-.SS Sprites (sprite.h)
-.BR sprite_from (3)
-slices a texture into equal frames.
-.BR sprite_draw (3),
-.BR sprite_draw_scaled (3),
-.BR sprite_draw_tinted (3)
-draw one frame; frame index = column + row * columns.
-.B Anim
-/
-.B AnimState
-with
-.BR anim_step (3)
-and
-.BR anim_frame (3)
-play ranges of frames. Tinting multiplies a white sheet by a color, which is
-how palette\-free recolouring works: draw layered white silhouettes with
-different tints.
-.SS Text (text.h)
-.BR text_load_font (3)
-(needs ENGINE_WITH_TTF and EngineConfig.text; falls back to the 8px debug
-font when the file is missing),
-.BR text_draw (3),
-.BR text_size (3)
-for measuring and centering.
-.SS Tilemaps and cameras
-A
-.B Tilemap
-is a uint8_t grid plus a tileset sprite; frame 0 is empty. Fill it from code
-or
-.BR tilemap_load_csv (3)
-(Tiled export). A
-.B Camera
-converts world to screen;
-.BR camera_follow (3)
-tracks a target,
-.BR tilemap_draw (3)
-draws only the visible tiles.
-.SS Smooth motion
-Draw at
-.BR v2_lerp "(prev, now, alpha)" ;
-keep prev in a scene static updated at the start of each
-.BR update .
+All drawing happens inside a scene's \fBrender\fR callback, in \fBlogical pixels\fR (EngineConfig.logical_w x logical_h; the window is scaled to fit and letterboxed). Later calls paint over earlier ones; there is no depth buffer and no retained scene graph. Every visible thing is one of the calls in draw.h, or a module that ends in one of them (sprites, text, tilemaps, menus, dialog).
+.PP
+.SH THE PRIMITIVES (draw.h)
+.TP
+\fBdraw_clear(c)\fR
+Fill the frame. The engine already clears to EngineConfig.clear_color; use this only to override for one scene.
+.TP
+\fBdraw_rect(r, c)\fR
+Filled rectangle. Placeholders, bars, panels, fades.
+.TP
+\fBdraw_rect_outline(r, c)\fR
+One\-pixel outline.
+.TP
+\fBdraw_line(x1, y1, x2, y2, c)\fR
+One\-pixel line.
+.TP
+\fBdraw_point(x, y, c)\fR
+One pixel.
+.TP
+\fBdraw_texture(t, src, dst)\fR
+Copy a texture region into a rectangle, scaling to fit; src NULL = whole texture.
+.TP
+\fBdraw_texture_ex(t, src, dst, angle, flip)\fR
+The same with rotation (degrees, clockwise, about dst's center) and mirroring.
+.TP
+\fBdraw_debug_text(x, y, c, s)\fR
+Text in the built\-in 8x8 font, always available.
+Colors are \fBColor\fR {r,g,b,a} built with rgb(3), rgba(3) or the COLOR_* constants; rectangles are \fBRect\fR {x,y,w,h} built with rect(3), rect_at(3) or rect_centered(3) (gge\-types(7)). Alpha blending is always on: \fBrgba(0, 0, 0, 160)\fR over the whole screen dims whatever was drawn beneath, which is the pause\-menu backdrop and the fade\-to\-black in one call.
+.PP
+.SH A COMPLETE RENDER
+.PP
+.RS 4
+.EX
+static void render(Engine *e, Scene *s, float alpha) {
+  (void)s;
+  GameState *g = e\->user;
+  /* 1. world, through the camera */
+  tilemap_draw(&map, &cam);                                   /* background layer */
+  for (int i = 0; i < MAX_COINS; ++i) if (g\->coins[i].alive) {
+    Vec2 p = camera_to_screen(&cam, g\->coins[i].pos);
+    sprite_draw(&coin, (e\->frame / 8) % 4, p.x, p.y, 0, FLIP_NONE);
+  }
+  Vec2 pp = camera_to_screen(&cam, v2_lerp(prev_player, g\->player.pos, alpha));
+  sprite_draw(&hero, anim_frame(&g\->player.anim, &hero_anims[g\->player.anim.anim]),
+              pp.x, pp.y, 0, g\->player.facing < 0 ? FLIP_H : FLIP_NONE);
+  tilemap_draw(&fg_map, &cam);                                /* foreground layer over entities */
+  /* 2. HUD, in screen space */
+  draw_rect(rect(8, 8, 100, 8), rgba(0, 0, 0, 120));
+  draw_rect(rect(8, 8, 100.0f * g\->player.hp / g\->player.max_hp, 8), COLOR_RED);
+  char buf[32]; snprintf(buf, sizeof buf, "%d", g\->player.coins);
+  text_draw(ui, 8, 20, COLOR_YELLOW, buf);
+  /* 3. debug */
+  debug_rect(camera_rect(&cam, player_hitbox(&g\->player)), COLOR_GREEN);   /* F3 only */
+}
+.EE
+.RE
+.PP
+Order is the layer list: background, world objects sorted however you like, foreground, HUD, debug. Anything that must be on top is simply drawn last.
+.PP
+.SH SORTING BY DEPTH
+For top\-down games where a character can stand in front of or behind a tree, draw world objects in order of their bottom edge (\fBpos.y + h\fR): collect the live entities' indices into a small array each frame, sort by that key (insertion sort is fine for a few hundred), then draw. Doing it in render keeps GameState untouched.
+.PP
+.SH SMOOTH MOTION (alpha)
+\fBupdate\fR runs at a fixed rate; \fBrender\fR runs whenever the display is ready. A frame that lands between two ticks would show the last tick's position, which stutters on high\-refresh displays and whenever the two rates do not divide evenly. \fBalpha\fR (0..1) says how far the simulation is toward the next tick. Draw moving things at the interpolated position:
+.PP
+.RS 4
+.EX
+static Vec2 prev_player;                       /* scene static */
+\&
+static void update(Engine *e, Scene *s, float dt) {
+  GameState *g = e\->user;
+  prev_player = g\->player.pos;                 /* first line of update */
+  ... move the player ...
+}
+static void render(Engine *e, Scene *s, float alpha) {
+  Vec2 p = v2_lerp(prev_player, g\->player.pos, alpha);
+  ...
+}
+.EE
+.RE
+.PP
+Keep a \fBprev\fR for everything that moves visibly (a parallel array for entity kinds) and for the camera position if it follows. Things that teleport (respawn, room change) should set \fBprev = pos\fR at the same time so they do not smear across the screen. Interpolation adds one tick of latency (under 17 ms at 60 Hz), which is imperceptible; skip it only for the few games that run update at the display rate anyway.
+.PP
+.SH LOGICAL PIXELS AND LAYOUT
+\fBe\->logical_w\fR and \fBe\->logical_h\fR are the canvas size. Center things arithmetically: \fBx = (e\->logical_w \- w) / 2\fR. Measure text with text_size(3). Anchor HUD elements to edges (\fBe\->logical_w \- 8 \- w\fR) so a later resolution change moves them correctly. The mouse position in Input is already in logical pixels. Positions are floats and are not snapped to the logical grid: at window scale 4, a sprite at x = 10.25 lands one window pixel off the grid, which shows as uneven pixel art. Round draw positions in render (\fBfloorf(p.x)\fR) for anything that should stay on the pixel grid; keep the unrounded value in state so slow motion still accumulates.
+.PP
+.SH WORLD VERSUS SCREEN
+World coordinates are where entities live; screen coordinates are where they are drawn. A \fBCamera\fR converts between them (gge\-camera(7)); everything in the world goes through \fBcamera_to_screen\fR / \fBcamera_rect\fR, and HUD elements do not. Games without scrolling can use world == screen and skip the camera entirely.
+.PP
+.SH TEXTURES AND SPRITES
+\fBassets_texture\fR loads an image once and caches it (gge\-assets(7)); \fBdraw_texture\fR shows all or part of it; \fBsprite_from\fR slices a sheet into equal frames and sprite_draw(3) / sprite_draw_scaled(3) / sprite_draw_tinted(3) draw one frame with flip, rotation, scale or tint (gge\-sprite(7)). Scaling is nearest\-neighbour, so pixel art stays crisp at integer scales and looks slightly uneven at fractional ones; keep camera zoom at 1, 2, 3.
+.PP
+.SH TEXT
+text_draw(3) draws a TrueType string at a position (gge\-text(7)); draw_debug_text is the 8x8 fallback that needs no font. Text is cached per string, so static labels are free and a per\-frame changing string costs one small texture upload.
+.PP
+.SH EFFECTS WITH PRIMITIVES
+.TP
+\fBFade to black\fR
+\fBdraw_rect(full_screen, rgba(0, 0, 0, (uint8_t)(fade * 255)))\fR last, with \fBfade\fR tweened 0..1 (gge\-tween(7)).
+.TP
+\fBDamage flash\fR
+\fBsprite_draw_tinted(&hero, f, x, y, rgb(255, 80, 80), flip)\fR for a few ticks after a hit.
+.TP
+\fBInvulnerability blink\fR
+skip the draw when \fB(g\->ticks / 4) % 2\fR during the window.
+.TP
+\fBHealth / progress bar\fR
+two draw_rects, the second's width scaled by the fraction.
+.TP
+\fBShadow\fR
+a dark, half\-transparent rectangle or ellipse\-shaped sprite under the entity, drawn before it.
+.TP
+\fBScreen shake\fR
+add the Shake offsets to the camera (gge\-tween(7), gge\-camera(7)).
+.TP
+\fBNight\fR
+a translucent dark\-blue rectangle over the whole world, drawn after the entities and before the HUD. A light source is a soft, translucent, warm\-colored sprite drawn after that layer around the source; there is no subtractive blending, so real shadows are out of scope.
+.TP
+\fBParallax background\fR
+draw a wide background sprite at \fB\-cam.pos.x * 0.5f\fR (world x scaled down) before the tilemap.
+.TP
+\fBParticles\fR
+an array of pos/vel/life/color drawn with draw_rect of 1\-3 pixels or a tiny sprite; hundreds are fine.
+.SH PERFORMANCE
+The renderer batches consecutive draws of the same texture; thousands of sprite draws per frame are fine. Costs to know: \fBtext_draw\fR of a string that changes every frame re\-renders it; \fBtilemap_draw\fR only visits visible tiles, but a second full\-screen map doubles that; \fBdraw_point\fR per pixel across the screen is slow (use sprites). Measure with F3's fps before optimizing anything.
+.PP
 .SH SEE ALSO
 .BR draw_rect (3),
+.BR draw_texture_ex (3),
+.BR draw_debug_text (3),
 .BR sprite_draw (3),
 .BR text_draw (3),
 .BR tilemap_draw (3),
-.BR camera_follow (3),
-.BR gge\-assets (7)
+.BR camera_to_screen (3),
+.BR Color (3),
+.BR Rect (3),
+.BR gge\-types (7),
+.BR gge\-sprite (7),
+.BR gge\-text (7),
+.BR gge\-camera (7),
+.BR gge\-tween (7),
+.BR gge\-engine (7)

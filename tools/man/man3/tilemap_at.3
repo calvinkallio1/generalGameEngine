@@ -1,21 +1,19 @@
 .TH TILEMAP_AT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-tilemap_at \- 0 outside
+tilemap_at \- The tile id at tile coordinates tx, ty
 .SH SYNOPSIS
 .nf
 .B #include \(dqtilemap.h\(dq
 .BI "uint8_t tilemap_at(const Tilemap *m, int tx, int ty);"
 .fi
 .SH DESCRIPTION
-0 outside
+The tile id at tile coordinates tx, ty. Coordinates outside the map read as 0 (empty), so callers never need bounds checks. Convert a world position first: tilemap_at(m, (int)floorf(wx / m\->tile), (int)floorf(wy / m\->tile)).
+.SH RETURN VALUE
+the id, 0 outside the map.
 .SH MODULE
 tilemap (src/engine/tilemap/tilemap.h)
 .SH SEE ALSO
 .BR tilemap_solid_at (3),
-.BR tilemap_box_hits (3),
-.BR tilemap_draw (3),
-.BR tilemap_move (3),
-.BR tilemap_load_csv (3),
-.BR tilemap_free (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Tilemap (3),
+.BR gge\-api (7),
+.BR gge (1)

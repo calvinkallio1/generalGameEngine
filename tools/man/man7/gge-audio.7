@@ -1,0 +1,95 @@
+.TH GGE\-AUDIO 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-audio \- sound effects, music, volumes, and ownership of sounds
+.SH DESCRIPTION
+audio.h plays .wav files: short effects on up to eight simultaneous channels, and one looping music track. It needs \fBEngineConfig.audio = true\fR; if no audio device exists the engine logs it, \fBe\->has_audio\fR stays false, and every call becomes a silent no\-op, so a game never has to check.
+.PP
+.SH SOUNDS
+A \fBSound\fR is a decoded .wav in memory. Load in on_enter, free in on_exit, keep it in a static:
+.PP
+.RS 4
+.EX
+static Sound sfx_jump, sfx_coin, music_level;
+\&
+static void on_enter(Engine *e, Scene *s) {
+  sfx_jump    = audio_load("sfx/jump.wav");
+  sfx_coin    = audio_load("sfx/coin.wav");
+  music_level = audio_load("music/level1.wav");
+  audio_music(&music_level, 0.6f);
+}
+static void on_exit(Engine *e, Scene *s) {
+  audio_music_stop();                 /* before freeing what it plays */
+  audio_free(&music_level);
+  audio_free(&sfx_jump);
+  audio_free(&sfx_coin);
+}
+.EE
+.RE
+.PP
+audio_load(3) is not cached: loading the same file in two scenes gives two copies, which is fine for effects (a few hundred kilobytes) and acceptable for music. A failed load returns a zero Sound that plays silence, so a missing file is a log line, not a crash. Sounds hold a pointer and therefore never go in GameState.
+.PP
+Formats: any sample rate, bit depth or channel count that .wav supports; the mixer converts. Keep effects mono at 22 or 44 kHz, 16\-bit; music stereo. There is no compressed format support, so a three\-minute stereo track is around 30 MB in memory; keep tracks short and loopable, or use lower sample rates for music.
+.PP
+.SH PLAYING EFFECTS
+.PP
+.RS 4
+.EX
+audio_play(&sfx_jump, 1.0f);                       /* gain 0..1 */
+audio_play(&sfx_coin, rng_between(&g\->rng, 0.7f, 1.0f));   /* vary volume for repeats */
+.EE
+.RE
+.PP
+Fire\-and\-forget: no handle, no stop, no notification. Eight effects can overlap; a ninth is dropped silently. Call from update (on the tick the event happens) or from handle_input (on the press), never from render. An effect that fires every tick while a condition holds (a footstep, an engine hum) needs a timer: play it when the timer expires and restart the timer.
+.PP
+.SS Where sound calls belong
+Events are found in update, and update is in the scene, so the scene plays the sound: when the collision loop kills an enemy, \fBaudio_play(&sfx_hit, 1)\fR. Entity tick functions should not play sounds directly (they have no access to the scene's statics); return or set an event flag ("landed this tick") that the scene reads.
+.PP
+.SH MUSIC
+audio_music(3) loops one Sound until replaced or stopped; it starts from the beginning each time it is called, so do not call it every frame or on every level when the track is the same. The Sound must stay loaded while it plays. Looping is seamless if the file ends where it can restart; a short silence at the end of the file becomes a gap.
+.PP
+Crossfades are not built in. To change music softly: tween a float from the current gain to 0 with \fBaudio_set_master(sfx, music_fade)\fR each tick, then call audio_music with the new track and tween the gain back up.
+.PP
+.SH VOLUMES
+audio_set_master(3) sets separate master gains for effects and music. Store the user's choices in GameState so a save keeps them, apply them in the title scene's on_enter (and again after a load), and expose them in an options menu:
+.PP
+.RS 4
+.EX
+static char sfx_label[24], music_label[24];
+static void apply(GameState *g) {
+  audio_set_master(g\->sfx_gain, g\->music_gain);
+  snprintf(sfx_label,   sizeof sfx_label,   "Effects %d%%", (int)(g\->sfx_gain * 100));
+  snprintf(music_label, sizeof music_label, "Music %d%%",   (int)(g\->music_gain * 100));
+}
+static void sfx_up(Engine *e)   { GameState *g = e\->user; g\->sfx_gain = minf(1, g\->sfx_gain + 0.1f); apply(g); }
+static void sfx_down(Engine *e) { GameState *g = e\->user; g\->sfx_gain = maxf(0, g\->sfx_gain \- 0.1f); apply(g); }
+.EE
+.RE
+.PP
+with the labels handed to menu_add (they are static buffers, so the pointer stays valid). Effects pick up the new master on their next play; music changes immediately.
+.PP
+.SH TIMING AND LATENCY
+Effects start within a few milliseconds. Sounds tied to animation frames (a footstep on frame 3) are played from update when \fBanim_frame\fR changes to that frame; keep the previous frame in the entity to detect the change.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+Freeing a sound while it is the music: stop the music first.
+.IP \(bu 2
+Playing from render: one call per displayed frame.
+.IP \(bu 2
+Loading in update: reading a file every tick.
+.IP \(bu 2
+Forgetting \fBEngineConfig.audio = true\fR: everything is silent and one log line says why.
+.IP \(bu 2
+Very long music files: memory, and a long load in on_enter.
+.SH SEE ALSO
+.BR Sound (3),
+.BR audio_load (3),
+.BR audio_free (3),
+.BR audio_play (3),
+.BR audio_music (3),
+.BR audio_music_stop (3),
+.BR audio_set_master (3),
+.BR EngineConfig (3),
+.BR gge\-assets (7),
+.BR gge\-menu (7),
+.BR gge\-state (7)

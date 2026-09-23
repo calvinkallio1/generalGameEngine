@@ -1,19 +1,21 @@
 .TH RGB 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rgb \- engine function
+rgb \- Build an opaque Color from red, green and blue (0..255 each); alpha is 255
 .SH SYNOPSIS
 .nf
 .B #include \(dqtypes.h\(dq
 .BI "Color rgb(uint8_t r, uint8_t g, uint8_t b);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/types/types.h and run 'gge genman'.
+Build an opaque Color from red, green and blue (0..255 each); alpha is 255.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the Color.
 .SH MODULE
 types (src/engine/types/types.h)
 .SH SEE ALSO
 .BR rgba (3),
-.BR rect (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Color (3),
+.BR gge\-api (7),
+.BR gge (1)

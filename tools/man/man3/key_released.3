@@ -7,12 +7,15 @@ key_released \- True only on the frame the key came up
 .BI "bool key_released(const Input *in, Key k);"
 .fi
 .SH DESCRIPTION
-True only on the frame the key came up.
+True only on the frame the key came up. Use for release\-triggered mechanics: a variable\-height jump that cuts short when the button is let go, a charged shot that fires on release.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+true if the key is up now and was down last frame.
 .SH MODULE
 input (src/engine/input/input.h)
 .SH SEE ALSO
 .BR key_pressed (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR key_down (3),
+.BR gge\-api (7),
+.BR gge (1)

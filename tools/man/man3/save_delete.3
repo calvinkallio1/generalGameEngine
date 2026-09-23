@@ -1,16 +1,18 @@
 .TH SAVE_DELETE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-save_delete \- Remove a slot file
+save_delete \- Remove a slot file: "delete save" in a menu, or permadeath in a roguelike
 .SH SYNOPSIS
 .nf
 .B #include \(dqsave.h\(dq
 .BI "bool save_delete(const Save *s, const char *slot);"
 .fi
 .SH DESCRIPTION
-Remove a slot file.
+Remove a slot file: "delete save" in a menu, or permadeath in a roguelike.
+.SH RETURN VALUE
+true if it was removed.
 .SH MODULE
 save (src/engine/save/save.h)
 .SH SEE ALSO
 .BR save_write (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

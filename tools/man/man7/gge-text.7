@@ -1,0 +1,117 @@
+.TH GGE\-TEXT 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-text \- fonts, drawing and measuring strings, layout
+.SH DESCRIPTION
+text.h draws strings with TrueType fonts loaded from assets/, falling back to the built\-in 8x8 font whenever a real font is unavailable, so text code works from the first build. Fonts need the engine built with ENGINE_WITH_TTF (gge\-build(7)) and \fBEngineConfig.text = true\fR; without either, every Font is the debug font and the calls still work.
+.PP
+.SH FONTS
+.PP
+.RS 4
+.EX
+static Font ui, big;
+static void on_enter(Engine *e, Scene *s) {
+  ui  = text_load_font("fonts/pixel.ttf", 8);    /* point size in logical pixels */
+  big = text_load_font("fonts/pixel.ttf", 24);
+}
+.EE
+.RE
+.PP
+\fBFont\fR is a small value: load once per size you use (each size is a separate font), keep it in a static, copy it freely, never free it. A failed load logs and returns a zero Font, which draws with the 8x8 font; \fB(Font){0}\fR is therefore a valid "no font" everywhere, and the menu, dialog and cutscene modules accept it. Sizes are in logical pixels: a 12\-point font on a 320x180 canvas is 12 of those 180 pixels tall, whatever the window size. For pixel fonts use the size the font was designed at (often 8 or 16) so glyphs land on the pixel grid.
+.PP
+.SH DRAWING
+.TP
+\fBtext_draw(f, x, y, color, s)\fR
+one line, top\-left at x,y. No wrapping, no newlines.
+.TP
+\fBtext_size(f, s, &w, &h)\fR
+pixel size of s.
+.TP
+\fBtext_line_height(f)\fR
+height of a line, for stacking.
+.TP
+\fBtext_draw_debug(x, y, color, s) / draw_debug_text\fR
+the 8x8 font, always.
+Rendered strings are cached per font, color and string (64 entries), so labels that do not change are free to draw every frame, and a score that changes now and then costs one small texture per change. A string that changes every frame (a millisecond timer) re\-renders every frame; that is fine for a few of them.
+.PP
+.SH LAYOUT
+Everything is arithmetic on text_size:
+.PP
+.RS 4
+.EX
+static void draw_centered(Font f, float cx, float y, Color c, const char *s) {
+  int w, h; text_size(f, s, &w, &h);
+  text_draw(f, cx \- w / 2.0f, y, c, s);
+}
+static void draw_right(Font f, float right, float y, Color c, const char *s) {
+  int w, h; text_size(f, s, &w, &h);
+  text_draw(f, right \- w, y, c, s);
+}
+/* several lines */
+float y = 40;
+for (int i = 0; i < n; ++i) { text_draw(ui, 20, y, COLOR_WHITE, lines[i]); y += text_line_height(ui) + 2; }
+/* a label with a value */
+char buf[32]; snprintf(buf, sizeof buf, "Score %d", g\->score);
+text_draw(ui, 8, 8, COLOR_YELLOW, buf);
+.EE
+.RE
+.PP
+A drop shadow is the same string drawn once in black at (x+1, y+1) and once in the color on top. An outline is four offsets. A panel behind text is draw_rect with a translucent color, sized from text_size plus padding.
+.PP
+.SH WORD WRAP
+The dialog module wraps for you (gge\-dialog(7)). For your own paragraphs, wrap by measuring: accumulate words into a line, measure the candidate with text_size, and start a new line when it exceeds the width:
+.PP
+.RS 4
+.EX
+static int wrap(Font f, const char *text, float max_w, char out[][128], int max_lines) {
+  int lines = 0; char line[128] = ""; const char *p = text;
+  while (*p && lines < max_lines) {
+    const char *end = p; while (*end && *end != ' ') ++end;
+    char word[64], trial[128]; snprintf(word, sizeof word, "%.*s", (int)(end \- p), p);
+    snprintf(trial, sizeof trial, "%s%s%s", line, *line ? " " : "", word);
+    int w, h; text_size(f, trial, &w, &h);
+    if ((float)w > max_w && *line) { snprintf(out[lines++], 128, "%s", line); snprintf(line, sizeof line, "%s", word); }
+    else snprintf(line, sizeof line, "%s", trial);
+    p = *end ? end + 1 : end;
+  }
+  if (*line && lines < max_lines) snprintf(out[lines++], 128, "%s", line);
+  return lines;
+}
+.EE
+.RE
+.PP
+Wrap once when the text changes (in update or on_enter), not every frame.
+.PP
+.SH TYPEWRITER TEXT
+Draw a prefix of the string that grows with time: \fBsnprintf(shown, sizeof shown, "%.*s", (int)chars, text)\fR with \fBchars += speed * dt\fR in update. Each new prefix is a new cache entry, which is fine for one dialog box. The dialog module implements exactly this.
+.PP
+.SH NUMBERS THAT CHANGE EVERY FRAME
+A frame counter, a stopwatch or an fps display changes every frame and defeats the cache. Options: use draw_debug_text for it (no cache, cheap); update the string only every few ticks; or draw digits from a sprite sheet of numerals, which is also how arcade games get outlined, styled numbers.
+.PP
+.SH THE DEBUG FONT
+Always available, 8x8 pixels per character, no file. Right for overlays, the F3 layer (debug_text(3)) and for placeholder UI until fonts exist. Its size is fixed, so at a 640x360 canvas it is small and at 320x180 it is large; if the game is pixel\-art at a low resolution, an 8 px TrueType pixel font gives the same look with a real character set.
+.PP
+.SH CHARACTER SETS
+TrueType fonts draw whatever glyphs they contain; strings are UTF\-8. The debug font covers printable ASCII. Typed text from engine_text_input(3) arrives as UTF\-8 too, so a name entered with accented letters draws correctly with a font that has them.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+Loading fonts every frame: each load is a new font and a new cache entry; load in on_enter.
+.IP \(bu 2
+Passing a stack buffer that goes out of scope: text_draw copies the string into its cache, so this is safe; menu labels and dialog lines are kept by pointer and are not (gge\-menu(7), gge\-dialog(7)).
+.IP \(bu 2
+Measuring with the wrong font: text_size and text_draw must get the same Font.
+.IP \(bu 2
+Fractional positions: text drawn at x = 10.5 lands between logical pixels and blurs at integer window scales; round UI positions.
+.SH SEE ALSO
+.BR Font (3),
+.BR text_load_font (3),
+.BR text_draw (3),
+.BR text_size (3),
+.BR text_line_height (3),
+.BR draw_debug_text (3),
+.BR engine_text_input (3),
+.BR gge\-drawing (7),
+.BR gge\-menu (7),
+.BR gge\-dialog (7),
+.BR gge\-assets (7),
+.BR gge\-build (7)

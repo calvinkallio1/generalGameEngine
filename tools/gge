@@ -19,9 +19,9 @@ usage: gge <command> [options] [args]
                                                   add a scene file (+ declaration)
   entity [-o DIR] [-H] [-f] <name>                add an entity .h/.c pair
   config [-f FILE] [-e HEADER] [key [value]]      show / set / emit project settings
-  man    [-s SECTION] [-k] <topic>                manual pages (functions, concepts)
-  ls     [-m MODULE] [-g PATTERN]                 list engine functions
-  genman                                          rebuild man3 pages from the headers
+  man    [-s SECTION] [-k] <topic>                manual pages (functions, types, modules)
+  ls     [-m MODULE] [-g PATTERN] [-t]            list engine functions (-t: types, macros)
+  genman                                          rebuild man3 pages + gge-api(7) from the headers
 
 'gge <command> -h' shows that command's options.
 EOF
@@ -207,10 +207,33 @@ cmd_man() {
       k) search=1 ;;
       h|*) cat <<EOF; exit 0 ;;
 gge man [-s SECTION] [-k] <topic>
-  -s N     section: 1 tools, 3 functions, 7 concepts
+  -s N     section: 1 tools, 3 functions/types/macros, 7 modules and concepts
   -k       keyword search: list pages mentioning <topic>
-Topics: any engine function (sprite_draw, engine_push ...) or a concept page:
-  scenes, state, input, drawing, assets, saves, gge
+Topics: any engine function (sprite_draw, engine_push ...), type (Camera,
+Scene, Vec2 ...), macro (CUT_DO, LOG ...), or one of the section-7 pages:
+  overview   map of the engine, where to start
+  api        index of every function, type and macro, by module
+  engine     the loop, EngineConfig, Engine, timing, main.c
+  scenes     the scene stack and callbacks
+  state      where game state lives (GameState vs scene statics)
+  entities   the entity pattern: arrays, indices, spawning, ticking
+  input      keys, mouse, gamepad, actions, text input
+  drawing    primitives, draw order, logical pixels, smooth motion
+  types      Color, Rect, Vec2 and friends
+  math       vectors, collision tests, random numbers
+  sprite     sheets, frames, animations, tinting
+  text       fonts and text layout
+  camera     world vs screen, following, bounds, zoom
+  tilemap    tile grids, CSV levels, tile collision
+  audio      sounds, music, volumes
+  menu       selectable lists
+  dialog     speech boxes
+  cutscene   scripted sequences
+  tween      timers, easing, screen shake
+  debug      logging, asserts, the F3 overlay
+  assets     where files go and how they load
+  saves      writing and reading GameState
+  build      project layout, CMake, gge.conf, adding modules
 EOF
     esac
   done
@@ -221,25 +244,34 @@ EOF
     grep -il -- "$1" "$HERE"/man/man*/* 2>/dev/null | sed 's|.*/||; s|\.[0-9]$||' | sort -u; return
   fi
   if [ -n "$section" ]; then exec man "$section" "$1"; fi
+  # exact file match first, so that types (Camera.3) win over any case-folded lookup
+  lower=$(echo "$1" | tr 'A-Z' 'a-z')
+  for sec in 3 7 1; do
+    [ -e "$HERE/man/man$sec/$1.$sec" ] && exec man "$sec" "$1"
+    [ -e "$HERE/man/man$sec/$lower.$sec" ] && exec man "$sec" "$lower"     # Rect and rect() share a page
+    [ -e "$HERE/man/man$sec/gge-$1.$sec" ] && exec man "$sec" "gge-$1"
+  done
   if man -w "$1" >/dev/null 2>&1; then exec man "$1"; fi
   if man -w "gge-$1" >/dev/null 2>&1; then exec man "gge-$1"; fi
-  die "no manual page for '$1' (try gge man -k $1, or gge genman)"
+  die "no manual page for '$1' (try gge man -k $1, gge ls, or gge genman)"
 }
 
 cmd_ls() {
-  module=; pat=
-  while getopts "m:g:h" opt; do
+  module=; pat=; types=
+  while getopts "m:g:th" opt; do
     case $opt in
       m) module=$OPTARG ;;
       g) pat=$OPTARG ;;
+      t) types=--types ;;
       h|*) cat <<EOF; exit 0 ;;
-gge ls [-m MODULE] [-g PATTERN]
+gge ls [-m MODULE] [-g PATTERN] [-t]
   -m MODULE   only this engine folder (sprite, menu, tilemap, ...)
-  -g REGEX    filter function names
+  -g REGEX    filter names
+  -t          list types and macros instead of functions
 EOF
     esac
   done
-  python3 "$HERE/genman.py" --list ${module:+--module "$module"} ${pat:+--grep "$pat"}
+  python3 "$HERE/genman.py" --list $types ${module:+--module "$module"} ${pat:+--grep "$pat"}
 }
 
 cmd_genman() {

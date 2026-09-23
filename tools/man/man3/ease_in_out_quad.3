@@ -1,23 +1,18 @@
 .TH EASE_IN_OUT_QUAD 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-ease_in_out_quad \- engine function
+ease_in_out_quad \- Slow at both ends, fast in the middle
 .SH SYNOPSIS
 .nf
 .B #include \(dqtween.h\(dq
 .BI "float ease_in_out_quad(float t);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/tween/tween.h and run 'gge genman'.
+Slow at both ends, fast in the middle. Camera pans, cutscene walks, anything that should look deliberate.
+.SH RETURN VALUE
+the eased value.
 .SH MODULE
 tween (src/engine/tween/tween.h)
 .SH SEE ALSO
-.BR timer_start (3),
-.BR timer_tick (3),
-.BR ease_linear (3),
-.BR ease_in_quad (3),
 .BR ease_out_quad (3),
-.BR ease_out_cubic (3),
-.BR ease_out_back (3),
-.BR ease_out_bounce (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

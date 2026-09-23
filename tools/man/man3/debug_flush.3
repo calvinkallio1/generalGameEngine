@@ -1,18 +1,16 @@
 .TH DEBUG_FLUSH 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-debug_flush \- engine function
+debug_flush \- Engine\-internal: draw the queued shapes and text if draw is true, then empty the queues
 .SH SYNOPSIS
 .nf
 .B #include \(dqdebug.h\(dq
 .BI "void debug_flush(bool draw);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/debug/debug.h and run 'gge genman'.
+Engine\-internal: draw the queued shapes and text if draw is true, then empty the queues. Called once per frame by engine_run() after the scenes render; games never call it.
 .SH MODULE
 debug (src/engine/debug/debug.h)
 .SH SEE ALSO
-.BR debug_rect (3),
-.BR debug_line (3),
-.BR debug_text (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_run (3),
+.BR gge\-api (7),
+.BR gge (1)

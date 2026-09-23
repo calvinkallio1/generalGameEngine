@@ -1,0 +1,33 @@
+.TH MOUSEBUTTON 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+MouseButton \- Mouse buttons for mouse_down(), mouse_pressed() and mouse_released()
+.SH SYNOPSIS
+.nf
+.B #include \(dqkeys.h\(dq
+.ft B
+typedef enum MouseButton {
+  MOUSE_LEFT   = SDL_BUTTON_LEFT,
+  MOUSE_MIDDLE = SDL_BUTTON_MIDDLE,
+  MOUSE_RIGHT  = SDL_BUTTON_RIGHT,
+} MouseButton;
+.ft R
+.fi
+.SH DESCRIPTION
+Mouse buttons for mouse_down(), mouse_pressed() and mouse_released().
+.SH VALUES
+.TP
+.B MOUSE_LEFT
+primary button
+.TP
+.B MOUSE_MIDDLE
+wheel click
+.TP
+.B MOUSE_RIGHT
+secondary button
+.SH MODULE
+input (src/engine/input/keys.h)
+.SH SEE ALSO
+.BR mouse_pressed (3),
+.BR Input (3),
+.BR gge\-api (7),
+.BR gge (1)

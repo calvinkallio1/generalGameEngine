@@ -1,0 +1,19 @@
+.TH WARN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+WARN \- As LOG, at warning priority
+.SH SYNOPSIS
+.nf
+.B #include \(dqdebug.h\(dq
+.ft B
+#define WARN(...) SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
+.ft R
+.fi
+.SH DESCRIPTION
+As LOG, at warning priority. Same output on most platforms; use it for things that are wrong but survivable (an entity array is full, a save was rejected) so they stand out when filtering logs.
+.SH MODULE
+debug (src/engine/debug/debug.h)
+.SH SEE ALSO
+.BR LOG (3),
+.BR ASSERT (3),
+.BR gge\-api (7),
+.BR gge (1)

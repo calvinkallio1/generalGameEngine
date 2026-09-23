@@ -1,20 +1,16 @@
 .TH SAVE_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-save_init \- Remove a slot file
+save_init \- Engine\-internal: resolve the save folder from org and app (creating it) or fall back to the working directory
 .SH SYNOPSIS
 .nf
 .B #include \(dqsave.h\(dq
 .BI "void save_init(Save *s, const char *org, const char *app);"
 .fi
 .SH DESCRIPTION
-Remove a slot file.
-/
-bool save_delete(const Save *s, const char *slot);
-
-/* engine\-internal
+Engine\-internal: resolve the save folder from org and app (creating it) or fall back to the working directory. Called by engine_init(); games never call it.
 .SH MODULE
 save (src/engine/save/save.h)
 .SH SEE ALSO
-.BR save_write (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_init (3),
+.BR gge\-api (7),
+.BR gge (1)

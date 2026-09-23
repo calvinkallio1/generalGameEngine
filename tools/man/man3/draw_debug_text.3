@@ -1,16 +1,17 @@
 .TH DRAW_DEBUG_TEXT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-draw_debug_text \- Text in the built\-in 8x8 font
+draw_debug_text \- Text in the built\-in 8x8 font, top\-left at x,y
 .SH SYNOPSIS
 .nf
 .B #include \(dqdraw.h\(dq
 .BI "void draw_debug_text(float x, float y, Color c, const char *s);"
 .fi
 .SH DESCRIPTION
-Text in the built\-in 8x8 font. Always available; ideal for overlays and placeholder UI.
+Text in the built\-in 8x8 font, top\-left at x,y. Always available, needs no font file and no EngineConfig.text, so it is the right tool for overlays, placeholder UI and anything drawn before fonts exist. Each character is 8 logical pixels wide and tall; the string is not wrapped or clipped.
 .SH MODULE
 draw (src/engine/draw/draw.h)
 .SH SEE ALSO
 .BR text_draw (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR debug_text (3),
+.BR gge\-api (7),
+.BR gge (1)

@@ -7,10 +7,12 @@ camera_follow \- Move the camera toward target
 .BI "void camera_follow(Camera *c, Vec2 target, float smoothing, float dt);"
 .fi
 .SH DESCRIPTION
-Move the camera toward target. smoothing is a time constant in seconds: 0 snaps, 0.1\-0.3 is a tight follow, 1.0 is lazy. Call from update.
+Move the camera toward target. smoothing is a time constant in seconds: 0 snaps, 0.1\-0.3 is a tight follow, 1.0 is lazy. Frame\-rate independent. Call from update, after the target moved, so the frame drawn next sees the new position. When bounds are set the result is clamped so the view never leaves them; a world smaller than the view stays pinned to the bounds' top\-left.
 .SH MODULE
 camera (src/engine/camera/camera.h)
 .SH SEE ALSO
 .BR camera_set_bounds (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR smooth_t (3),
+.BR Camera (3),
+.BR gge\-api (7),
+.BR gge (1)

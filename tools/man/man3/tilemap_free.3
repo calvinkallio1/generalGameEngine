@@ -1,21 +1,16 @@
 .TH TILEMAP_FREE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-tilemap_free \- engine function
+tilemap_free \- Release the tile array allocated by tilemap_load_csv() and zero the size
 .SH SYNOPSIS
 .nf
 .B #include \(dqtilemap.h\(dq
 .BI "void tilemap_free(Tilemap *m);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/tilemap/tilemap.h and run 'gge genman'.
+Release the tile array allocated by tilemap_load_csv() and zero the size. Do not call on a map whose tiles point at a static array.
 .SH MODULE
 tilemap (src/engine/tilemap/tilemap.h)
 .SH SEE ALSO
-.BR tilemap_at (3),
-.BR tilemap_solid_at (3),
-.BR tilemap_box_hits (3),
-.BR tilemap_draw (3),
-.BR tilemap_move (3),
 .BR tilemap_load_csv (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

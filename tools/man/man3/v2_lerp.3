@@ -1,25 +1,21 @@
 .TH V2_LERP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-v2_lerp \- engine function
+v2_lerp \- Linear interpolation: a when t = 0, b when t = 1, the straight line between for values in between; t outside 0..1 extrapolates
 .SH SYNOPSIS
 .nf
 .B #include \(dqmathx.h\(dq
 .BI "Vec2 v2_lerp(Vec2 a, Vec2 b, float t);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/mathx.h and run 'gge genman'.
+Linear interpolation: a when t = 0, b when t = 1, the straight line between for values in between; t outside 0..1 extrapolates. Smooth rendering (v2_lerp(prev, now, alpha)), easing along a path, camera smoothing.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+a + (b \- a) * t.
 .SH MODULE
 math (src/engine/math/mathx.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR lerpf (3),
+.BR smooth_t (3),
+.BR gge\-api (7),
+.BR gge (1)

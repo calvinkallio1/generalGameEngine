@@ -7,14 +7,17 @@ key_down \- True while the key is held
 .BI "bool key_down(const Input *in, Key k);"
 .fi
 .SH DESCRIPTION
-True while the key is held.
+True while the key is held. Use for continuous actions: walking, holding a charge, scrolling. Because it is true every frame the key stays down, never use it for "open the menu" style reactions; that is key_pressed().
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+true if in\->keys[k] is set this frame.
 .SH MODULE
 input (src/engine/input/input.h)
 .SH SEE ALSO
 .BR key_pressed (3),
 .BR key_released (3),
+.BR action_down (3),
 .BR gge\-input (7),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,16 +1,20 @@
 .TH CUTSCENE_START 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-cutscene_start \- engine function
+cutscene_start \- Play a script: pushes the engine's built\-in cutscene scene on top of the stack, which runs steps[0..count\-1] in order and pops itself when the last one finishes, then calls on_finish(e, ctx) if given
 .SH SYNOPSIS
 .nf
 .B #include \(dqcutscene.h\(dq
 .BI "void cutscene_start(Engine *e, const CutStep *steps, int count, void *ctx, Font font, void (*on_finish)(Engine *, void *ctx));"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/cutscene/cutscene.h and run 'gge genman'.
+Play a script: pushes the engine's built\-in cutscene scene on top of the stack, which runs steps[0..count\-1] in order and pops itself when the last one finishes, then calls on_finish(e, ctx) if given. The scene beneath keeps rendering (so the world stays visible under the fades and dialog) but stops updating, so nothing else moves while actors are eased around. ESCAPE or PAD_START skips the whole cutscene (on_finish still runs, but remaining CUT_CALL steps do not, so put anything the game needs in on_finish). font is used for dialog lines; a zero Font is the debug font. steps must stay valid until the cutscene ends, so use a static const array. Only one cutscene runs at a time; starting another replaces the script.
 .SH MODULE
 cutscene (src/engine/cutscene/cutscene.h)
 .SH SEE ALSO
 .BR cutscene_active (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR CutStep (3),
+.BR CutKind (3),
+.BR dialog_show (3),
+.BR gge\-cutscene (7),
+.BR gge\-api (7),
+.BR gge (1)

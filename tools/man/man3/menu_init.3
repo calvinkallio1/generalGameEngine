@@ -1,17 +1,18 @@
 .TH MENU_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-menu_init \- Reset a Menu: no items, selection 0, position x,y, font (a zero Font uses the debug font), default colors and line height
+menu_init \- Reset a Menu: no items, selection 0, position x,y, font (a zero Font uses the debug font), default colors (grey, yellow when selected), line height from the font plus 6, and a 200\-pixel click width
 .SH SYNOPSIS
 .nf
 .B #include \(dqmenu.h\(dq
 .BI "void menu_init(Menu *m, float x, float y, Font font);"
 .fi
 .SH DESCRIPTION
-Reset a Menu: no items, selection 0, position x,y, font (a zero Font uses the debug font), default colors and line height.
+Reset a Menu: no items, selection 0, position x,y, font (a zero Font uses the debug font), default colors (grey, yellow when selected), line height from the font plus 6, and a 200\-pixel click width. Call in on_enter before menu_add; calling it again rebuilds the menu from scratch, which is how a dynamic menu (a shop whose items depend on GameState) is refreshed.
 .SH MODULE
 menu (src/engine/menu/menu.h)
 .SH SEE ALSO
 .BR menu_add (3),
 .BR menu_center (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Menu (3),
+.BR gge\-api (7),
+.BR gge (1)

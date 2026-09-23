@@ -7,11 +7,12 @@ engine_pop \- Queue removal of the top scene
 .BI "void engine_pop(Engine *e);"
 .fi
 .SH DESCRIPTION
-Queue removal of the top scene. Its on_exit runs when applied. A scene may pop itself. When the last scene is popped the loop ends.
+Queue removal of the top scene. Its on_exit runs when applied, after the current callback returns. A scene may pop itself (the usual way a pause menu or dialog closes). When the last scene is popped the loop ends, which is how a title screen's Quit item works when there is nothing beneath it. Popping with an empty stack is ignored.
 .SH MODULE
 core (src/engine/core/engine.h)
 .SH SEE ALSO
 .BR engine_push (3),
 .BR engine_replace (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_quit (3),
+.BR gge\-api (7),
+.BR gge (1)

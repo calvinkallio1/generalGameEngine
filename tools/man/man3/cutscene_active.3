@@ -1,16 +1,18 @@
 .TH CUTSCENE_ACTIVE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-cutscene_active \- engine function
+cutscene_active \- True while a cutscene scene is on the stack
 .SH SYNOPSIS
 .nf
 .B #include \(dqcutscene.h\(dq
 .BI "bool cutscene_active(void);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/cutscene/cutscene.h and run 'gge genman'.
+True while a cutscene scene is on the stack. Use to suppress input handling or HUD elements in scenes beneath it.
+.SH RETURN VALUE
+true while a cutscene is playing.
 .SH MODULE
 cutscene (src/engine/cutscene/cutscene.h)
 .SH SEE ALSO
 .BR cutscene_start (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

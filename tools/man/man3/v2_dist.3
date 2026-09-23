@@ -1,25 +1,21 @@
 .TH V2_DIST 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-v2_dist \- engine function
+v2_dist \- Distance between two points: v2_len(v2_sub(a, b))
 .SH SYNOPSIS
 .nf
 .B #include \(dqmathx.h\(dq
 .BI "float v2_dist(Vec2 a, Vec2 b);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/mathx.h and run 'gge genman'.
+Distance between two points: v2_len(v2_sub(a, b)). Range checks, pickup radius, "is the player near the door". For a circle\-vs\-circle test use circle_overlaps(), which avoids the square root.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the distance.
 .SH MODULE
 math (src/engine/math/mathx.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
+.BR v2_len (3),
 .BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

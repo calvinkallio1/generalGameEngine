@@ -1,18 +1,22 @@
 .TH ASSETS_TEXTURE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-assets_texture \- "sprites/player.bmp"
+assets_texture \- Load an image from assets/ (path relative to that folder, e.g. "sprites/player.png") as a GPU texture, or return the one already loaded for that path
 .SH SYNOPSIS
 .nf
 .B #include \(dqassets.h\(dq
 .BI "Texture     * assets_texture(const char *relative_path);"
 .fi
 .SH DESCRIPTION
-"sprites/player.bmp"
+Load an image from assets/ (path relative to that folder, e.g. "sprites/player.png") as a GPU texture, or return the one already loaded for that path. The cache is keyed by the exact string, so "sprites/a.png" and "./sprites/a.png" load twice. PNG, JPG and other formats need the engine built with ENGINE_WITH_IMAGE; without it only .bmp loads. Textures use nearest\-neighbour scaling (crisp pixel art). Never free the result; every texture lives until engine_shutdown(). Call it freely in on_enter, or even every frame: a cache hit is a string compare. Up to 128 distinct textures.
+.SH RETURN VALUE
+the Texture, or NULL (logged) if the file is missing, unreadable, or the cache is full. Every draw call accepts NULL and draws nothing, so a missing image shows as an absence rather than a crash.
 .SH MODULE
 assets (src/engine/assets/assets.h)
 .SH SEE ALSO
 .BR assets_path (3),
-.BR assets_init (3),
-.BR assets_unload_all (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR draw_texture (3),
+.BR sprite_from (3),
+.BR Texture (3),
+.BR gge\-assets (7),
+.BR gge\-api (7),
+.BR gge (1)

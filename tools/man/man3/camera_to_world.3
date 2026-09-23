@@ -1,16 +1,19 @@
 .TH CAMERA_TO_WORLD 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-camera_to_world \- Convert a screen position (e.g
+camera_to_world \- Convert a screen position (e.g. the mouse, v2(in\->mouse_x, in\->mouse_y)) to world coordinates: the inverse of camera_to_screen
 .SH SYNOPSIS
 .nf
 .B #include \(dqcamera.h\(dq
 .BI "Vec2 camera_to_world(const Camera *c, Vec2 screen);"
 .fi
 .SH DESCRIPTION
-Convert a screen position (e.g. the mouse) to world coordinates.
+Convert a screen position (e.g. the mouse, v2(in\->mouse_x, in\->mouse_y)) to world coordinates: the inverse of camera_to_screen. Divide by the tile size to get the tile under the cursor.
+.SH RETURN VALUE
+the position in world units.
 .SH MODULE
 camera (src/engine/camera/camera.h)
 .SH SEE ALSO
 .BR camera_to_screen (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Input (3),
+.BR gge\-api (7),
+.BR gge (1)

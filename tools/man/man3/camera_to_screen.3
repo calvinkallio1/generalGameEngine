@@ -1,17 +1,20 @@
 .TH CAMERA_TO_SCREEN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-camera_to_screen \- Convert a world position to screen pixels for drawing
+camera_to_screen \- Convert a world position to screen pixels for drawing: (world \- pos \- offset) * zoom + half the view
 .SH SYNOPSIS
 .nf
 .B #include \(dqcamera.h\(dq
 .BI "Vec2 camera_to_screen(const Camera *c, Vec2 world);"
 .fi
 .SH DESCRIPTION
-Convert a world position to screen pixels for drawing.
+Convert a world position to screen pixels for drawing: (world \- pos \- offset) * zoom + half the view. Use for every entity: Vec2 s = camera_to_screen(&cam, ent.pos); sprite_draw(&spr, f, s.x, s.y, 0, FLIP_NONE).
+.SH RETURN VALUE
+the position in logical pixels.
 .SH MODULE
 camera (src/engine/camera/camera.h)
 .SH SEE ALSO
 .BR camera_to_world (3),
 .BR camera_rect (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR sprite_draw (3),
+.BR gge\-api (7),
+.BR gge (1)

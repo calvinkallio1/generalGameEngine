@@ -1,25 +1,22 @@
 .TH V2_LEN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-v2_len \- engine function
+v2_len \- Length (magnitude) of a: sqrt(x*x + y*y)
 .SH SYNOPSIS
 .nf
 .B #include \(dqmathx.h\(dq
 .BI "float v2_len(Vec2 a);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/mathx.h and run 'gge genman'.
+Length (magnitude) of a: sqrt(x*x + y*y). Speed of a velocity, distance of a displacement. Involves a square root; compare squared lengths (v2_dot(a, a)) when only ordering matters.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the length.
 .SH MODULE
 math (src/engine/math/mathx.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR v2_dist (3),
+.BR v2_norm (3),
+.BR v2_dot (3),
+.BR gge\-api (7),
+.BR gge (1)

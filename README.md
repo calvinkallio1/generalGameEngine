@@ -1,6 +1,6 @@
 # generalGameEngine
 
-This project is based around SDL to create a framework on which to build games easily. It is created so that modules can easily be added to fit your needs, and has keyboard polling, graphics, and audio all included. It also has some basic quality-of-life features specifically for game development, detailed in the docs.
+This project is based around SDL to create a framework on which to build games easily. It is created so that modules can easily be added to fit your needs, and has keyboard polling, graphics, and audio all included. It also has some basic quality-of-life features specifically for game development, detailed in the manual pages (see Documentation below).
 
 ## Installation
 
@@ -33,7 +33,7 @@ my_game/
     engine/
 ```
 
-This is the minimal project structure for a working game. What is in each file depends on what the build's needs are, all covered in docs. The game can be built out much further from there. Sample source code will be in docs.
+This is the minimal project structure for a working game. What is in each file depends on what the build's needs are, all covered in the manual pages. The game can be built out much further from there. `vendored/engine/tools/gge init` creates this layout for you (see `gge man gge`).
 
 ## CMakeLists.txt
 
@@ -96,11 +96,27 @@ A Scene is a structure of optional callbacks (`on_enter`, `on_exit`, `handle_inp
 
 ### Modules 
 
-The engine is built based on modules, which can be easily configured/added to. Each module serves a specific purpose, which will be covered in the docs.
+The engine is built based on modules, which can be easily configured/added to. Each module serves a specific purpose and has its own manual page.
+
+## Documentation
+
+The manual lives in `tools/man/` and is read with the `gge` tool (or plain `man` with `MANPATH` set, see `tools/README.md`):
+
+```
+vendored/engine/tools/gge man overview     # map of the engine: start here
+vendored/engine/tools/gge man api          # every function, type and macro, by module
+vendored/engine/tools/gge man scenes       # a module or concept page: scenes, state, entities, input,
+                                           #   drawing, types, math, sprite, text, camera, tilemap, audio,
+                                           #   menu, dialog, cutscene, tween, debug, assets, saves, build
+vendored/engine/tools/gge man engine_push  # one page per function ...
+vendored/engine/tools/gge man Camera       # ... per struct and enum ...
+vendored/engine/tools/gge man CUT_DO       # ... and per macro
+vendored/engine/tools/gge ls -m tilemap    # one-line summaries
+```
+
+Section-3 pages are generated from the `/** ... */` comments in the headers (`gge genman`); section-7 pages are hand-written.
 
 ## TODO 
 
-- Write docs
-  - API reference
-  - Demos
+- Demos
 ```

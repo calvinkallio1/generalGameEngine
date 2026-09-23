@@ -1,0 +1,19 @@
+.TH MENU_MAX_ITEMS 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+MENU_MAX_ITEMS \- Maximum items in one Menu; menu_add beyond it is ignored
+.SH SYNOPSIS
+.nf
+.B #include \(dqmenu.h\(dq
+.ft B
+#define MENU_MAX_ITEMS 12
+.ft R
+.fi
+.SH DESCRIPTION
+Maximum items in one Menu; menu_add beyond it is ignored. Split longer lists into pages or sub\-menus.
+.SH MODULE
+menu (src/engine/menu/menu.h)
+.SH SEE ALSO
+.BR Menu (3),
+.BR menu_add (3),
+.BR gge\-api (7),
+.BR gge (1)

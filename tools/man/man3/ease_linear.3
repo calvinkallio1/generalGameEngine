@@ -1,23 +1,19 @@
 .TH EASE_LINEAR 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-ease_linear \- engine function
+ease_linear \- Constant speed: returns t unchanged
 .SH SYNOPSIS
 .nf
 .B #include \(dqtween.h\(dq
 .BI "float ease_linear(float t);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/tween/tween.h and run 'gge genman'.
+Constant speed: returns t unchanged. Mechanical motion, progress bars, fades where you want no acceleration.
+.SH RETURN VALUE
+t.
 .SH MODULE
 tween (src/engine/tween/tween.h)
 .SH SEE ALSO
-.BR timer_start (3),
-.BR timer_tick (3),
-.BR ease_in_quad (3),
-.BR ease_out_quad (3),
-.BR ease_in_out_quad (3),
-.BR ease_out_cubic (3),
-.BR ease_out_back (3),
-.BR ease_out_bounce (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR tween_start (3),
+.BR EaseFn (3),
+.BR gge\-api (7),
+.BR gge (1)

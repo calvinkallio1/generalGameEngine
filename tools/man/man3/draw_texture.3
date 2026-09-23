@@ -7,11 +7,12 @@ draw_texture \- Copy a texture region (src, or NULL for the whole texture) into 
 .BI "void draw_texture(Texture *t, const Rect *src, Rect dst);"
 .fi
 .SH DESCRIPTION
-Copy a texture region (src, or NULL for the whole texture) into dst, scaling to fit.
+Copy a texture region (src, or NULL for the whole texture) into dst, scaling to fit. src and dst are in pixels of the texture and of the logical screen respectively; a dst larger than src scales up with nearest\-neighbour filtering (pixel art stays crisp). For sprite sheets use sprite_draw(), which computes src from a frame index.
 .SH MODULE
 draw (src/engine/draw/draw.h)
 .SH SEE ALSO
 .BR draw_texture_ex (3),
 .BR sprite_draw (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR assets_texture (3),
+.BR gge\-api (7),
+.BR gge (1)

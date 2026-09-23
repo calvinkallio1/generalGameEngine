@@ -1,0 +1,48 @@
+.TH DIALOG 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Dialog \- A speech box at the bottom of the screen that types its text out character by character and waits for the player to dismiss it
+.SH SYNOPSIS
+.nf
+.B #include \(dqdialog.h\(dq
+.ft B
+typedef struct Dialog {
+  const char *speaker;
+  const char *text;
+  float chars_shown;
+  float chars_per_sec;    /* 0 = 40 */
+  bool  active;
+  Font  font;             /* zero = debug font */
+} Dialog;
+.ft R
+.fi
+.SH DESCRIPTION
+A speech box at the bottom of the screen that types its text out character by character and waits for the player to dismiss it. One Dialog shows one line; a conversation is a sequence of dialog_show() calls driven by dialog_done(), or a cutscene of CUT_SAY steps. Keep one in a scene static (it holds pointers). Set font and chars_per_sec once; dialog_show() fills the rest.
+.SH FIELDS
+.TP
+.B speaker
+name drawn in yellow above the text, or NULL for none
+.TP
+.B text
+the line; must stay valid while active (a string literal or static buffer)
+.TP
+.B chars_shown
+how many characters have been revealed so far (fractional)
+.TP
+.B chars_per_sec
+typing speed; 0 = 40
+.TP
+.B active
+true from dialog_show() until the player dismisses the completed line
+.TP
+.B font
+font for both speaker and text; a zero Font is the debug font
+.SH MODULE
+dialog (src/engine/dialog/dialog.h)
+.SH SEE ALSO
+.BR dialog_show (3),
+.BR dialog_update (3),
+.BR dialog_render (3),
+.BR dialog_done (3),
+.BR gge\-dialog (7),
+.BR gge\-api (7),
+.BR gge (1)

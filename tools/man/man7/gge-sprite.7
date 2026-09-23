@@ -1,0 +1,128 @@
+.TH GGE\-SPRITE 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-sprite \- sprite sheets, frames, animation playback, flipping and tinting
+.SH DESCRIPTION
+A \fBSprite\fR (sprite.h) is a texture sliced into a grid of equal frames; \fBsprite_draw\fR and friends draw one frame at a position. \fBAnim\fR describes a run of frames and its timing; \fBAnimState\fR is the playback position of one animated thing. The module is deliberately small: it indexes and draws, and leaves "which animation should play" to your entity code.
+.PP
+.SH SHEETS AND FRAMES
+Lay out a sheet as rows of equal cells. Frames are numbered left to right, top to bottom, from 0:
+.PP
+.RS 4
+.EX
++\-\-\-\-+\-\-\-\-+\-\-\-\-+\-\-\-\-+      16x16 cells, 64 px wide \-> columns = 4
+|  0 |  1 |  2 |  3 |      frame 5 = column 1, row 1
++\-\-\-\-+\-\-\-\-+\-\-\-\-+\-\-\-\-+      frame = column + row * columns
+|  4 |  5 |  6 |  7 |
++\-\-\-\-+\-\-\-\-+\-\-\-\-+\-\-\-\-+
+.EE
+.RE
+.PP
+.PP
+.RS 4
+.EX
+static Sprite hero;
+hero = sprite_from(assets_texture("sprites/hero.png"), 16, 16);   /* in on_enter */
+sprite_draw(&hero, 5, x, y, 0, FLIP_NONE);                         /* in render */
+.EE
+.RE
+.PP
+sprite_from(3) computes \fBcolumns\fR from the texture width. A single image is a one\-frame sheet: \fBsprite_from(tex, w, h)\fR and always frame 0. A Sprite is a small value type: keep one static per sheet per scene, copy it freely, never free it (the texture belongs to the asset cache).
+.PP
+Face one way in the art and mirror with FLIP_H; that halves the frames a character needs. Rotation (degrees, clockwise, about the frame center) is for projectiles, wheels and pointers; pixel art rotated by non\-right angles looks rough, so prefer drawn frames for characters.
+.PP
+.SH ANIMATIONS
+Define animations as data, one table per sheet, indexed by an enum your entity stores:
+.PP
+.RS 4
+.EX
+enum { HERO_IDLE, HERO_RUN, HERO_JUMP, HERO_HURT, HERO_ANIM_COUNT };
+static const Anim hero_anims[HERO_ANIM_COUNT] = {
+  [HERO_IDLE] = { .first = 0,  .count = 4, .frame_time = 0.25f, .loop = true  },
+  [HERO_RUN]  = { .first = 4,  .count = 6, .frame_time = 0.08f, .loop = true  },
+  [HERO_JUMP] = { .first = 10, .count = 1, .frame_time = 1,     .loop = false },
+  [HERO_HURT] = { .first = 11, .count = 2, .frame_time = 0.1f,  .loop = false },
+};
+.EE
+.RE
+.PP
+\fBfirst\fR is the sheet frame where the run starts, \fBcount\fR how many frames follow it, \fBframe_time\fR seconds per frame, \fBloop\fR whether it repeats or stops on the last frame. A count of 1 is a still.
+.PP
+The entity carries an \fBAnimState\fR (pointer\-free, so it lives in GameState and saves):
+.PP
+.RS 4
+.EX
+/* in the entity's tick, decide; in update, step */
+if (!p\->on_ground)             anim_set(&p\->anim, HERO_JUMP);
+else if (fabsf(p\->vel.x) > 1)  anim_set(&p\->anim, HERO_RUN);
+else                           anim_set(&p\->anim, HERO_IDLE);
+anim_step(&p\->anim, &hero_anims[p\->anim.anim], dt);
+\&
+/* in render */
+int frame = anim_frame(&p\->anim, &hero_anims[p\->anim.anim]);
+sprite_draw(&hero, frame, sx, sy, 0, p\->facing < 0 ? FLIP_H : FLIP_NONE);
+.EE
+.RE
+.PP
+anim_set(3) is a no\-op when that animation is already playing, so calling it every tick from the decision code is the intended use: the animation restarts only when the decision changes. anim_step(3) advances by dt and wraps or stops; a stopped non\-looping animation sets \fBdone\fR, which is how "play HURT, then go back to IDLE" is expressed:
+.PP
+.RS 4
+.EX
+if (p\->anim.anim == HERO_HURT && !p\->anim.done) ;            /* keep playing */
+else ... normal decision ...
+.EE
+.RE
+.PP
+Frame timing is in seconds, so it is independent of the tick rate; 0.08 to 0.12 s per frame reads as a run cycle, 0.2 to 0.3 as idle breathing.
+.PP
+.SH TINTING AND FADING
+sprite_draw_tinted(3) multiplies the frame's colors by a Color and its alpha by the tint's alpha, then restores the texture so other draws are unaffected:
+.PP
+.RS 4
+.EX
+sprite_draw_tinted(&hero, frame, x, y, rgba(255, 255, 255, 128), flip);   /* half transparent */
+sprite_draw_tinted(&hero, frame, x, y, rgb(255, 60, 60), flip);            /* damage flash */
+sprite_draw_tinted(&team, frame, x, y, team_color[t], flip);               /* recolor a white sheet */
+.EE
+.RE
+.PP
+Palette\-free recoloring: draw the character's clothes as a white silhouette layer and tint it per team or per player, with the un\-tinted base drawn beneath. Tinting cannot rotate or scale; draw the layers in the same frame order.
+.PP
+.SH SCALING
+sprite_draw_scaled(3) draws a frame at \fBscale\fR times its size, from the same top\-left corner. Its usual argument is the camera zoom (tilemap_draw uses it that way). Non\-integer scales of pixel art look uneven; keep zoom at 1, 2, 3 or 4.
+.PP
+.SH ANCHORS
+\fBsprite_draw\fR positions the \fBtop\-left\fR corner. If an entity's \fBpos\fR is its feet or center, subtract before drawing: \fBsprite_draw(&hero, f, sx \- 8, sy \- 16, 0, flip)\fR for a 16x16 sprite whose pos is bottom\-center. Pick one convention per game (top\-left is simplest with tilemap_move, which wants a top\-left box) and keep hitboxes consistent with it: a hitbox is usually smaller than the frame, inset from the art.
+.PP
+.SH TILESETS ARE SPRITES
+A tileset is a Sprite whose frame index equals the tile id; Tilemap.tileset is one, built by tilemap_load_csv(3) or by you (gge\-tilemap(7)). Keep frame 0 blank in a tileset because tile id 0 means empty.
+.PP
+.SH ONE SHEET, MANY THINGS
+A sheet can hold several kinds of thing; each kind's Anim table just starts at a different \fBfirst\fR. Fewer textures mean fewer state changes when drawing, but it makes no measurable difference at this scale; organize sheets for the artist, not the renderer.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+Wrong \fBcolumns\fR: the sheet width is not a multiple of the frame width, so frames drift. Check the image size.
+.IP \(bu 2
+\fBanim_step\fR called from render: the animation then runs at display rate and does not save. Step in update.
+.IP \(bu 2
+Two entities sharing one AnimState: each needs its own; the Anim table is shared, the state is not.
+.IP \(bu 2
+Forgetting \fBdone\fR: a non\-looping animation that finished stays on its last frame until anim_set is called with a different id.
+.IP \(bu 2
+Flip with rotation: flipping is applied after rotation, about the destination center.
+.SH SEE ALSO
+.BR Sprite (3),
+.BR Anim (3),
+.BR AnimState (3),
+.BR sprite_from (3),
+.BR sprite_draw (3),
+.BR sprite_draw_scaled (3),
+.BR sprite_draw_tinted (3),
+.BR anim_set (3),
+.BR anim_step (3),
+.BR anim_frame (3),
+.BR draw_texture_ex (3),
+.BR assets_texture (3),
+.BR gge\-drawing (7),
+.BR gge\-tilemap (7),
+.BR gge\-assets (7)

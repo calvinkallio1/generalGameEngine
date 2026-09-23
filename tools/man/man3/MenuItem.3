@@ -1,0 +1,26 @@
+.TH MENUITEM 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+MenuItem \- One entry in a Menu: a label and the function to call when it is chosen
+.SH SYNOPSIS
+.nf
+.B #include \(dqmenu.h\(dq
+.ft B
+typedef struct { const char *label; void (*action)(Engine *); } MenuItem;
+.ft R
+.fi
+.SH DESCRIPTION
+One entry in a Menu: a label and the function to call when it is chosen.
+.SH FIELDS
+.TP
+.B label
+text shown; must outlive the menu (a literal or a static buffer)
+.TP
+.B action
+called with the Engine when chosen; NULL for a label that does nothing
+.SH MODULE
+menu (src/engine/menu/menu.h)
+.SH SEE ALSO
+.BR Menu (3),
+.BR menu_add (3),
+.BR gge\-api (7),
+.BR gge (1)

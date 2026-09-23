@@ -7,12 +7,13 @@ engine_quit \- End the main loop after the current frame
 .BI "void engine_quit(Engine *e);"
 .fi
 .SH DESCRIPTION
-End the main loop after the current frame. Usable from any scene or menu action.
+End the main loop after the current frame. Usable from any scene or menu action. Scenes still on the stack get their on_exit from engine_shutdown().
 .PP
 This is a static inline function; it is defined in the header.
 .SH MODULE
 core (src/engine/core/engine.h)
 .SH SEE ALSO
 .BR engine_run (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_shutdown (3),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,0 +1,62 @@
+.TH MENU 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Menu \- A vertical list of selectable text items with keyboard, gamepad and mouse handling built in: the title screen, pause menu, options, a shop, a level select
+.SH SYNOPSIS
+.nf
+.B #include \(dqmenu.h\(dq
+.ft B
+typedef struct Menu {
+  MenuItem items[MENU_MAX_ITEMS];
+  int   count, selected;
+  float x, y, line_h;      /* line_h 0 = from font */
+  float hit_w;             /* clickable width; 0 = 200 */
+  Font  font;              /* zero = debug font */
+  Color color, color_selected;       /* zero = defaults */
+} Menu;
+.ft R
+.fi
+.SH DESCRIPTION
+A vertical list of selectable text items with keyboard, gamepad and mouse handling built in: the title screen, pause menu, options, a shop, a level select. Keep one in a scene static, build it in on_enter (menu_init, menu_add..., menu_center), feed it input in handle_input (menu_handle_input) and draw it in render (menu_render). Actions are plain functions taking the Engine, so "Play" is a function that calls engine_replace(e, game_scene()). For items whose text changes (a volume percentage) point the label at a static char buffer you snprintf into.
+.SH FIELDS
+.TP
+.B items
+the entries, in order
+.TP
+.B count
+number of items, up to MENU_MAX_ITEMS (12)
+.TP
+.B selected
+index of the highlighted item; set it to preselect
+.TP
+.B x
+left edge of the label column in logical pixels
+.TP
+.B y
+top of the first item
+.TP
+.B line_h
+vertical distance between items; menu_init sets it from the font (line height + 6); 0 = from font
+.TP
+.B hit_w
+width of the clickable strip per item; 0 = 200. menu_center() sets it to the widest label.
+.TP
+.B font
+font for the labels; a zero Font is the debug font
+.TP
+.B color
+color of unselected items; alpha 0 = default grey
+.TP
+.B color_selected
+color of the highlighted item; alpha 0 = default yellow
+.SH MODULE
+menu (src/engine/menu/menu.h)
+.SH SEE ALSO
+.BR menu_init (3),
+.BR menu_add (3),
+.BR menu_center (3),
+.BR menu_handle_input (3),
+.BR menu_render (3),
+.BR MenuItem (3),
+.BR gge\-menu (7),
+.BR gge\-api (7),
+.BR gge (1)

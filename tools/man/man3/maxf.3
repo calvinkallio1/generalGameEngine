@@ -1,25 +1,21 @@
 .TH MAXF 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-maxf \- engine function
+maxf \- The larger of a and b
 .SH SYNOPSIS
 .nf
 .B #include \(dqmathx.h\(dq
 .BI "float maxf(float a, float b);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/mathx.h and run 'gge genman'.
+The larger of a and b.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+max(a, b).
 .SH MODULE
 math (src/engine/math/mathx.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR minf (3),
+.BR clampf (3),
+.BR gge\-api (7),
+.BR gge (1)

@@ -7,13 +7,15 @@ mouse_pressed \- True only on the frame the button went down
 .BI "bool mouse_pressed(const Input *in, MouseButton b);"
 .fi
 .SH DESCRIPTION
-True only on the frame the button went down.
+True only on the frame the button went down. The usual "click" test: mouse_pressed(in, MOUSE_LEFT) && rect_contains(button_rect, v2(in\->mouse_x, in\->mouse_y)).
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+true if button b is down now and was up last frame.
 .SH MODULE
 input (src/engine/input/input.h)
 .SH SEE ALSO
 .BR mouse_down (3),
 .BR mouse_released (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

@@ -7,12 +7,15 @@ engine_top \- The scene currently on top of the stack, or NULL when empty
 .BI "Scene * engine_top(Engine *e);"
 .fi
 .SH DESCRIPTION
-The scene currently on top of the stack, or NULL when empty. Useful to guard against pushing a scene twice: if (engine_top(e) != shop_scene()) ...
+The scene currently on top of the stack, or NULL when empty. Useful to guard against pushing a scene twice: if (engine_top(e) != shop_scene()) engine_push(e, shop_scene()). Queued changes are not reflected until they apply.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the top Scene pointer or NULL.
 .SH MODULE
 core (src/engine/core/engine.h)
 .SH SEE ALSO
 .BR engine_push (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Scene (3),
+.BR gge\-api (7),
+.BR gge (1)

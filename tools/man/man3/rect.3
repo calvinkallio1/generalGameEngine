@@ -1,19 +1,32 @@
 .TH RECT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rect \- engine function
+rect, Rect \- Build a Rect from a top\-left corner and a size; An axis\-aligned rectangle in float pixels: top\-left corner plus size
 .SH SYNOPSIS
 .nf
 .B #include \(dqtypes.h\(dq
 .BI "Rect rect(float x, float y, float w, float h);"
+.ft B
+typedef SDL_FRect   Rect;      /* { float x, y, w, h } */
+.ft R
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/types/types.h and run 'gge genman'.
+These names differ only in case and share this page.
+.SS rect()
+Build a Rect from a top\-left corner and a size. Equivalent to the compound literal (Rect){ x, y, w, h } but readable inside an expression.
 .PP
 This is a static inline function; it is defined in the header.
+.PP
+Returns: the Rect.
+.SS Rect (typedef)
+An axis\-aligned rectangle in float pixels: top\-left corner plus size. Used for everything rectangular: draw destinations, texture source regions, hitboxes, camera views. y grows downward. Build one with rect(), rect_at() or rect_centered().
 .SH MODULE
 types (src/engine/types/types.h)
 .SH SEE ALSO
-.BR rgb (3),
-.BR rgba (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR rect_at (3),
+.BR rect_centered (3),
+.BR Rect (3),
+.BR rect (3),
+.BR rect_overlaps (3),
+.BR gge\-types (7),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,0 +1,21 @@
+.TH TEXTURE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Texture \- An image living on the GPU, ready to draw
+.SH SYNOPSIS
+.nf
+.B #include \(dqtypes.h\(dq
+.ft B
+typedef SDL_Texture Texture;   /* opaque; from assets_texture */
+.ft R
+.fi
+.SH DESCRIPTION
+An image living on the GPU, ready to draw. Opaque: games only ever hold a pointer obtained from assets_texture() and pass it to draw_texture(), sprite_from() or tilemap_load_csv(). Never free one; the asset cache owns every Texture and releases them all in engine_shutdown().
+.SH MODULE
+types (src/engine/types/types.h)
+.SH SEE ALSO
+.BR assets_texture (3),
+.BR draw_texture (3),
+.BR sprite_from (3),
+.BR gge\-assets (7),
+.BR gge\-api (7),
+.BR gge (1)

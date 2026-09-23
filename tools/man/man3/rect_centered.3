@@ -1,25 +1,21 @@
 .TH RECT_CENTERED 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rect_centered \- engine function
+rect_centered \- Build a Rect of the given size centered on c: the hitbox of an entity whose pos is its center, or a pickup radius as a box
 .SH SYNOPSIS
 .nf
 .B #include \(dqcollide.h\(dq
 .BI "Rect rect_centered(Vec2 c, float w, float h);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/collide.h and run 'gge genman'.
+Build a Rect of the given size centered on c: the hitbox of an entity whose pos is its center, or a pickup radius as a box.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the Rect.
 .SH MODULE
 math (src/engine/math/collide.h)
 .SH SEE ALSO
 .BR rect_at (3),
 .BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR v2_add (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

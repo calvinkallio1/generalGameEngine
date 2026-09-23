@@ -7,12 +7,17 @@ mouse_down \- True while the mouse button is held
 .BI "bool mouse_down(const Input *in, MouseButton b);"
 .fi
 .SH DESCRIPTION
-True while the mouse button is held. Position is in\->mouse_x / in\->mouse_y in logical pixels.
+True while the mouse button is held. Position is in\->mouse_x / in\->mouse_y in logical pixels, so comparing it against a Rect you drew is exact regardless of window size; use rect_contains() for the test. For a world\-space position under a camera, convert with camera_to_world().
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+true if button b is held this frame.
 .SH MODULE
 input (src/engine/input/input.h)
 .SH SEE ALSO
 .BR mouse_pressed (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR mouse_released (3),
+.BR rect_contains (3),
+.BR camera_to_world (3),
+.BR gge\-api (7),
+.BR gge (1)

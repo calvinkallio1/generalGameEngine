@@ -1,0 +1,75 @@
+.TH GGE\-TYPES 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-types \- Color, Rect, Point, Texture, Flip, Vec2 and the constants
+.SH DESCRIPTION
+types.h names the handful of platform types a game touches. Each is the SDL type underneath (same memory layout, zero conversion), so the engine hands them straight to SDL, but game code never writes "SDL_". mathx.h adds \fBVec2\fR, the engine's vector type. This page is the reference for all of them and for the helpers that build them.
+.PP
+.SH COLOR
+\fBColor\fR is {uint8_t r, g, b, a}, 0..255 each. Alpha 255 is opaque, 0 invisible, and every draw call blends, so anything in between is translucent.
+.TP
+\fBrgb(r, g, b)\fR
+opaque color.
+.TP
+\fBrgba(r, g, b, a)\fR
+color with alpha.
+.TP
+\fBCOLOR_WHITE, COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_YELLOW, COLOR_GREY, COLOR_CLEAR\fR
+ready\-made constants (COLOR_CLEAR is fully transparent). They are compound\-literal macros, usable anywhere a Color is.
+Conventions the modules rely on: a Color with alpha 0 means "unset" in EngineConfig.clear_color and in Menu.color / color_selected, which then use their defaults. Tints for sprite_draw_tinted(3) multiply: white leaves the sprite unchanged, \fBrgba(255, 255, 255, 128)\fR makes it half transparent, \fBrgb(255, 80, 80)\fR reddens it.
+.PP
+Define your palette once, in a header, as macros or \fBstatic const Color\fR values, and use only those names; a game with \fBrgb(213, 17, 98)\fR scattered through its scenes cannot be recolored.
+.PP
+.SH RECT
+\fBRect\fR is {float x, y, w, h}: top\-left corner plus size, y growing downward. Used for draw destinations, texture source regions, hitboxes and camera views.
+.TP
+\fBrect(x, y, w, h)\fR
+build from corner and size.
+.TP
+\fBrect_at(pos, w, h)\fR
+corner at a Vec2 (an entity's hitbox when pos is its top\-left).
+.TP
+\fBrect_centered(center, w, h)\fR
+centered on a Vec2.
+.TP
+\fBrect_center(r)\fR
+the middle as a Vec2.
+.TP
+\fBrect_overlaps(a, b), rect_contains(r, p), rect_hit_side(a, b)\fR
+the tests, in gge\-math(7).
+Widths and heights are floats but sprites are whole pixels; keep hitboxes at integer sizes and let positions be fractional.
+.PP
+.SH POINT
+\fBPoint\fR is {float x, y}. It exists only because a few SDL calls want it; game code uses Vec2 for positions. The two have the same layout.
+.PP
+.SH VEC2
+\fBVec2\fR is {float x, y} from mathx.h: positions, velocities, directions, sizes. Built with v2(x, y); all arithmetic is by value (v2_add, v2_sub, v2_scale, v2_norm, v2_lerp, v2_len, v2_dist, v2_dot; gge\-math(7)). It is pointer\-free, so it lives inside entities in GameState.
+.PP
+.SH TEXTURE
+\fBTexture\fR is an opaque GPU image. Games hold only pointers obtained from assets_texture(3) and pass them to draw_texture(3), sprite_from(3) and tilemap_load_csv(3). The asset cache owns every Texture; never free one. A NULL Texture is accepted by every draw call and draws nothing.
+.PP
+.SH FLIP
+\fBFlip\fR selects mirroring for draw_texture_ex(3) and the sprite_draw family: FLIP_NONE, FLIP_H (mirror left\-right), FLIP_V (top\-bottom); combine with \fB|\fR. A right\-facing sprite drawn with FLIP_H faces left, which halves the art needed for any character.
+.PP
+.SH INTEGERS AND FLOATS
+Positions, velocities, sizes and times are floats. Counts, indices, ids, tile coordinates, hit points and scores are ints. Convert explicitly at the boundary: \fB(int)floorf(pos.x / tile)\fR for the tile under a position (floorf, not a cast, so negative positions round toward negative infinity), \fB(float)e\->logical_w\fR when mixing with floats to keep \-Wconversion quiet if you enable it.
+.PP
+.SH FIXED\-WIDTH INTEGERS
+Tile ids are \fBuint8_t\fR (0..255). The RNG state is \fBuint64_t\fR. Save versions are \fBuint32_t\fR. Everything else in GameState can be plain \fBint\fR, \fBfloat\fR and \fBbool\fR; the save file stores them as this machine lays them out, which is fine for a game that reads its own saves.
+.PP
+.SH STRINGS
+There is no string type. Labels and dialog lines are \fBconst char *\fR to literals or to \fBstatic char\fR buffers; the menu and dialog modules keep the pointer, so the text must outlive them. Text that belongs in GameState (a player name) is a fixed \fBchar name[16]\fR array, which is pointer\-free and saves with the rest.
+.PP
+.SH SEE ALSO
+.BR Color (3),
+.BR Rect (3),
+.BR Point (3),
+.BR Texture (3),
+.BR Flip (3),
+.BR Vec2 (3),
+.BR rgb (3),
+.BR rgba (3),
+.BR rect (3),
+.BR rect_at (3),
+.BR rect_centered (3),
+.BR gge\-math (7),
+.BR gge\-drawing (7)

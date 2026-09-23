@@ -1,0 +1,19 @@
+.TH CUT_WAIT_S 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+CUT_WAIT_S \- CutStep initializer: pause the cutscene for sec seconds
+.SH SYNOPSIS
+.nf
+.B #include \(dqcutscene.h\(dq
+.ft B
+#define CUT_WAIT_S(sec) { .kind = CUT_WAIT, .duration = (sec) }
+.ft R
+.fi
+.SH DESCRIPTION
+CutStep initializer: pause the cutscene for sec seconds. Expands to a brace initializer, so it goes directly inside a CutStep array initializer, or becomes a value with a cast: (CutStep)CUT_WAIT_S(0.5f).
+.SH MODULE
+cutscene (src/engine/cutscene/cutscene.h)
+.SH SEE ALSO
+.BR CutStep (3),
+.BR cutscene_start (3),
+.BR gge\-api (7),
+.BR gge (1)

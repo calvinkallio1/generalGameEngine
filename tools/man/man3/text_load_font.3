@@ -1,20 +1,22 @@
 .TH TEXT_LOAD_FONT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-text_load_font \- Load a TrueType font from assets/ at the given point size
+text_load_font \- Load a TrueType font from assets/ (e.g. "fonts/pixel.ttf") at the given point size
 .SH SYNOPSIS
 .nf
 .B #include \(dqtext.h\(dq
 .BI "Font text_load_font(const char *relative_path, float pt);"
 .fi
 .SH DESCRIPTION
-Load a TrueType font from assets/ at the given point size. Requires ENGINE_WITH_TTF and EngineConfig.text = true.
+Load a TrueType font from assets/ (e.g. "fonts/pixel.ttf") at the given point size. Requires the engine built with ENGINE_WITH_TTF and EngineConfig.text = true. Load once per size in on_enter (or once for the whole game in the title scene's on_enter) and keep the Font in a static; loading the same file twice makes two independent fonts. Point size is in logical pixels, so 16 is 16 logical pixels tall regardless of window size.
 .SH RETURN VALUE
-the Font, or a zero Font on failure (logged); a zero Font draws with the 8px debug font, ignoring the size.
+the Font, or a zero Font on failure (logged); a zero Font draws with the 8px debug font, ignoring the size, so the game stays playable with the file missing.
 .SH MODULE
 text (src/engine/text/text.h)
 .SH SEE ALSO
 .BR text_draw (3),
 .BR text_size (3),
+.BR text_line_height (3),
+.BR Font (3),
 .BR gge\-assets (7),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

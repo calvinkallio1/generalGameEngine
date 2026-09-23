@@ -1,0 +1,31 @@
+.TH HITSIDE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+HitSide \- Which side of rectangle b rectangle a struck, as reported by rect_hit_side(): the side of b that a came from
+.SH SYNOPSIS
+.nf
+.B #include \(dqcollide.h\(dq
+.ft B
+typedef enum { HIT_LEFT, HIT_RIGHT, HIT_TOP, HIT_BOTTOM } HitSide;
+.ft R
+.fi
+.SH DESCRIPTION
+Which side of rectangle b rectangle a struck, as reported by rect_hit_side(): the side of b that a came from. HIT_TOP means a landed on top of b (a is above), HIT_BOTTOM that a hit b from below, HIT_LEFT that a is to the left of b, HIT_RIGHT to the right.
+.SH VALUES
+.TP
+.B HIT_LEFT
+a came from the left of b
+.TP
+.B HIT_RIGHT
+a came from the right of b
+.TP
+.B HIT_TOP
+a came from above b (landed on it)
+.TP
+.B HIT_BOTTOM
+a came from below b (bumped its underside)
+.SH MODULE
+math (src/engine/math/collide.h)
+.SH SEE ALSO
+.BR rect_hit_side (3),
+.BR gge\-api (7),
+.BR gge (1)

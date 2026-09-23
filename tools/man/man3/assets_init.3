@@ -1,18 +1,16 @@
 .TH ASSETS_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-assets_init \- engine function
+assets_init \- Engine\-internal: remember the renderer and locate the assets/ folder next to the executable
 .SH SYNOPSIS
 .nf
 .B #include \(dqassets.h\(dq
 .BI "void assets_init(SDL_Renderer *r);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/assets/assets.h and run 'gge genman'.
+Engine\-internal: remember the renderer and locate the assets/ folder next to the executable. Called by engine_init(); games never call it.
 .SH MODULE
 assets (src/engine/assets/assets.h)
 .SH SEE ALSO
-.BR assets_texture (3),
-.BR assets_path (3),
-.BR assets_unload_all (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_init (3),
+.BR gge\-api (7),
+.BR gge (1)

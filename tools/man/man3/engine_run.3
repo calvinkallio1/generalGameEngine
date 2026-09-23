@@ -7,12 +7,14 @@ engine_run \- Run the main loop: poll input, apply queued scene changes, run fix
 .BI "void engine_run(Engine *e);"
 .fi
 .SH DESCRIPTION
-Run the main loop: poll input, apply queued scene changes, run fixed\-rate update ticks (up to 8 per frame to catch up), render with an interpolation alpha, present. Returns when engine_quit was called or the scene stack is empty.
+Run the main loop: poll input, apply queued scene changes, run fixed\-rate update ticks (up to 8 per frame to catch up), render with an interpolation alpha, present. Returns when engine_quit was called, the window was closed, or the scene stack is empty. Every frame: (1) input is polled into e\->input, (2) the top scene's handle_input runs, (3) queued pushes/pops apply, (4) update(dt) runs zero or more times at the fixed rate, walking the stack top\-down until a scene with blocks_update_below, applying queued changes after each tick, (5) render(alpha) runs bottom\-up starting at the topmost scene with blocks_render_below, (6) the F3 debug overlay is flushed and the frame presented. F11 toggles fullscreen and F3 the overlay before any scene sees the key.
 .SH MODULE
 core (src/engine/core/engine.h)
 .SH SEE ALSO
 .BR engine_init (3),
 .BR engine_quit (3),
+.BR engine_push (3),
+.BR gge\-engine (7),
 .BR gge\-scenes (7),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

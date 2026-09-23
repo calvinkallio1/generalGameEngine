@@ -7,10 +7,11 @@ tween_update \- Advance a tween by dt, writing the new value through its target 
 .BI "void tween_update(Tween *tw, float dt);"
 .fi
 .SH DESCRIPTION
-Advance a tween by dt, writing the new value through its target pointer. Call from update.
+Advance a tween by dt, writing the new value through its target pointer. Call from update, once per tick, for every tween you own; an inactive tween costs nothing. On the tick it finishes the target is set exactly to `to`.
 .SH MODULE
 tween (src/engine/tween/tween.h)
 .SH SEE ALSO
 .BR tween_start (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR tween_done (3),
+.BR gge\-api (7),
+.BR gge (1)

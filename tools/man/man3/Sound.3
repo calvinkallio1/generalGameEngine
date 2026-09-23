@@ -1,0 +1,32 @@
+.TH SOUND 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Sound \- A decoded .wav held in memory, ready to play any number of times
+.SH SYNOPSIS
+.nf
+.B #include \(dqaudio.h\(dq
+.ft B
+typedef struct Sound { Uint8 *data; Uint32 len; SDL_AudioSpec spec; } Sound;
+.ft R
+.fi
+.SH DESCRIPTION
+A decoded .wav held in memory, ready to play any number of times. Returned by audio_load(); freed by audio_free(). Holds a pointer, so it belongs in a scene static (load in on_enter, free in on_exit), never in GameState. A zero Sound (failed load) is safe to pass everywhere and plays silence.
+.SH FIELDS
+.TP
+.B data
+the samples
+.TP
+.B len
+size of data in bytes
+.TP
+.B spec
+sample format, channels and rate, as stored in the file
+.SH MODULE
+audio (src/engine/audio/audio.h)
+.SH SEE ALSO
+.BR audio_load (3),
+.BR audio_play (3),
+.BR audio_music (3),
+.BR audio_free (3),
+.BR gge\-audio (7),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,45 +1,103 @@
 .TH GGE\-ASSETS 7 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-gge\-assets \- where files go and how they are loaded
+gge\-assets \- where files go, how they load, who owns them
 .SH DESCRIPTION
-Every path the engine takes is relative to
-.IR <executable>/assets/ .
-CMake copies the project's
-.I assets/
-folder next to the binary after each build, so edit files in the project and
-rebuild.
-.SS Layout
-.nf
-assets/sprites/   .png (ENGINE_WITH_IMAGE) or .bmp sheets
-assets/tiles/     tilesets and Tiled .csv exports
-assets/fonts/     .ttf (ENGINE_WITH_TTF)
-assets/sfx/       .wav
-assets/music/     .wav
-.fi
-.SS Loading
-.BR assets_texture (3)
-caches by path; call it freely in
-.B on_enter
-and never free the result.
-.BR text_load_font (3)
-returns a zero Font on failure, which draws with the debug font.
-.BR audio_load (3)
-returns a Sound the caller frees with
-.BR audio_free (3)
-in
-.BR on_exit .
-.BR tilemap_load_csv (3)
-allocates; free with
-.BR tilemap_free (3).
-Failures log to the console and return NULL/false; nothing aborts, so run the
-game from a terminal when something does not appear.
-.SS Tilesets
-One image, tiles left to right in rows, frame index = tile id. Keep frame 0
-blank. 16 tiles across is a good width; families of variant tiles (autotile
-masks, 9\-slices) go on their own rows so base indices are multiples of 16.
+Every path the engine takes is relative to \fB<executable>/assets/\fR. CMake copies the project's \fBassets/\fR folder next to the binary after each build (gge\-build(7)), so you edit files in the project and rebuild; the game never reads from the source tree directly. assets.h provides the texture cache and a path helper; the other modules (text, audio, tilemap) load their own file types through it.
+.PP
+.SH LAYOUT
+.PP
+.RS 4
+.EX
+assets/
+  sprites/   .png (ENGINE_WITH_IMAGE) or .bmp sheets and single images
+  tiles/     tileset images and Tiled .csv exports
+  fonts/     .ttf (ENGINE_WITH_TTF)
+  sfx/       short .wav effects
+  music/     looping .wav tracks
+  data/      your own files: levels, dialog, tables (any name; the layout is a convention)
+.EE
+.RE
+.PP
+\fBgge init\fR creates these folders. Nothing depends on the names; \fBassets_texture("anything/you/like.png")\fR works.
+.PP
+.SH LOADING
+.TP
+\fBassets_texture(path)\fR
+image to Texture, cached by path string; never freed by you. NULL and a log line on failure.
+.TP
+\fBtext_load_font(path, pt)\fR
+font; a zero Font (debug font) on failure.
+.TP
+\fBaudio_load(path)\fR
+\&.wav to Sound; you own it; audio_free in on_exit.
+.TP
+\fBtilemap_load_csv(m, path, tile, tex, solid)\fR
+Tiled layer; you own the tiles; tilemap_free in on_exit.
+.TP
+\fBassets_path(path, buf, n)\fR
+the absolute path, for fopen on your own files.
+Failures log to the terminal and return NULL / zero / false; nothing aborts. Every consumer accepts the failure value (a NULL texture draws nothing, a zero font draws with the 8x8 font, a zero sound is silent), so the game keeps running with a visible gap, and the log names the file.
+.PP
+.SH WHEN TO LOAD
+In \fBon_enter\fR of the scene that uses them, into statics. Textures are cached, so two scenes asking for the same sheet share it, and asking again on every visit is a string compare. Fonts and sounds are not cached: load once per scene visit and, for sounds, free in on_exit. Loading everything in the title scene's on_enter is fine for a small game (a few dozen files load in milliseconds); load per scene when the game is large or memory matters.
+.PP
+Never load in update or render: file reads every tick.
+.PP
+.SH IMAGE FORMATS
+With \fBENGINE_WITH_IMAGE\fR on (the default for \fBgge init \-I\fR), PNG and JPG load; PNG with transparency is the normal choice for sprites. Without it only .bmp loads (SDL's own loader; 24\- or 32\-bit BMP, no compression). Textures use nearest\-neighbour scaling, so pixel art stays sharp when the window scales the frame.
+.PP
+.SH YOUR OWN FILES
+Anything that is not an image, font, sound or CSV is read with the standard library:
+.PP
+.RS 4
+.EX
+char path[1024];
+FILE *f = fopen(assets_path("data/dialog.txt", path, sizeof path), "rb");
+if (!f) { LOG("no dialog file: %s", path); return; }
+char line[256];
+while (fgets(line, sizeof line, f)) { ... }
+fclose(f);
+.EE
+.RE
+.PP
+Simple text formats (one record per line, fields separated by tabs or commas, \fB#\fR comments) are enough for dialog scripts, item tables and level lists, and they are editable by anyone. Binary blobs are best avoided outside the save system.
+.PP
+.SH TILESETS
+One image, tiles left to right in rows, frame index = tile id, all tiles the same square size. Keep frame 0 blank (id 0 means empty). 16 tiles across is a good width: variants of a tile family then sit on their own rows with base ids that are multiples of 16, which keeps \fBsolid\fR tables readable. Tiled uses the same image and the same numbering (plus one, which tilemap_load_csv removes).
+.PP
+.SH SPRITE SHEETS
+Equal cells, animations as contiguous runs on one row where possible, one character or one theme per sheet (gge\-sprite(7)). A single sheet per entity kind keeps \fBfirst\fR indices stable when frames are added at the end.
+.PP
+.SH AUDIO FILES
+\&.wav only. Mono 16\-bit for effects at 22050 or 44100 Hz; stereo for music. Music is held uncompressed in memory, so keep tracks short and loop them (gge\-audio(7)).
+.PP
+.SH FONTS
+Any .ttf. Pixel fonts at their native size for pixel\-art games; otherwise any font at 10 to 16 points on a 640x360 canvas (gge\-text(7)). Check the license before shipping.
+.PP
+.SH SAVE FILES ARE NOT ASSETS
+Saves go to the per\-user folder named by EngineConfig.org and app, not to assets/ (gge\-saves(7)); the assets folder may be read\-only once installed.
+.PP
+.SH SHIPPING
+The executable and its \fBassets/\fR folder next to it are the whole game: zip them together. Paths are case\-sensitive on macOS (by default) and Linux; a sprite named \fBHero.png\fR loaded as \fBhero.png\fR works on Windows only. Keep every file name lowercase.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+Editing \fBbuild/assets/\fR instead of \fBassets/\fR: overwritten on the next build.
+.IP \(bu 2
+A path with a leading slash or \fBassets/\fR prefix: \fBassets_texture("sprites/x.png")\fR, not \fB"/sprites/x.png"\fR or \fB"assets/sprites/x.png"\fR.
+.IP \(bu 2
+PNG without ENGINE_WITH_IMAGE: "Unsupported image format" in the log.
+.IP \(bu 2
+More than 128 distinct textures: the cache is full and further loads fail; pack sheets.
 .SH SEE ALSO
 .BR assets_texture (3),
 .BR assets_path (3),
+.BR Texture (3),
 .BR text_load_font (3),
 .BR audio_load (3),
-.BR gge\-drawing (7)
+.BR tilemap_load_csv (3),
+.BR gge\-build (7),
+.BR gge\-sprite (7),
+.BR gge\-audio (7),
+.BR gge\-text (7),
+.BR gge\-saves (7)

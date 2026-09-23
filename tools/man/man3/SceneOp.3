@@ -1,0 +1,29 @@
+.TH SCENEOP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+SceneOp \- The kind of queued scene\-stack change
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.ft B
+typedef enum { OP_PUSH, OP_POP, OP_REPLACE } SceneOp;
+.ft R
+.fi
+.SH DESCRIPTION
+The kind of queued scene\-stack change. Games never build one directly; engine_push(), engine_pop() and engine_replace() do.
+.SH VALUES
+.TP
+.B OP_PUSH
+add a scene on top
+.TP
+.B OP_POP
+remove the top scene
+.TP
+.B OP_REPLACE
+pop the top scene, then push another
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR PendingOp (3),
+.BR engine_push (3),
+.BR gge\-api (7),
+.BR gge (1)

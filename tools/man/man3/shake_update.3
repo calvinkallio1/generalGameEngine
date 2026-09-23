@@ -1,16 +1,17 @@
 .TH SHAKE_UPDATE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-shake_update \- Advance the shake; read s\->offset and add it to the camera or draw positions
+shake_update \- Advance the shake: pick this tick's random offset into s\->ox / s\->oy and decay the amplitude
 .SH SYNOPSIS
 .nf
 .B #include \(dqtween.h\(dq
 .BI "void shake_update(Shake *s, float dt);"
 .fi
 .SH DESCRIPTION
-Advance the shake; read s\->offset and add it to the camera or draw positions.
+Advance the shake: pick this tick's random offset into s\->ox / s\->oy and decay the amplitude. Call from update, then read the offsets in render or copy them to the camera.
 .SH MODULE
 tween (src/engine/tween/tween.h)
 .SH SEE ALSO
 .BR shake_start (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Camera (3),
+.BR gge\-api (7),
+.BR gge (1)

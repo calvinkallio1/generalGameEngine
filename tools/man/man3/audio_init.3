@@ -1,20 +1,18 @@
 .TH AUDIO_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-audio_init \- Set master gains 0..1 for effects and music separately (an options menu writes these)
+audio_init \- Engine\-internal: open the default playback device
 .SH SYNOPSIS
 .nf
 .B #include \(dqaudio.h\(dq
 .BI "bool audio_init(void);"
 .fi
 .SH DESCRIPTION
-Set master gains 0..1 for effects and music separately (an options menu writes these).
-/
-void  audio_set_master(float sfx_gain, float music_gain);
-
-/* engine\-internal
+Engine\-internal: open the default playback device. Called by engine_init() when EngineConfig.audio is set; games never call it.
+.SH RETURN VALUE
+true on success.
 .SH MODULE
 audio (src/engine/audio/audio.h)
 .SH SEE ALSO
-.BR audio_play (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_init (3),
+.BR gge\-api (7),
+.BR gge (1)

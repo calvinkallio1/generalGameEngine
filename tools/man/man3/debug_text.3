@@ -1,18 +1,17 @@
 .TH DEBUG_TEXT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-debug_text \- engine function
+debug_text \- Queue a printf\-formatted string in yellow 8x8 text for the F3 overlay at x,y (logical pixels): debug_text(4, 20, "hp %d  state %d", p\->hp, p\->state)
 .SH SYNOPSIS
 .nf
 .B #include \(dqdebug.h\(dq
 .BI "void debug_text(float x, float y, const char *fmt, ...);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/debug/debug.h and run 'gge genman'.
+Queue a printf\-formatted string in yellow 8x8 text for the F3 overlay at x,y (logical pixels): debug_text(4, 20, "hp %d  state %d", p\->hp, p\->state). Up to 32 strings of 127 characters per frame. The engine writes its own status line at 4,4; start yours at y = 20 or so. Use LOG() for things that should go to the terminal instead.
 .SH MODULE
 debug (src/engine/debug/debug.h)
 .SH SEE ALSO
 .BR debug_rect (3),
-.BR debug_line (3),
-.BR debug_flush (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR draw_debug_text (3),
+.BR gge\-api (7),
+.BR gge (1)

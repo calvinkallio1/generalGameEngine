@@ -1,25 +1,20 @@
 .TH RECT_CENTER 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rect_center \- engine function
+rect_center \- The center point of r
 .SH SYNOPSIS
 .nf
 .B #include \(dqcollide.h\(dq
 .BI "Vec2 rect_center(Rect r);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/collide.h and run 'gge genman'.
+The center point of r. Aim at the middle of a target, spawn particles from the middle of a box.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the center as a Vec2.
 .SH MODULE
 math (src/engine/math/collide.h)
 .SH SEE ALSO
-.BR rect_at (3),
 .BR rect_centered (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR v2_add (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

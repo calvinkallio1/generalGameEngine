@@ -1,16 +1,17 @@
 .TH AUDIO_SET_MASTER 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-audio_set_master \- Set master gains 0..1 for effects and music separately (an options menu writes these)
+audio_set_master \- Set master gains 0..1 for effects and music separately (an options menu writes these; store the chosen values in GameState so a save remembers them)
 .SH SYNOPSIS
 .nf
 .B #include \(dqaudio.h\(dq
 .BI "void audio_set_master(float sfx_gain, float music_gain);"
 .fi
 .SH DESCRIPTION
-Set master gains 0..1 for effects and music separately (an options menu writes these).
+Set master gains 0..1 for effects and music separately (an options menu writes these; store the chosen values in GameState so a save remembers them). Music changes take effect at once; effects use the new gain from their next play.
 .SH MODULE
 audio (src/engine/audio/audio.h)
 .SH SEE ALSO
 .BR audio_play (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR audio_music (3),
+.BR gge\-api (7),
+.BR gge (1)

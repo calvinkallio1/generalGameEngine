@@ -1,0 +1,26 @@
+.TH TIMER 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Timer \- A countdown in seconds
+.SH SYNOPSIS
+.nf
+.B #include \(dqtween.h\(dq
+.ft B
+typedef struct Timer { float left; bool running; } Timer;
+.ft R
+.fi
+.SH DESCRIPTION
+A countdown in seconds. Pointer\-free, so it may live in GameState (a spawn timer, an invulnerability window) or in a scene static (a "press start" blink). Start with timer_start(), advance with timer_tick() once per update; the tick that reaches zero returns true exactly once.
+.SH FIELDS
+.TP
+.B left
+seconds remaining
+.TP
+.B running
+true between timer_start() and expiry
+.SH MODULE
+tween (src/engine/tween/tween.h)
+.SH SEE ALSO
+.BR timer_start (3),
+.BR timer_tick (3),
+.BR gge\-api (7),
+.BR gge (1)

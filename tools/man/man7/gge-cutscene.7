@@ -1,0 +1,131 @@
+.TH GGE\-CUTSCENE 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-cutscene \- scripted sequences of waits, moves, lines, fades and callbacks
+.SH DESCRIPTION
+cutscene.h runs a script: an array of \fBCutStep\fRs executed in order by a built\-in scene that the module pushes on top of the stack. While it plays, the scenes beneath keep rendering but stop updating, so the world holds still except for the actors the script moves. When the last step finishes (or the player skips with ESCAPE / PAD_START), the scene pops itself and calls an optional \fBon_finish\fR callback. Intros, level transitions, boss entrances, endings and any "the character walks over, says something, the screen fades" moment are this module.
+.PP
+.SH STEPS
+.TP
+\fBCUT_WAIT_S(sec)\fR
+pause.
+.TP
+\fBCUT_MOVE_TO(&vec2, x, y, sec)\fR
+ease a Vec2 (an entity's pos) to a point over sec seconds.
+.TP
+\fBCUT_SAY_LINE(who, text)\fR
+a dialog line; waits for the player to dismiss it.
+.TP
+\fBCUT_FADE_OUT_S(sec), CUT_FADE_IN_S(sec)\fR
+fade to and from black. The black persists between them.
+.TP
+\fBCUT_DO(fn)\fR
+call fn(e, ctx) and continue at once.
+Each macro expands to a brace initializer for a CutStep. See CutStep(3) and CutKind(3) for the fields behind them.
+.PP
+.SH A SCRIPT WITHOUT ACTORS
+Fades, waits, lines and callbacks can all be static const data:
+.PP
+.RS 4
+.EX
+#include "cutscene.h"
+\&
+static void give_key(Engine *e, void *ctx) { (void)ctx; GameState *g = e\->user; g\->flags[HAS_KEY] = true; }
+\&
+static const CutStep found_key[] = {
+  CUT_SAY_LINE("Cat", "Something shiny under the cushion."),
+  CUT_DO(give_key),
+  CUT_SAY_LINE(NULL, "You got the attic key."),
+};
+\&
+/* in update, when the player searches the couch */
+cutscene_start(e, found_key, 3, NULL, font, NULL);
+.EE
+.RE
+.PP
+.SH A SCRIPT THAT MOVES THINGS
+An actor is a pointer to a Vec2 that must stay valid while the cutscene runs: an entity's \fBpos\fR inside GameState qualifies (GameState is static for the whole run). Its address is not a compile\-time constant, so build the array in a function:
+.PP
+.RS 4
+.EX
+static CutStep intro[6];
+static void after_intro(Engine *e, void *ctx) { (void)ctx; ((GameState *)e\->user)\->flags[SAW_INTRO] = true; }
+\&
+static void play_intro(Engine *e) {
+  GameState *g = e\->user;
+  int n = 0;
+  intro[n++] = (CutStep)CUT_FADE_IN_S(1.0f);
+  intro[n++] = (CutStep)CUT_MOVE_TO(&g\->player.pos, 120, 96, 2.0f);
+  intro[n++] = (CutStep)CUT_WAIT_S(0.3f);
+  intro[n++] = (CutStep)CUT_SAY_LINE("Cat", "Finally. A warm spot.");
+  intro[n++] = (CutStep)CUT_MOVE_TO(&g\->dogs[0].pos, 200, 96, 1.5f);
+  intro[n++] = (CutStep)CUT_SAY_LINE("Dog", "Not for long.");
+  cutscene_start(e, intro, n, NULL, font, after_intro);
+}
+.EE
+.RE
+.PP
+The cast turns each macro's brace initializer into a compound literal. The array is static so it outlives the call; the scene beneath keeps drawing the entities at their (moving) positions because it still renders. Movement uses ease_in_out_quad, so actors start and stop smoothly. Because updates below are blocked, gravity and collision do not run during a move: a walking actor is simply slid to its destination, so keep destinations on the ground.
+.PP
+.SH WHAT THE SCENE BENEATH SEES
+.IP \(bu 2
+Its \fBrender\fR still runs: it draws the world as usual, then the cutscene draws the fade and the dialog over it. Animate actors during a move by checking cutscene_active(3) in render and choosing the walk animation, or step their AnimState from a CUT_DO before and after.
+.IP \(bu 2
+Its \fBupdate\fR does not run.
+.IP \(bu 2
+Its \fBhandle_input\fR does not run (the cutscene scene is on top).
+.IP \(bu 2
+After the pop, its next update runs normally. Restore anything the script changed (a camera you tweened) in \fBon_finish\fR.
+.SH CAMERA MOVES
+The camera is a scene static, not in GameState, so the script cannot name it from another file. Two options: give the gameplay scene a tiny function \fBVec2 *game_camera_target(void)\fR returning the address of a static Vec2 that camera_follow uses as its target while a cutscene is active; or do camera moves in CUT_DO callbacks that start Tweens on the camera position, with the gameplay scene calling tween_update from render's frame counter, since update is blocked... which is awkward. The first option is cleaner: the gameplay scene's update is blocked anyway, so in render it snaps the camera to \fBcam_target\fR while cutscene_active() is true.
+.PP
+.SH LEVEL TRANSITIONS
+.PP
+.RS 4
+.EX
+static void reload(Engine *e, void *ctx) { (void)ctx; ((GameState *)e\->user)\->level++; engine_replace(e, game_scene()); }
+\&
+static const CutStep to_next[] = { CUT_FADE_OUT_S(0.5f) };
+\&
+/* when the player reaches the exit */
+cutscene_start(e, to_next, 1, NULL, font, reload);
+.EE
+.RE
+.PP
+Scene changes belong in \fBon_finish\fR, not in a CUT_DO step: while the script runs, the cutscene's own scene is on top, so an \fBengine_replace\fR from a step would replace the cutscene rather than the level. \fBon_finish\fR runs from the cutscene scene's on_exit, after it has been popped, so the replace hits the gameplay scene beneath as intended. The new level's on_enter can start a \fBCUT_FADE_IN_S\fR cutscene for a clean transition.
+.PP
+.SH SKIPPING
+ESCAPE or PAD_START ends the cutscene immediately: remaining steps, including CUT_DO callbacks, do not run, but \fBon_finish\fR does. Put every state change the game depends on in \fBon_finish\fR (or make the CUT_DO steps idempotent and also call them from on_finish); leave only decoration in the script. If a script must not be skippable, there is no flag for it; treat skipping as always allowed.
+.PP
+.SH ONE AT A TIME
+There is a single cutscene slot, and the cutscene scene is a singleton like any other: starting a second cutscene while one plays pushes that scene a second time with the new script, which leaves a spare copy on the stack when the first finishes. Check cutscene_active(3) before starting one, and queue the next script from \fBon_finish\fR instead.
+.PP
+.SH TEXT AND FONT
+The \fBfont\fR argument is used for CUT_SAY lines; \fB(Font){0}\fR gives the debug font. Lines follow the dialog module's rules (gge\-dialog(7)): literals or static buffers, up to three wrapped lines.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+A local CutStep array: the scene reads it after the function returns. Static, always.
+.IP \(bu 2
+An actor pointer into a local or into a scene static that on_exit resets.
+.IP \(bu 2
+Assuming CUT_DO ran: it did not if the player skipped. Use on_finish.
+.IP \(bu 2
+Scene changes inside CUT_DO: they act on the cutscene scene itself. Use on_finish.
+.IP \(bu 2
+Starting a cutscene from render.
+.SH SEE ALSO
+.BR CutStep (3),
+.BR CutKind (3),
+.BR cutscene_start (3),
+.BR cutscene_active (3),
+.BR CUT_WAIT_S (3),
+.BR CUT_MOVE_TO (3),
+.BR CUT_SAY_LINE (3),
+.BR CUT_FADE_OUT_S (3),
+.BR CUT_FADE_IN_S (3),
+.BR CUT_DO (3),
+.BR dialog_show (3),
+.BR ease_in_out_quad (3),
+.BR gge\-dialog (7),
+.BR gge\-scenes (7),
+.BR gge\-tween (7)

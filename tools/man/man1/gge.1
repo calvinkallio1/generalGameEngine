@@ -100,12 +100,17 @@ Header to generate (default src/gge_config.h).
 .RE
 .TP
 .BI "man [\-s " SECTION "] [\-k] " topic
-Open a manual page. Function pages are section 3, concept pages section 7,
-this page section 1.
+Open a manual page. Functions, types (structs, enums) and macros are section
+3, one page each, named exactly as in the headers (\fBgge man Camera\fR,
+\fBgge man engine_push\fR, \fBgge man CUT_DO\fR). Module and concept pages
+are section 7 and are opened by their short name (\fBgge man scenes\fR opens
+\fBgge\-scenes\fR(7)); \fBgge man overview\fR is the place to start and
+\fBgge man api\fR indexes every section\-3 page by module. This page is
+section 1.
 .RS
 .TP
 .BI \-s " SECTION"
-Force a section: 1 tools, 3 functions, 7 concepts.
+Force a section: 1 tools, 3 functions/types/macros, 7 modules and concepts.
 .TP
 .B \-k
 Keyword search: list pages mentioning
@@ -113,7 +118,7 @@ Keyword search: list pages mentioning
 instead of opening one.
 .RE
 .TP
-.BI "ls [\-m " MODULE "] [\-g " REGEX ]
+.BI "ls [\-m " MODULE "] [\-g " REGEX "] [\-t]"
 List every public engine function with its module and one-line description.
 .RS
 .TP
@@ -121,18 +126,27 @@ List every public engine function with its module and one-line description.
 Only this engine folder (sprite, menu, tilemap, ...).
 .TP
 .BI \-g " REGEX"
-Filter function names.
+Filter names.
+.TP
+.B \-t
+List types and macros instead of functions.
 .RE
 .TP
 .B genman
-Regenerate the section-3 pages from the engine headers. A
+Regenerate the section\-3 pages and
+.BR gge\-api (7)
+from the engine headers. A
 .B /** ... */
-comment directly above a prototype becomes the DESCRIPTION;
+comment directly above a prototype, a typedef, or a #define becomes that
+page's DESCRIPTION;
 .B @return
-and
+(functions),
+.B @field name text
+(struct fields and enum values) and
 .B @see
-lines are honored. Without one, the trailing comment on the prototype line is
-used.
+lines are honored, and names containing a hyphen in @see refer to section\-7
+pages. A prototype without a block uses the trailing comment on its line; a
+struct field without an @field line uses its own trailing comment.
 .SH FILES
 .TP
 .I gge.conf
@@ -152,13 +166,19 @@ gge scene \-o src/ui \-t overlay shop
 gge entity dog
 gge config tick_rate 120
 gge man engine_push
+gge man Camera
 gge man scenes
+gge man overview
 gge ls \-m tilemap
+gge ls \-t
 .fi
 .SH SEE ALSO
+.BR gge\-overview (7),
+.BR gge\-api (7),
+.BR gge\-engine (7),
 .BR gge\-scenes (7),
 .BR gge\-state (7),
+.BR gge\-entities (7),
 .BR gge\-input (7),
 .BR gge\-drawing (7),
-.BR gge\-assets (7),
-.BR gge\-saves (7)
+.BR gge\-build (7)

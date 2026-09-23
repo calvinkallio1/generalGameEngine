@@ -1,0 +1,189 @@
+.TH GGE\-MATH 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-math \- vectors, interpolation, collision tests, and random numbers
+.SH DESCRIPTION
+The math module is three headers of small \fBstatic inline\fR functions: mathx.h (Vec2 and scalar helpers), collide.h (rectangle and circle tests), rng.h (a seedable random generator). Nothing here allocates or keeps state except the \fBuint64_t\fR you hand the RNG.
+.PP
+.SH VECTORS (mathx.h)
+\fBVec2\fR is {float x, y}. Everything takes and returns values:
+.TP
+\fBv2(x, y)\fR
+build one.
+.TP
+\fBv2_add(a, b), v2_sub(a, b)\fR
+sum; difference (the vector from b to a).
+.TP
+\fBv2_scale(a, s)\fR
+multiply by a scalar.
+.TP
+\fBv2_len(a), v2_dist(a, b)\fR
+length; distance between points.
+.TP
+\fBv2_norm(a)\fR
+unit length, or zero if a is zero (no division by zero).
+.TP
+\fBv2_dot(a, b)\fR
+dot product; for unit vectors the cosine of the angle between them.
+.TP
+\fBv2_lerp(a, b, t)\fR
+a at t = 0, b at t = 1.
+.SS Motion
+Velocity is units per second; a tick moves by \fBvel * dt\fR:
+.PP
+.RS 4
+.EX
+p\->pos = v2_add(p\->pos, v2_scale(p\->vel, dt));
+.EE
+.RE
+.PP
+Acceleration: \fBvel = v2_add(vel, v2_scale(accel, dt))\fR before the position update. Gravity is an acceleration of (0, +G). Friction: \fBvel = v2_scale(vel, powf(0.001f, dt))\fR decays to a thousandth per second at any tick rate (or use \fBsmooth_t\fR).
+.PP
+.SS Directions and aiming
+.PP
+.RS 4
+.EX
+Vec2 to_target = v2_sub(target, pos);           /* points at the target */
+Vec2 dir = v2_norm(to_target);                  /* unit direction */
+float dist = v2_len(to_target);
+bullet.vel = v2_scale(dir, 300);                /* 300 px/s toward it */
+float angle_deg = atan2f(dir.y, dir.x) * 180.0f / 3.14159265f;   /* for draw_texture_ex / sprite_draw */
+Vec2 from_angle = v2(cosf(a), sinf(a));         /* a in radians */
+bool in_front = v2_dot(facing, dir) > 0.5f;     /* within ~60 degrees of facing (both unit) */
+.EE
+.RE
+.PP
+Screen y grows downward, so an angle of 90 degrees points down and "up" is negative y.
+.PP
+.SS Scalars
+.TP
+\fBlerpf(a, b, t)\fR
+linear interpolation of floats.
+.TP
+\fBclampf(v, lo, hi), clampi(v, lo, hi)\fR
+clamp.
+.TP
+\fBminf, maxf\fR
+min and max.
+.TP
+\fBsignf(v)\fR
+\-1, 0 or 1.
+.TP
+\fBsmooth_t(smoothing, dt)\fR
+frame\-rate\-independent fraction to move toward a target: \fBx = lerpf(x, target, smooth_t(0.2f, dt))\fR closes about 63% of the gap every 0.2 s regardless of tick rate. camera_follow(3) is this.
+.SH COLLISION TESTS (collide.h)
+.TP
+\fBrect_at(pos, w, h), rect_centered(c, w, h), rect_center(r)\fR
+build and inspect hitboxes (gge\-types(7)).
+.TP
+\fBrect_overlaps(a, b)\fR
+two rectangles share area (touching edges do not count).
+.TP
+\fBrect_contains(r, p)\fR
+a point is inside.
+.TP
+\fBcircle_overlaps(a, ra, b, rb)\fR
+two circles overlap; no square root.
+.TP
+\fBrect_hit_side(a, b)\fR
+for overlapping a and b, which side of b a came from: HIT_TOP (a is above), HIT_BOTTOM, HIT_LEFT, HIT_RIGHT.
+.SS Using them
+.PP
+.RS 4
+.EX
+/* player vs enemy: stomp or take damage */
+Rect pr = player_hitbox(&g\->player), er = enemy_hitbox(en);
+if (rect_overlaps(pr, er)) {
+  if (rect_hit_side(pr, er) == HIT_TOP && g\->player.vel.y > 0) { en\->alive = false; g\->player.vel.y = \-150; }
+  else if (g\->player.invuln <= 0) { g\->player.hp\-\-; g\->player.invuln = 1.0f; }
+}
+/* ball vs paddle */
+if (rect_overlaps(ball_r, paddle_r)) {
+  HitSide s = rect_hit_side(ball_r, paddle_r);
+  if (s == HIT_LEFT || s == HIT_RIGHT) g\->ball.vel.x = \-g\->ball.vel.x; else g\->ball.vel.y = \-g\->ball.vel.y;
+}
+/* pickup radius */
+if (circle_overlaps(g\->player.pos, 10, coin\->pos, 6)) coin\->alive = false;
+/* mouse over a button */
+if (rect_contains(button, v2(in\->mouse_x, in\->mouse_y))) ...
+.EE
+.RE
+.PP
+For entities against solid tiles use tilemap_move(3), which resolves each axis and reports \fBon_ground\fR. For two moving boxes that must not interpenetrate (pushing crates), move one axis at a time and use rect_hit_side to push out along the shallow axis.
+.PP
+.SS Shapes the tests do not cover
+Rotated rectangles, polygons and lines against boxes are not provided. Approximate with a circle (most things), several small circles along a line (a sword swing), or a point test on the tip. A ray against tiles is a loop of tilemap_solid_at(3) samples every few pixels along the ray.
+.PP
+.SH RANDOM NUMBERS (rng.h)
+The generator is a \fBuint64_t\fR state you own, normally \fBGameState.rng\fR, seeded once at new game. Every call takes its address and advances it.
+.TP
+\fBrng_next(s)\fR
+raw 64\-bit value (rarely needed).
+.TP
+\fBrng_float(s)\fR
+[0, 1).
+.TP
+\fBrng_range(s, lo, hi)\fR
+integer in [lo, hi] inclusive; \fBrng_range(&g\->rng, 1, 6)\fR is a die.
+.TP
+\fBrng_between(s, lo, hi)\fR
+float in [lo, hi).
+.TP
+\fBrng_chance(s, p)\fR
+true with probability p.
+.SS Determinism
+Same seed, same sequence of calls, same results, on every machine. That is what makes a save file replay, a daily\-challenge seed shareable, and a bug reproducible from its seed. Keep it true by rolling only from \fBupdate\fR (never from render or handle_input) and by seeding once. For repeatable testing set the seed to a constant in game_state_init.
+.PP
+.SS Independent streams
+Content that must not depend on how many enemies rolled before it (a level layout, loot tables) uses its own temporary state derived from a stable number:
+.PP
+.RS 4
+.EX
+uint64_t s = g\->world_seed ^ ((uint64_t)level * 0x9E3779B97F4A7C15ULL);
+for (...) tiles[i] = rng_chance(&s, 0.3f) ? WALL : FLOOR;
+.EE
+.RE
+.PP
+.SS Weighted choice
+.PP
+.RS 4
+.EX
+static const int weights[] = { 50, 30, 15, 5 };   /* common .. legendary */
+int total = 100, r = rng_range(&g\->rng, 1, total), pick = 0;
+while (r > weights[pick]) r \-= weights[pick++];
+.EE
+.RE
+.PP
+.SS Shuffle (a deck of cards)
+.PP
+.RS 4
+.EX
+for (int i = n \- 1; i > 0; \-\-i) { int j = rng_range(&g\->rng, 0, i); int t = deck[i]; deck[i] = deck[j]; deck[j] = t; }
+.EE
+.RE
+.PP
+.SH NUMERIC HABITS
+.IP \(bu 2
+Use \fBfloat\fR everywhere; \fBsqrtf\fR, \fBfloorf\fR, \fBpowf\fR, \fBsinf\fR (the f versions) from math.h.
+.IP \(bu 2
+Compare squared distances when only ordering matters: \fBv2_dot(d, d) < r * r\fR.
+.IP \(bu 2
+Positions accumulate float error slowly; snapping to whole pixels only at draw time is fine.
+.IP \(bu 2
+\fB(int)floorf(x / 16)\fR for tile coordinates; a plain cast rounds toward zero and misplaces negative x.
+.SH SEE ALSO
+.BR Vec2 (3),
+.BR v2_norm (3),
+.BR v2_lerp (3),
+.BR smooth_t (3),
+.BR clampf (3),
+.BR rect_overlaps (3),
+.BR rect_hit_side (3),
+.BR circle_overlaps (3),
+.BR rect_contains (3),
+.BR rng_range (3),
+.BR rng_chance (3),
+.BR rng_between (3),
+.BR HitSide (3),
+.BR gge\-types (7),
+.BR gge\-tilemap (7),
+.BR gge\-state (7)

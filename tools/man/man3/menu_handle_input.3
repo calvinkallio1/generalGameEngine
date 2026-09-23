@@ -1,16 +1,17 @@
 .TH MENU_HANDLE_INPUT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-menu_handle_input \- Move the selection with up/down keys, dpad, or mouse hover; activate with Enter, space, pad south, or a click
+menu_handle_input \- Move the selection with up/down arrows, W/S, or the dpad (wrapping at both ends); hovering the mouse over an item selects it
 .SH SYNOPSIS
 .nf
 .B #include \(dqmenu.h\(dq
 .BI "void menu_handle_input(Menu *m, Engine *e, const Input *in);"
 .fi
 .SH DESCRIPTION
-Move the selection with up/down keys, dpad, or mouse hover; activate with Enter, space, pad south, or a click. Call from the owning scene's handle_input.
+Move the selection with up/down arrows, W/S, or the dpad (wrapping at both ends); hovering the mouse over an item selects it. Activate the selected item with Enter, space, or PAD_SOUTH, or click an item with the left button. The chosen item's action runs immediately, inside this call, so an action that pushes or pops a scene takes effect after the current callback like any other stack change. Call from the owning scene's handle_input.
 .SH MODULE
 menu (src/engine/menu/menu.h)
 .SH SEE ALSO
 .BR menu_render (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR menu_add (3),
+.BR gge\-api (7),
+.BR gge (1)

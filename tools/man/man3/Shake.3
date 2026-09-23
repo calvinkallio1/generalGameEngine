@@ -1,0 +1,36 @@
+.TH SHAKE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Shake \- Screen shake: a random pixel offset whose amplitude decays over time
+.SH SYNOPSIS
+.nf
+.B #include \(dqtween.h\(dq
+.ft B
+typedef struct Shake { float amount, decay; float ox, oy; unsigned seed; } Shake;
+.ft R
+.fi
+.SH DESCRIPTION
+Screen shake: a random pixel offset whose amplitude decays over time. Keep one in a scene static; shake_start() on impacts, shake_update() every tick, then add ox, oy to the camera's offset (cam.offset = v2(shake.ox, shake.oy)) or to every draw position. Stacking hits just call shake_start again with a larger amount.
+.SH FIELDS
+.TP
+.B amount
+current amplitude in pixels; 0 when idle
+.TP
+.B decay
+amplitude lost per second
+.TP
+.B ox
+this tick's x offset
+.TP
+.B oy
+this tick's y offset
+.TP
+.B seed
+private random state
+.SH MODULE
+tween (src/engine/tween/tween.h)
+.SH SEE ALSO
+.BR shake_start (3),
+.BR shake_update (3),
+.BR Camera (3),
+.BR gge\-api (7),
+.BR gge (1)

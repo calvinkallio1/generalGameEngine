@@ -1,0 +1,159 @@
+.TH GGE\-ENGINE 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-engine \- the main loop, EngineConfig, Engine, timing, and main.c
+.SH DESCRIPTION
+The core module (engine.h) owns the window, the renderer, the input snapshot and the scene stack, and runs the loop that drives everything else. A game touches it in three places: \fBmain()\fR configures and starts it, scenes receive an \fBEngine *\fR in every callback, and scene code calls \fBengine_push\fR/\fBengine_pop\fR/\fBengine_replace\fR to change what is running.
+.PP
+.SH MAIN
+Every game has exactly one \fBmain()\fR, and it is always the same shape:
+.PP
+.RS 4
+.EX
+#include "engine.h"
+#include "engine_main.h"   /* WinMain shim for Windows; include in this file only */
+#include "scenes.h"
+#include "game_state.h"
+\&
+static GameState state;    /* the whole saveable world, see gge\-state(7) */
+\&
+int main(void) {
+  static Engine e;         /* static: it must outlive every scene */
+  EngineConfig cfg = {
+    .title = "Cats", .logical_w = 320, .logical_h = 180, .window_scale = 4,
+    .user = &state, .org = "mystudio", .app = "cats",
+    .audio = true, .text = true, .gamepad = true,
+    .pause_scene = pause_scene(),
+  };
+  if (!engine_init(&e, &cfg)) return 1;
+  game_state_init(&state);
+  engine_push(&e, title_scene());
+  engine_run(&e);
+  engine_shutdown(&e);
+  return 0;
+}
+.EE
+.RE
+.PP
+\fBengine_init\fR opens the window and starts the services the config asks for; \fBengine_push\fR queues the first scene; \fBengine_run\fR does not return until the game ends; \fBengine_shutdown\fR pops what is left and closes SDL. Projects made with \fBgge init\fR fill the config from \fBgge.conf\fR through generated GGE_* macros (gge\-build(7)); the shape is the same.
+.PP
+.SH ENGINECONFIG
+Zero fields take defaults, so name only what you need. The full field list with defaults is in EngineConfig(3). The ones that shape a game:
+.PP
+.TP
+\fBlogical_w, logical_h\fR
+The resolution your code draws in. Everything (positions, mouse, text sizes) is in these units; the window scales the frame to fit and letterboxes the rest. Pick the size of your art: 320x180 or 640x360 for pixel art at 16:9, 256x224 for a retro 4:3 look. Changing it later means re\-laying\-out every UI position, so decide early.
+.TP
+\fBwindow_scale\fR
+The initial window is logical x scale. The user can resize freely and F11 toggles borderless fullscreen; the logical size never changes.
+.TP
+\fBtick_rate\fR
+Fixed simulation rate; 60 is right for nearly everything. Raise it only for fast physics; lower it (30, 20) for turn\-based or simulation games where per\-tick cost is high. \fBdt\fR in update is always exactly 1/tick_rate.
+.TP
+\fBuser\fR
+Your GameState. The engine stores the pointer and never dereferences it.
+.TP
+\fBorg, app\fR
+Name the per\-user save folder. Without both, saves go to the current directory, which is fine during development.
+.TP
+\fBaudio, text, gamepad\fR
+Each opens a service; leaving one off saves startup time and avoids a log line on machines without the device. \fBtext\fR only matters when the engine was built with ENGINE_WITH_TTF.
+.TP
+\fBpause_scene\fR
+A scene the engine pushes when the window loses focus. Give it your pause overlay so alt\-tabbing never lets the player get killed off\-screen. The engine checks that the scene is not already on top before pushing.
+.TP
+\fBclear_color\fR
+What the frame is cleared to before any scene draws.
+.SH THE LOOP, IN DETAIL
+\fBengine_run\fR repeats this until \fBrunning\fR is false:
+.PP
+.IP \(bu 2
+\fBTime.\fR The nanoseconds since the previous frame are added to an accumulator, capped at 8 ticks' worth so a stall (window drag, breakpoint) does not trigger a burst of hundreds of updates.
+.IP \(bu 2
+\fBInput.\fR \fBpoll_input\fR copies last frame's key, button and pad states into the \fBprev_*\fR arrays, drains SDL's event queue (quit, resize, focus, wheel, typed text, gamepad hot\-plug), then samples the keyboard, mouse and gamepad into \fBEngine.input\fR. F11 toggles fullscreen and F3 the debug overlay here, before scenes see anything. Focus loss pushes \fBpause_scene\fR if one is configured.
+.IP \(bu 2
+\fBAudio.\fR The music stream is topped up so it loops.
+.IP \(bu 2
+\fBhandle_input.\fR Called on the top scene only, with \fB&e\->input\fR. Once per displayed frame.
+.IP \(bu 2
+\fBapply_pending.\fR Pushes, pops and replaces queued so far take effect (on_exit / on_enter run here).
+.IP \(bu 2
+\fBupdate.\fR While the accumulator holds at least one tick: walk the stack from the top down, calling \fBupdate(e, s, e\->dt)\fR on each scene until one has \fBblocks_update_below\fR set; then apply pending changes; subtract one tick. Zero ticks run on a frame that came too soon, two or more after a slow frame. This is why simulation must live in update: it advances the same amount of game time per tick no matter how the display behaves.
+.IP \(bu 2
+\fBrender.\fR \fBalpha\fR = accumulator / tick length, in 0..1: how far the simulation is between the last tick and the next. The frame is cleared to \fBclear_color\fR, then scenes render from the topmost one with \fBblocks_render_below\fR set up to the top of the stack, each painting over the previous.
+.IP \(bu 2
+\fBDebug overlay.\fR If F3 is on, a status line (fps, stack depth, top scene, pad) and every queued \fBdebug_rect\fR/\fBdebug_line\fR/\fBdebug_text\fR are drawn; the queues are cleared either way.
+.IP \(bu 2
+\fBPresent.\fR The frame is shown (vsync), \fBframe\fR increments, and if the stack is empty the loop ends.
+.SS Why fixed ticks
+With a fixed \fBdt\fR the game plays identically on every machine, save files replay deterministically from a seed, and physics never explodes because one frame took too long. The cost is that a frame can land between ticks; \fBalpha\fR fixes that for rendering (gge\-drawing(7)), and nothing else needs to care.
+.PP
+.SS What runs at which rate
+.IP \(bu 2
+Display rate (once per frame): \fBhandle_input\fR, \fBrender\fR, everything inside them.
+.IP \(bu 2
+Tick rate (0..8 times per frame): \fBupdate\fR.
+.IP \(bu 2
+Consequences: never move objects in \fBhandle_input\fR (they would move faster on faster monitors); never roll random numbers or play sounds in \fBrender\fR (they would repeat every frame); read keys for movement inside \fBupdate\fR through \fB&e\->input\fR, since \fBhandle_input\fR may not run on a given tick.
+.SH ENGINE FIELDS A SCENE USES
+The struct is described field by field in Engine(3). Day to day:
+.PP
+.RS 4
+.EX
+GameState *g = e\->user;               /* your world */
+float w = (float)e\->logical_w;        /* screen size for layout */
+if (key_pressed(&e\->input, KEY_P)) ;  /* input from inside update */
+save_write(&e\->save, "slot1", g, sizeof *g, SAVE_VERSION);
+if (e\->frame % 30 == 0) ;             /* twice a second at 60 fps */
+debug_text(4, 20, "fps %.0f", e\->fps);
+.EE
+.RE
+.PP
+\fBwindow_w\fR/\fBwindow_h\fR are the real window size and are almost never needed; \fBdt\fR is the tick length if you need it outside update; \fBhas_audio\fR/\fBhas_text\fR tell you whether those services came up.
+.PP
+.SH CHANGING SCENES
+\fBengine_push\fR, \fBengine_pop\fR and \fBengine_replace\fR never act immediately. They append to a queue that is applied after the current callback returns, which makes them safe to call from anywhere, including from inside a menu action or from the scene being popped. See gge\-scenes(7) for the stack semantics and engine_push(3), engine_pop(3), engine_replace(3), engine_top(3) for each call.
+.PP
+.SH ENDING THE GAME
+Three ways, all clean: \fBengine_quit(e)\fR from anywhere; popping the last scene; the window's close button (which sets \fBinput.quit_requested\fR and ends the loop). In every case \fBengine_run\fR returns and \fBmain()\fR calls \fBengine_shutdown\fR, which runs \fBon_exit\fR for any scene still on the stack, top first, so sounds and music are released there as usual.
+.PP
+.SH WINDOW AND KEYS THE ENGINE OWNS
+.TP
+\fBF11\fR
+Toggle borderless fullscreen (engine_toggle_fullscreen(3)). The logical size is unchanged; the picture is letterboxed.
+.TP
+\fBF3\fR
+Toggle the debug overlay (gge\-debug(7)).
+.TP
+\fBResize\fR
+The window is resizable; the logical frame scales to fit with letterboxing. Mouse coordinates in Input are already converted to logical pixels.
+.TP
+\fBFocus loss\fR
+\fBpause_scene\fR is pushed; the loop sleeps 16 ms per frame while unfocused so a backgrounded game does not burn a core.
+.SH TIMING RECIPES
+.TP
+\fBCooldowns and delays\fR
+Use Timer (gge\-tween(7)) or subtract dt from a float in GameState.
+.TP
+\fBOnce per N ticks\fR
+Keep a tick counter in GameState: \fBif (++g\->ticks % 30 == 0)\fR.
+.TP
+\fBReal\-time clock (speedrun timer)\fR
+\fBg\->elapsed += dt\fR in update; format it in render.
+.TP
+\fBSlow motion / hit\-stop\fR
+Scale dt yourself: \fBfloat sdt = dt * g\->time_scale;\fR and pass \fBsdt\fR to your entity ticks; keep UI on the real dt.
+.TP
+\fBPausing\fR
+Do not stop the loop; push a scene with \fBblocks_update_below\fR (gge\-scenes(7)).
+.SH SEE ALSO
+.BR engine_init (3),
+.BR engine_run (3),
+.BR engine_shutdown (3),
+.BR engine_push (3),
+.BR engine_quit (3),
+.BR EngineConfig (3),
+.BR Engine (3),
+.BR gge\-scenes (7),
+.BR gge\-state (7),
+.BR gge\-drawing (7),
+.BR gge\-build (7)

@@ -1,67 +1,147 @@
 .TH GGE\-INPUT 7 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-gge\-input \- keys, mouse, gamepad, actions, text input
+gge\-input \- keys, mouse, gamepad, actions, and text input
 .SH DESCRIPTION
-Input is polled once per frame into
-.B Engine.input
-and passed to the top scene's
-.B handle_input
-as
-.BR "const Input *in" .
-Only the top scene receives it.
-.SS Raw queries
-.BR key_down (3)
-(held),
-.BR key_pressed (3)
-(this frame),
-.BR key_released (3);
-the same three for
-.BR mouse_* (3)
-with
-.B MOUSE_LEFT/RIGHT/MIDDLE
-and for
-.BR pad_* (3)
-with
-.BR PAD_* .
-Key names are
-.BR KEY_A ", " KEY_ESCAPE ", " KEY_ENTER ", " KEY_BACKSPACE ", " KEY_SPACE ...
-from keys.h. Mouse position is
-.BR in->mouse_x ", " in->mouse_y
-in logical pixels.
-.SS Actions
-Bind named actions to keys, pad buttons and axes so scenes never hard\-code
-keys:
-.nf
-.ft B
-enum { LEFT, RIGHT, JUMP };
+Input is polled once per frame into \fBEngine.input\fR, an \fBInput\fR struct (input.h) holding this frame's and last frame's state of the keyboard, mouse and one gamepad, plus any typed text. The top scene receives it as \fBconst Input *in\fR in \fBhandle_input\fR; \fBupdate\fR reads it through \fB&e\->input\fR. Scenes only read; the engine writes. Only the top scene of the stack receives input.
+.PP
+.SH RAW QUERIES
+Keyboard (\fBKey\fR values from keys.h, named by physical position: KEY_W is the key in W's place on a US layout):
+.TP
+\fBkey_down(in, k)\fR
+held this frame. Continuous actions: walking, aiming, holding a charge.
+.TP
+\fBkey_pressed(in, k)\fR
+went down this frame. One\-shot actions: jump, confirm, open menu, fire a single shot.
+.TP
+\fBkey_released(in, k)\fR
+came up this frame. Release\-triggered: cut a jump short, release a charged shot.
+Mouse (\fBMOUSE_LEFT\fR, \fBMOUSE_RIGHT\fR, \fBMOUSE_MIDDLE\fR): mouse_down(3), mouse_pressed(3), mouse_released(3); the position is \fBin\->mouse_x\fR, \fBin\->mouse_y\fR in \fBlogical\fR pixels, so it matches what you drew whatever the window size; \fBin\->wheel\fR is this frame's scroll (positive = up).
+.PP
+Gamepad (\fBPAD_*\fR from keys.h, positional: PAD_SOUTH is A / Cross / B): pad_down(3), pad_pressed(3); sticks and triggers in \fBin\->pad_axis[AXIS_*]\fR as \-1..1 with a 0.2 dead zone already applied. \fBin\->pad_connected\fR says whether a pad is open; EngineConfig.gamepad must be true.
+.PP
+.PP
+.RS 4
+.EX
+static void handle_input(Engine *e, Scene *s, const Input *in) {
+  (void)s;
+  GameState *g = e\->user;
+  if (key_pressed(in, KEY_ESCAPE) || pad_pressed(in, PAD_START)) engine_push(e, pause_scene());
+  if (mouse_pressed(in, MOUSE_LEFT)) {
+    Vec2 world = camera_to_world(&cam, v2(in\->mouse_x, in\->mouse_y));
+    place_block(g, (int)(world.x / 16), (int)(world.y / 16));
+  }
+  if (in\->wheel != 0) cam.zoom = clampf(cam.zoom + in\->wheel * 0.25f, 1, 4);
+}
+.EE
+.RE
+.PP
+.SH ACTIONS
+Hard\-coding keys spreads layout decisions across every scene and makes controllers an afterthought. An \fBActionMap\fR (actions.h) maps your own action ids to up to three keys, one pad button and one signed axis each, so scenes ask about \fBactions\fR:
+.PP
+.RS 4
+.EX
+enum { ACT_LEFT, ACT_RIGHT, ACT_UP, ACT_DOWN, ACT_JUMP, ACT_FIRE, ACT_MENU, ACT_COUNT };
 static ActionMap keys;
-action_map_init(&keys);
-action_bind_key(&keys, JUMP, KEY_SPACE);
-action_bind_pad(&keys, JUMP, PAD_SOUTH);
-if (action_pressed(&keys, in, JUMP)) ...
-float x = action_axis(&keys, in, LEFT, RIGHT);   /* -1..1 */
-.ft R
-.fi
-.SS Text input
-.BR engine_text_input (3)
-turns on delivery of typed characters into
-.B in->text
-(a short string per frame). Turn it on in
-.B on_enter
-and off in
-.BR on_exit .
-Letter keys still register as key presses while it is on.
-.SS Where to read input
-Only in
-.BR handle_input
-(display rate) for one\-shot reactions, or via
-.B &e->input
-inside
-.B update
-(tick rate) for movement. Never move things from handle_input.
+\&
+static void bind_defaults(void) {
+  action_map_init(&keys);
+  action_bind_key (&keys, ACT_LEFT,  KEY_LEFT);  action_bind_key(&keys, ACT_LEFT,  KEY_A);
+  action_bind_key (&keys, ACT_RIGHT, KEY_RIGHT); action_bind_key(&keys, ACT_RIGHT, KEY_D);
+  action_bind_key (&keys, ACT_UP,    KEY_UP);    action_bind_key(&keys, ACT_UP,    KEY_W);
+  action_bind_key (&keys, ACT_DOWN,  KEY_DOWN);  action_bind_key(&keys, ACT_DOWN,  KEY_S);
+  action_bind_key (&keys, ACT_JUMP,  KEY_SPACE); action_bind_key(&keys, ACT_JUMP,  KEY_Z);
+  action_bind_key (&keys, ACT_FIRE,  KEY_X);
+  action_bind_key (&keys, ACT_MENU,  KEY_ESCAPE);
+  action_bind_pad (&keys, ACT_JUMP,  PAD_SOUTH);
+  action_bind_pad (&keys, ACT_FIRE,  PAD_WEST);
+  action_bind_pad (&keys, ACT_MENU,  PAD_START);
+  action_bind_pad (&keys, ACT_LEFT,  PAD_DPAD_LEFT);  action_bind_axis(&keys, ACT_LEFT,  AXIS_LEFT_X, \-1);
+  action_bind_pad (&keys, ACT_RIGHT, PAD_DPAD_RIGHT); action_bind_axis(&keys, ACT_RIGHT, AXIS_LEFT_X, +1);
+  action_bind_pad (&keys, ACT_UP,    PAD_DPAD_UP);    action_bind_axis(&keys, ACT_UP,    AXIS_LEFT_Y, \-1);
+  action_bind_pad (&keys, ACT_DOWN,  PAD_DPAD_DOWN);  action_bind_axis(&keys, ACT_DOWN,  AXIS_LEFT_Y, +1);
+}
+.EE
+.RE
+.PP
+Then, in update:
+.PP
+.RS 4
+.EX
+float x = action_axis(&keys, &e\->input, ACT_LEFT, ACT_RIGHT);   /* \-1..1, analog on a stick */
+float y = action_axis(&keys, &e\->input, ACT_UP,   ACT_DOWN);
+Vec2 dir = v2_norm(v2(x, y));                                   /* diagonals not faster */
+g\->player.vel = v2_scale(dir, PLAYER_SPEED);
+if (action_pressed(&keys, &e\->input, ACT_JUMP) && g\->player.on_ground) g\->player.vel.y = \-JUMP_SPEED;
+.EE
+.RE
+.PP
+action_down(3) is the held test, action_pressed(3) the edge, action_axis(3) the \-1..1 pair. Bind in on_enter (or once at new game) and, for rebinding, store the chosen keys in GameState and rebuild the map from them; ActionMap itself is pointer\-free and may simply live in GameState.
+.PP
+.SH WHERE TO READ INPUT
+.TP
+\fBhandle_input\fR
+Runs once per displayed frame, top scene only. Right for one\-shot reactions and UI: menus, confirming, opening things, clicking. \fBkey_pressed\fR here never misses a press.
+.TP
+\fBupdate\fR
+Runs at the fixed tick rate, possibly several times per frame or not at all. Right for movement, aiming, anything that changes positions: read \fB&e\->input\fR there. \fBkey_pressed\fR inside update can fire on two consecutive ticks in the same frame (both ticks see the same snapshot), so read one\-shot presses in handle_input and set an intent flag (\fBg\->player.want_jump = true\fR) that update consumes and clears; or accept the rare double\-trigger for things where it does not matter.
+.TP
+\fBrender\fR
+Never. It is a drawing callback.
+.SH TEXT INPUT
+For name entry, chat, a debug console: call \fBengine_text_input(e, true)\fR in \fBon_enter\fR and \fBfalse\fR in \fBon_exit\fR. While on, \fBin\->text\fR holds the characters typed this frame (UTF\-8, usually one), and letter keys still register as key presses, so do not also treat them as actions in that scene.
+.PP
+.RS 4
+.EX
+static char name[16];
+static void handle_input(Engine *e, Scene *s, const Input *in) {
+  (void)s;
+  size_t n = strlen(name);
+  for (const char *c = in\->text; *c && n < sizeof name \- 1; ++c) name[n++] = *c, name[n] = '\e0';
+  if (key_pressed(in, KEY_BACKSPACE) && n > 0) name[\-\-n] = '\e0';
+  if (key_pressed(in, KEY_ENTER)) { strcpy(((GameState *)e\->user)\->player_name, name); engine_pop(e); }
+}
+.EE
+.RE
+.PP
+Backspace and Enter are keys, not text.
+.PP
+.SH INPUT BUFFERING AND FORGIVENESS
+Two small timers in GameState make platformers feel right:
+.IP \(bu 2
+\fBJump buffer:\fR when JUMP is pressed, set \fBg\->jump_buffer = 0.1f\fR; each tick subtract dt; jump when \fBjump_buffer > 0 && on_ground\fR. A press slightly before landing still jumps.
+.IP \(bu 2
+\fBCoyote time:\fR when the player walks off an edge, set \fBg\->coyote = 0.08f\fR; allow a jump while \fBcoyote > 0\fR even though \fBon_ground\fR is false.
+Both are ordinary floats in state; see gge\-tween(7) for Timer if you prefer it.
+.PP
+.SH MOUSE IN WORLD SPACE
+Under a camera, convert: \fBVec2 w = camera_to_world(&cam, v2(in\->mouse_x, in\->mouse_y));\fR then compare with entity hitboxes using rect_contains(3), or divide by the tile size for the tile under the cursor. For UI drawn in screen space, compare \fBin\->mouse_x/y\fR with the rectangles you drew directly.
+.PP
+.SH GAMEPAD DETAILS
+.IP \(bu 2
+One pad is opened, the first that appears; unplugging it zeroes the pad fields.
+.IP \(bu 2
+Face buttons are positional; show the right glyph by checking nothing (the engine does not expose the controller brand), or just say "the bottom button".
+.IP \(bu 2
+Triggers are axes (AXIS_LT, AXIS_RT, 0..1), not buttons; treat \fB> 0.5\fR as pressed or bind them with action_bind_axis.
+.IP \(bu 2
+Menus (gge\-menu(7)) already accept the dpad and PAD_SOUTH.
+.SH ENGINE\-OWNED KEYS
+F3 and F11 are handled by the engine before scenes run (debug overlay, fullscreen). They still show in \fBInput.keys\fR; avoid binding them.
+.PP
 .SH SEE ALSO
+.BR Input (3),
+.BR Key (3),
+.BR PadButton (3),
+.BR PadAxis (3),
+.BR MouseButton (3),
 .BR key_pressed (3),
+.BR key_down (3),
+.BR mouse_pressed (3),
+.BR pad_pressed (3),
+.BR ActionMap (3),
 .BR action_bind_key (3),
 .BR action_axis (3),
 .BR engine_text_input (3),
-.BR gge\-scenes (7)
+.BR camera_to_world (3),
+.BR gge\-scenes (7),
+.BR gge\-engine (7)

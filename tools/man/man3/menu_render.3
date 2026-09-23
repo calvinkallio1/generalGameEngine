@@ -1,16 +1,17 @@
 .TH MENU_RENDER 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-menu_render \- Draw the items top to bottom from m\->x, m\->y, indenting and recoloring the selected one
+menu_render \- Draw the items top to bottom from m\->x, m\->y, line_h apart, indenting the selected one by 12 pixels and drawing it in color_selected
 .SH SYNOPSIS
 .nf
 .B #include \(dqmenu.h\(dq
 .BI "void menu_render(const Menu *m);"
 .fi
 .SH DESCRIPTION
-Draw the items top to bottom from m\->x, m\->y, indenting and recoloring the selected one. Call from the owning scene's render.
+Draw the items top to bottom from m\->x, m\->y, line_h apart, indenting the selected one by 12 pixels and drawing it in color_selected. Draw a backdrop and title first, then call this, from the owning scene's render.
 .SH MODULE
 menu (src/engine/menu/menu.h)
 .SH SEE ALSO
 .BR menu_handle_input (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR menu_center (3),
+.BR gge\-api (7),
+.BR gge (1)

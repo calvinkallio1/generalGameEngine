@@ -1,21 +1,17 @@
 .TH SPRITE_DRAW_SCALED 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-sprite_draw_scaled \- engine function
+sprite_draw_scaled \- As sprite_draw, with the frame scaled by scale (2.0 doubles it; the camera's zoom is the usual argument)
 .SH SYNOPSIS
 .nf
 .B #include \(dqsprite.h\(dq
 .BI "void sprite_draw_scaled(const Sprite *s, int frame, float x, float y, float scale, double angle, Flip flip);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/sprite/sprite.h and run 'gge genman'.
+As sprite_draw, with the frame scaled by scale (2.0 doubles it; the camera's zoom is the usual argument). Scaling is about the top\-left corner: the drawn rectangle is x, y, frame_w*scale, frame_h*scale.
 .SH MODULE
 sprite (src/engine/sprite/sprite.h)
 .SH SEE ALSO
-.BR sprite_from (3),
-.BR anim_set (3),
-.BR anim_step (3),
-.BR anim_frame (3),
 .BR sprite_draw (3),
-.BR sprite_draw_tinted (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Camera (3),
+.BR gge\-api (7),
+.BR gge (1)

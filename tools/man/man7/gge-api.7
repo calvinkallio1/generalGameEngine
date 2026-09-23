@@ -1,0 +1,656 @@
+.TH GGE\-API 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-api \- index of every engine function, type and macro by module
+.SH DESCRIPTION
+One line per public name. Each has its own section\-3 page: \fBgge man\fR \fIname\fR. Every module also has a section\-7 page describing how its pieces fit together: \fBgge man\fR \fImodule\fR.
+.PP
+Regenerate this page with \fBgge genman\fR.
+.SH ASSETS
+src/engine/assets/ \(em see also \fBgge\-assets\fR(7).
+.SS Functions
+.TP
+.BR assets_texture (3)
+Load an image from assets/ (path relative to that folder, e.g. "sprites/player.png") as a GPU texture, or return the one already loaded for that path
+.TP
+.BR assets_path (3)
+Build the absolute path of a file under assets/ into buf (n bytes) and return buf
+.TP
+.BR assets_init (3)
+Engine\-internal: remember the renderer and locate the assets/ folder next to the executable
+.TP
+.BR assets_unload_all (3)
+Engine\-internal: destroy every cached texture
+.SH AUDIO
+src/engine/audio/ \(em see also \fBgge\-audio\fR(7).
+.SS Structs
+.TP
+.BR Sound (3)
+A decoded .wav held in memory, ready to play any number of times
+.SS Functions
+.TP
+.BR audio_load (3)
+Load a .wav from assets/ (e.g. "sfx/jump.wav"; any sample rate or channel count, converted at play time)
+.TP
+.BR audio_free (3)
+Release a Sound's samples and zero it
+.TP
+.BR audio_play (3)
+Play a sound once at gain 0..1 (1 = as recorded; the master effects gain is applied on top) on a free channel
+.TP
+.BR audio_music (3)
+Loop s as the music track at gain, replacing any current music
+.TP
+.BR audio_music_stop (3)
+Stop the music track immediately
+.TP
+.BR audio_set_master (3)
+Set master gains 0..1 for effects and music separately (an options menu writes these; store the chosen values in GameState so a save remembers them)
+.TP
+.BR audio_init (3)
+Engine\-internal: open the default playback device
+.TP
+.BR audio_shutdown (3)
+Engine\-internal: destroy the mixer channels and close the device
+.TP
+.BR audio_update (3)
+Engine\-internal: keep the music stream fed so it loops
+.SH CAMERA
+src/engine/camera/ \(em see also \fBgge\-camera\fR(7).
+.SS Structs
+.TP
+.BR Camera (3)
+A window onto a world larger than the screen
+.SS Functions
+.TP
+.BR camera_init (3)
+Reset a camera for a view of view_w x view_h logical pixels (normally e\->logical_w, e\->logical_h), positioned at the origin with zoom 1, no bounds and no offset
+.TP
+.BR camera_to_screen (3)
+Convert a world position to screen pixels for drawing: (world \- pos \- offset) * zoom + half the view
+.TP
+.BR camera_to_world (3)
+Convert a screen position (e.g. the mouse, v2(in\->mouse_x, in\->mouse_y)) to world coordinates: the inverse of camera_to_screen
+.TP
+.BR camera_rect (3)
+Convert a world\-space rectangle to screen space, scaling its size by zoom
+.TP
+.BR camera_visible (3)
+The world\-space rectangle currently on screen (view size divided by zoom, centered on pos + offset); use to cull drawing: if (!rect_overlaps(camera_visible(&cam), ent_hitbox)) skip it
+.TP
+.BR camera_follow (3)
+Move the camera toward target
+.TP
+.BR camera_set_bounds (3)
+Clamp the camera so it never shows outside the given world rectangle (the level edges): for a tilemap, camera_set_bounds(&cam, 0, 0, map.w * map.tile, map.h * map.tile)
+.SH CORE
+src/engine/core/ \(em see also \fBgge\-core\fR(7).
+.SS Structs
+.TP
+.BR EngineConfig (3)
+Everything the engine needs to know about your game, passed once to engine_init()
+.TP
+.BR PendingOp (3)
+One queued scene\-stack change, stored in Engine.pending until the current callback returns
+.TP
+.BR Engine (3)
+The running engine: window, renderer, this frame's input, the scene stack, and the handful of values a scene reads every frame
+.TP
+.BR Scene (3)
+A Scene is a unit of behavior: title screen, gameplay, pause menu, inventory, dialog box, cutscene
+.SS Enums
+.TP
+.BR SceneOp (3)
+The kind of queued scene\-stack change
+.SS Macros
+.TP
+.BR SCENE_STACK_MAX (3)
+Maximum number of scenes on the stack at once
+.TP
+.BR PENDING_MAX (3)
+Maximum stack changes (push/pop/replace) that may be queued from one callback before they apply
+.SS Functions
+.TP
+.BR engine_init (3)
+Zero *e, start SDL, open the window and renderer at cfg\->logical_w x logical_h scaled by window_scale, apply vsync and logical presentation, then start the services cfg asks for (assets, save, audio, text, gamepad)
+.TP
+.BR engine_run (3)
+Run the main loop: poll input, apply queued scene changes, run fixed\-rate update ticks (up to 8 per frame to catch up), render with an interpolation alpha, present
+.TP
+.BR engine_shutdown (3)
+Pop every remaining scene (their on_exit runs, top first), stop services in reverse order (text, audio, textures, gamepad, renderer, window) and quit SDL
+.TP
+.BR engine_push (3)
+Queue s to be placed on top of the scene stack
+.TP
+.BR engine_pop (3)
+Queue removal of the top scene
+.TP
+.BR engine_replace (3)
+Queue a swap of the top scene for s: the old scene's on_exit runs, then s is pushed and its on_enter runs
+.TP
+.BR engine_quit (3)
+End the main loop after the current frame
+.TP
+.BR engine_top (3)
+The scene currently on top of the stack, or NULL when empty
+.TP
+.BR engine_toggle_fullscreen (3)
+Switch between windowed and borderless fullscreen
+.TP
+.BR engine_text_input (3)
+Turn delivery of typed characters on or off
+.SH CUTSCENE
+src/engine/cutscene/ \(em see also \fBgge\-cutscene\fR(7).
+.SS Structs
+.TP
+.BR CutStep (3)
+One instruction in a cutscene script
+.SS Enums
+.TP
+.BR CutKind (3)
+What one cutscene step does
+.SS Macros
+.TP
+.BR CUT_WAIT_S (3)
+CutStep initializer: pause the cutscene for sec seconds
+.TP
+.BR CUT_MOVE_TO (3)
+CutStep initializer: ease the Vec2 that p points to from its current position to (x, y) over sec seconds with ease_in_out_quad
+.TP
+.BR CUT_SAY_LINE (3)
+CutStep initializer: show a dialog line spoken by who (NULL for none) and wait until the player dismisses it
+.TP
+.BR CUT_FADE_OUT_S (3)
+CutStep initializer: fade the screen to black over sec seconds
+.TP
+.BR CUT_FADE_IN_S (3)
+CutStep initializer: fade from black back to the scene over sec seconds
+.TP
+.BR CUT_DO (3)
+CutStep initializer: call f(e, ctx) once, where ctx is the pointer given to cutscene_start(), then continue immediately
+.SS Functions
+.TP
+.BR cutscene_start (3)
+Play a script: pushes the engine's built\-in cutscene scene on top of the stack, which runs steps[0..count\-1] in order and pops itself when the last one finishes, then calls on_finish(e, ctx) if given
+.TP
+.BR cutscene_active (3)
+True while a cutscene scene is on the stack
+.SH DEBUG
+src/engine/debug/ \(em see also \fBgge\-debug\fR(7).
+.SS Macros
+.TP
+.BR LOG (3)
+printf\-style message to the terminal (stderr): LOG("loaded level %d", n)
+.TP
+.BR WARN (3)
+As LOG, at warning priority
+.TP
+.BR ASSERT (3)
+Stop the program (with a message naming the file and line) if condition c is false, in Debug builds; compiled out in Release builds, so c must have no side effects
+.SS Functions
+.TP
+.BR debug_rect (3)
+Queue a rectangle outline to be drawn on top of everything this frame, but only while the F3 debug overlay is on
+.TP
+.BR debug_line (3)
+Queue a line for the F3 overlay, like debug_rect()
+.TP
+.BR debug_text (3)
+Queue a printf\-formatted string in yellow 8x8 text for the F3 overlay at x,y (logical pixels): debug_text(4, 20, "hp %d  state %d", p\->hp, p\->state)
+.TP
+.BR debug_flush (3)
+Engine\-internal: draw the queued shapes and text if draw is true, then empty the queues
+.SH DIALOG
+src/engine/dialog/ \(em see also \fBgge\-dialog\fR(7).
+.SS Structs
+.TP
+.BR Dialog (3)
+A speech box at the bottom of the screen that types its text out character by character and waits for the player to dismiss it
+.SS Functions
+.TP
+.BR dialog_show (3)
+Start showing a line: sets speaker and text, rewinds the typewriter and marks the dialog active
+.TP
+.BR dialog_update (3)
+Advance the typewriter by dt and handle dismissal
+.TP
+.BR dialog_render (3)
+Draw the box: a translucent black panel with a white outline across the bottom of the logical screen, the speaker in yellow, and up to three word\-wrapped lines of the revealed text
+.TP
+.BR dialog_done (3)
+True when no line is showing: initially, and after the player dismissed the last one
+.SH DRAW
+src/engine/draw/ \(em see also \fBgge\-draw\fR(7).
+.SS Functions
+.TP
+.BR draw_clear (3)
+Fill the whole frame with c
+.TP
+.BR draw_rect (3)
+Filled rectangle
+.TP
+.BR draw_rect_outline (3)
+One\-pixel outline of r, in logical pixels (so it scales up with the window)
+.TP
+.BR draw_line (3)
+Line between two points in logical pixels, one pixel wide
+.TP
+.BR draw_point (3)
+Single logical pixel
+.TP
+.BR draw_texture (3)
+Copy a texture region (src, or NULL for the whole texture) into dst, scaling to fit
+.TP
+.BR draw_texture_ex (3)
+As draw_texture with rotation about dst's center (degrees, clockwise, 0 = as stored) and a Flip (FLIP_NONE, FLIP_H, FLIP_V, or FLIP_H | FLIP_V)
+.TP
+.BR draw_debug_text (3)
+Text in the built\-in 8x8 font, top\-left at x,y
+.TP
+.BR draw_init (3)
+Engine\-internal: remember the renderer and turn on alpha blending
+.TP
+.BR draw_renderer (3)
+Engine\-internal: the renderer draw.h targets, for modules that must call SDL directly (text caching)
+.SH INPUT
+src/engine/input/ \(em see also \fBgge\-input\fR(7).
+.SS Structs
+.TP
+.BR ActionMap (3)
+A table from your game's action ids (an enum you define, values 0..ACTION_MAX\-1) to the physical inputs that trigger them: up to three keys, one gamepad button and one signed gamepad axis per action
+.TP
+.BR Input (3)
+Per\-frame snapshot of every input device
+.SS Enums
+.TP
+.BR Key (3)
+Keyboard keys by physical position (scancodes): KEY_W is the key where W sits on a US layout, wherever the user's layout puts the letter, which keeps WASD usable on AZERTY and Dvorak keyboards
+.TP
+.BR MouseButton (3)
+Mouse buttons for mouse_down(), mouse_pressed() and mouse_released()
+.TP
+.BR PadButton (3)
+Gamepad buttons, named by position on the controller so one binding works on Xbox, PlayStation and Nintendo pads
+.TP
+.BR PadAxis (3)
+Gamepad analog axes, indexes into Input.pad_axis
+.SS Macros
+.TP
+.BR ACTION_MAX (3)
+Number of distinct actions an ActionMap can hold; your action enum's values must stay below it
+.TP
+.BR BINDS_PER_ACTION (3)
+Keyboard keys per action in an ActionMap; further action_bind_key calls for the same action are ignored
+.SS Functions
+.TP
+.BR action_map_init (3)
+Clear an ActionMap so every action is unbound
+.TP
+.BR action_bind_key (3)
+Bind action a (your own enum value, < ACTION_MAX) to a keyboard key
+.TP
+.BR action_bind_pad (3)
+Bind action a to a gamepad button, replacing any previous button for that action
+.TP
+.BR action_bind_axis (3)
+Bind action a to a gamepad axis with a sign, so a stick direction counts as the action past a dead zone
+.TP
+.BR action_down (3)
+True while any input bound to the action is held: any of its keys, its pad button, or its axis pushed past 0.5 in the bound direction
+.TP
+.BR action_pressed (3)
+True only on the frame any key or pad button bound to the action went down
+.TP
+.BR action_axis (3)
+\-1..1 from a pair of actions: \-1 while neg is down, +1 while pos is down, 0 when both or neither, or the analog stick value (past a 0.2 dead zone) if pos has an axis bound and no digital input is active
+.TP
+.BR key_down (3)
+True while the key is held
+.TP
+.BR key_pressed (3)
+True only on the frame the key went down
+.TP
+.BR key_released (3)
+True only on the frame the key came up
+.TP
+.BR mouse_down (3)
+True while the mouse button is held
+.TP
+.BR mouse_pressed (3)
+True only on the frame the button went down
+.TP
+.BR mouse_released (3)
+True only on the frame the button came up
+.TP
+.BR pad_down (3)
+True while the gamepad button is held (requires EngineConfig.gamepad and a connected pad; false otherwise)
+.TP
+.BR pad_pressed (3)
+True only on the frame the gamepad button went down
+.SH MATH
+src/engine/math/ \(em see also \fBgge\-math\fR(7).
+.SS Structs
+.TP
+.BR Vec2 (3)
+A 2D vector of floats: positions, velocities, directions, sizes
+.SS Enums
+.TP
+.BR HitSide (3)
+Which side of rectangle b rectangle a struck, as reported by rect_hit_side(): the side of b that a came from
+.SS Functions
+.TP
+.BR rect_at (3)
+Build a Rect with its top\-left corner at pos and the given size: the hitbox of an entity whose pos is its top\-left
+.TP
+.BR rect_centered (3)
+Build a Rect of the given size centered on c: the hitbox of an entity whose pos is its center, or a pickup radius as a box
+.TP
+.BR rect_center (3)
+The center point of r
+.TP
+.BR rect_overlaps (3)
+Whether two rectangles overlap (share any area)
+.TP
+.BR rect_contains (3)
+Whether point p lies inside r
+.TP
+.BR circle_overlaps (3)
+Whether two circles (centers a and b, radii ra and rb) overlap
+.TP
+.BR rect_hit_side (3)
+Given two overlapping rectangles, the side of b that a is shallowest on, i.e. the side a most likely arrived from
+.TP
+.BR v2 (3)
+Build a Vec2 from two floats
+.TP
+.BR v2_add (3)
+Component\-wise sum a + b
+.TP
+.BR v2_sub (3)
+Component\-wise difference a \- b: the vector from b to a
+.TP
+.BR v2_scale (3)
+Multiply both components by s
+.TP
+.BR v2_dot (3)
+Dot product a.x*b.x + a.y*b.y
+.TP
+.BR v2_len (3)
+Length (magnitude) of a: sqrt(x*x + y*y)
+.TP
+.BR v2_norm (3)
+a scaled to length 1, or a itself (the zero vector) when its length is 0, so there is never a division by zero
+.TP
+.BR v2_lerp (3)
+Linear interpolation: a when t = 0, b when t = 1, the straight line between for values in between; t outside 0..1 extrapolates
+.TP
+.BR v2_dist (3)
+Distance between two points: v2_len(v2_sub(a, b))
+.TP
+.BR lerpf (3)
+Linear interpolation of floats: a when t = 0, b when t = 1
+.TP
+.BR clampf (3)
+Limit v to the range lo..hi
+.TP
+.BR clampi (3)
+Integer clamp of v to lo..hi
+.TP
+.BR signf (3)
+Sign of v as a float: 1 for positive, \-1 for negative, 0 for zero
+.TP
+.BR minf (3)
+The smaller of a and b
+.TP
+.BR maxf (3)
+The larger of a and b
+.TP
+.BR smooth_t (3)
+Framerate\-independent smoothing: the fraction of the remaining distance to move toward a target this tick, given a time constant
+.TP
+.BR rng_next (3)
+Advance a 64\-bit random state and return the next raw value (splitmix64)
+.TP
+.BR rng_float (3)
+A random float in [0, 1)
+.TP
+.BR rng_range (3)
+A random integer in [lo, hi], both ends inclusive: rng_range(&g\->rng, 1, 6) is a die
+.TP
+.BR rng_between (3)
+A random float in [lo, hi): spawn positions, particle speeds, timer jitter
+.TP
+.BR rng_chance (3)
+True with probability p (0..1): rng_chance(&g\->rng, 0.25f) is a one\-in\-four drop
+.SH MENU
+src/engine/menu/ \(em see also \fBgge\-menu\fR(7).
+.SS Structs
+.TP
+.BR MenuItem (3)
+One entry in a Menu: a label and the function to call when it is chosen
+.TP
+.BR Menu (3)
+A vertical list of selectable text items with keyboard, gamepad and mouse handling built in: the title screen, pause menu, options, a shop, a level select
+.SS Macros
+.TP
+.BR MENU_MAX_ITEMS (3)
+Maximum items in one Menu; menu_add beyond it is ignored
+.SS Functions
+.TP
+.BR menu_init (3)
+Reset a Menu: no items, selection 0, position x,y, font (a zero Font uses the debug font), default colors (grey, yellow when selected), line height from the font plus 6, and a 200\-pixel click width
+.TP
+.BR menu_add (3)
+Append an item
+.TP
+.BR menu_handle_input (3)
+Move the selection with up/down arrows, W/S, or the dpad (wrapping at both ends); hovering the mouse over an item selects it
+.TP
+.BR menu_render (3)
+Draw the items top to bottom from m\->x, m\->y, line_h apart, indenting the selected one by 12 pixels and drawing it in color_selected
+.TP
+.BR menu_center (3)
+Position the menu block in the middle of the logical screen based on its widest label and item count, and set hit_w to match
+.SH SAVE
+src/engine/save/ \(em see also \fBgge\-save\fR(7).
+.SS Structs
+.TP
+.BR Save (3)
+The folder save slots are written to
+.SS Functions
+.TP
+.BR save_write (3)
+Write size bytes of data to the slot file <dir>/<slot>.sav with a header carrying version
+.TP
+.BR save_load (3)
+Read a slot into out
+.TP
+.BR save_exists (3)
+Whether a slot file exists; use to enable a Continue item on the title menu
+.TP
+.BR save_delete (3)
+Remove a slot file: "delete save" in a menu, or permadeath in a roguelike
+.TP
+.BR save_init (3)
+Engine\-internal: resolve the save folder from org and app (creating it) or fall back to the working directory
+.SH SPRITE
+src/engine/sprite/ \(em see also \fBgge\-sprite\fR(7).
+.SS Structs
+.TP
+.BR Sprite (3)
+A texture sliced into a grid of equal frames
+.TP
+.BR Anim (3)
+One named animation: a contiguous run of frames on a sheet and how fast to play them
+.TP
+.BR AnimState (3)
+Playback position of one animated thing
+.SS Functions
+.TP
+.BR sprite_from (3)
+Slice a texture into frame_w x frame_h cells and return the Sprite
+.TP
+.BR anim_set (3)
+Switch st to animation anim_id, restarting at its first frame with done cleared
+.TP
+.BR anim_step (3)
+Advance the animation by dt seconds using the timing in a (the Anim that st\->anim refers to)
+.TP
+.BR anim_frame (3)
+The absolute sheet frame to draw right now: a\->first + st\->frame
+.TP
+.BR sprite_draw (3)
+Draw one frame of s with its top\-left corner at x,y (logical pixels), rotated by angle degrees clockwise about the frame's center, mirrored by flip
+.TP
+.BR sprite_draw_scaled (3)
+As sprite_draw, with the frame scaled by scale (2.0 doubles it; the camera's zoom is the usual argument)
+.TP
+.BR sprite_draw_tinted (3)
+Draw one frame with every pixel's color multiplied by tint and its alpha by tint.a
+.SH TEXT
+src/engine/text/ \(em see also \fBgge\-text\fR(7).
+.SS Structs
+.TP
+.BR Font (3)
+A loaded TrueType font at one point size, returned by text_load_font()
+.SS Functions
+.TP
+.BR text_load_font (3)
+Load a TrueType font from assets/ (e.g. "fonts/pixel.ttf") at the given point size
+.TP
+.BR text_draw (3)
+Draw s at x,y (top\-left) in color with font f, on one line: no wrapping, no newline handling (draw each line yourself, text_line_height() apart)
+.TP
+.BR text_size (3)
+Measure s in font f, writing pixel width and height through w and h
+.TP
+.BR text_line_height (3)
+Height of one line in font f, for stacking lines: y += text_line_height(f)
+.TP
+.BR text_draw_debug (3)
+Draw with the built\-in 8x8 font regardless of TTF availability
+.TP
+.BR text_init (3)
+Engine\-internal: initialize SDL_ttf when EngineConfig.text is set
+.TP
+.BR text_shutdown (3)
+Engine\-internal: free the string cache and quit SDL_ttf
+.SH TILEMAP
+src/engine/tilemap/ \(em see also \fBgge\-tilemap\fR(7).
+.SS Structs
+.TP
+.BR Tilemap (3)
+A grid of square tiles: a w x h array of 8\-bit tile ids, a table saying which ids are solid, and the tileset sprite whose frame index equals the tile id
+.SS Functions
+.TP
+.BR tilemap_at (3)
+The tile id at tile coordinates tx, ty
+.TP
+.BR tilemap_solid_at (3)
+Whether the tile under world position wx, wy is solid
+.TP
+.BR tilemap_box_hits (3)
+Whether any solid tile overlaps the world\-space rectangle box
+.TP
+.BR tilemap_draw (3)
+Draw every non\-empty tile visible through the camera, scaled by the camera's zoom
+.TP
+.BR tilemap_move (3)
+Move an axis\-aligned box through the map by vel * dt, stopping at solid tiles
+.TP
+.BR tilemap_load_csv (3)
+Load a Tiled "CSV" layer export from assets/ (File > Export As > CSV writes one file per layer; any comma\-separated grid of integers with one row per line works)
+.TP
+.BR tilemap_free (3)
+Release the tile array allocated by tilemap_load_csv() and zero the size
+.SH TWEEN
+src/engine/tween/ \(em see also \fBgge\-tween\fR(7).
+.SS Structs
+.TP
+.BR Timer (3)
+A countdown in seconds
+.TP
+.BR Tween (3)
+Animates one float from its current value to a target over a duration with an easing curve, by writing through a pointer
+.TP
+.BR Shake (3)
+Screen shake: a random pixel offset whose amplitude decays over time
+.SS Types
+.TP
+.BR EaseFn (3)
+An easing curve: maps progress t in 0..1 to an eased 0..1
+.SS Functions
+.TP
+.BR timer_start (3)
+Start (or restart) a countdown of seconds
+.TP
+.BR timer_tick (3)
+Advance a timer by dt
+.TP
+.BR ease_linear (3)
+Constant speed: returns t unchanged
+.TP
+.BR ease_in_quad (3)
+Starts slow, speeds up (t squared)
+.TP
+.BR ease_out_quad (3)
+Starts fast, slows to a stop
+.TP
+.BR ease_in_out_quad (3)
+Slow at both ends, fast in the middle
+.TP
+.BR ease_out_cubic (3)
+Like ease_out_quad but decelerates harder, so it arrives with more snap
+.TP
+.BR ease_out_back (3)
+Overshoots the target slightly and settles back
+.TP
+.BR ease_out_bounce (3)
+Arrives and bounces a few times before resting, like a dropped ball
+.TP
+.BR tween_start (3)
+Animate *target from its current value to `to` over duration seconds using ease (NULL = linear)
+.TP
+.BR tween_update (3)
+Advance a tween by dt, writing the new value through its target pointer
+.TP
+.BR tween_done (3)
+True once the tween has finished (or never started)
+.TP
+.BR shake_start (3)
+Begin a screen shake of the given pixel amplitude, decaying by decay_per_sec each second (amount 6, decay 20 is a solid hit that lasts 0.3 s)
+.TP
+.BR shake_update (3)
+Advance the shake: pick this tick's random offset into s\->ox / s\->oy and decay the amplitude
+.SH TYPES
+src/engine/types/ \(em see also \fBgge\-types\fR(7).
+.SS Enums
+.TP
+.BR Flip (3)
+How to mirror an image when drawing it
+.SS Types
+.TP
+.BR Color (3)
+An RGBA color with 8\-bit channels, 0..255 each
+.TP
+.BR Rect (3)
+An axis\-aligned rectangle in float pixels: top\-left corner plus size
+.TP
+.BR Point (3)
+A 2D point in float pixels
+.TP
+.BR Texture (3)
+An image living on the GPU, ready to draw
+.SS Functions
+.TP
+.BR rgb (3)
+Build an opaque Color from red, green and blue (0..255 each); alpha is 255
+.TP
+.BR rgba (3)
+Build a Color with an explicit alpha (0 invisible 
+.TP
+.BR rect (3)
+Build a Rect from a top\-left corner and a size
+.SH SEE ALSO
+.BR gge (1),
+.BR gge\-overview (7)

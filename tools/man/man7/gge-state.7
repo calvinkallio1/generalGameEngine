@@ -1,52 +1,137 @@
 .TH GGE\-STATE 7 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-gge\-state \- where game state lives and why
+gge\-state \- where game state lives: GameState, scene statics, engine caches
 .SH DESCRIPTION
-Three kinds of state, three homes.
-.SS Gameplay state: GameState
-Everything a save must remember: positions, health, inventory, flags,
-timers, the RNG seed, entity arrays. One pointer\-free struct, composed of
-per\-mechanic structs (Player, Cat, Expedition ...), pointed to by
-.B EngineConfig.user
-and reached from any callback as
-.BR "GameState *g = e->user" .
-The engine never reads it. Because it holds no pointers, a save is
-.BR memcpy :
-.BR save_write (3)
-and
-.BR save_load (3)
-take
-.BR "sizeof(GameState)" .
-Refer to entities by index, never by pointer.
-.SS Presentation state: scene statics
-How a scene looks right now: menu highlight, camera, tweens, fonts, loaded
-sprites, the previous\-tick positions used for interpolation. File\-level
-.B static
-variables in the scene's .c, reset in
-.BR on_enter .
-.SS Resources: engine caches
-Textures are cached by
-.BR assets_texture (3)
-and freed at shutdown. Sounds are owned by whoever called
-.BR audio_load (3).
-.SS The test
-Quick\-save with
-.BR "snapshot = *g" ,
-play, restore with
-.BR "*g = snapshot" .
-Anything that did not come back is in the wrong place.
-.SS Randomness
-.B GameState.rng
-is a uint64_t seed; every
-.BR rng_range (3)
-call takes its address. Seed once at new game (from the clock, or a constant
-for repeatable testing) and never again. Never roll from
-.B render
-or
-.BR handle_input ;
-they run at display rate and would desynchronise saves.
+Three kinds of state, three homes. Getting this split right is what makes saving trivial, scene transitions safe, and bugs local.
+.PP
+.SH GAMEPLAY STATE: GAMESTATE
+Everything a save must remember: positions, velocities, health, inventory, flags, quest progress, timers, the RNG seed, entity arrays, the current level, chosen options. One \fBpointer\-free\fR struct, composed of per\-mechanic structs, pointed to by \fBEngineConfig.user\fR and reached from any callback as \fBGameState *g = e\->user;\fR. The engine never reads it.
+.PP
+.RS 4
+.EX
+/* src/game_state.h */
+#pragma once
+#include <stdint.h>
+#include <stdbool.h>
+#include <time.h>
+#include "mathx.h"
+#include "rng.h"
+#include "sprite.h"     /* AnimState is pointer\-free */
+#include "tween.h"      /* Timer is pointer\-free */
+\&
+#define SAVE_VERSION 3
+#define MAX_ENEMIES  64
+#define MAX_ITEMS    32
+\&
+typedef struct Player { Vec2 pos, vel; int hp, coins; bool on_ground; AnimState anim; int facing; } Player;
+typedef struct Enemy  { Vec2 pos, vel; int kind, hp; bool alive; Timer think; } Enemy;
+typedef struct Item   { Vec2 pos; int kind; bool alive; } Item;
+\&
+typedef struct GameState {
+  uint64_t rng;
+  uint32_t ticks;
+  int      level;
+  Player   player;
+  Enemy    enemies[MAX_ENEMIES];
+  Item     items[MAX_ITEMS];
+  bool     flags[64];            /* story flags by enum */
+  float    sfx_gain, music_gain; /* options are state too */
+} GameState;
+\&
+static inline void game_state_init(GameState *g) {
+  *g = (GameState){0};
+  g\->rng = (uint64_t)time(NULL) * 0x9E3779B97F4A7C15ULL;
+  g\->level = 1;
+  g\->player = (Player){ .pos = { 32, 32 }, .hp = 3 };
+  g\->sfx_gain = g\->music_gain = 1.0f;
+}
+.EE
+.RE
+.PP
+Because it holds no pointers, saving is a \fBmemcpy\fR to disk: \fBsave_write(&e\->save, "slot1", g, sizeof *g, SAVE_VERSION)\fR and back with \fBsave_load\fR (gge\-saves(7)). Fixed\-size arrays with an \fBalive\fR flag replace dynamic allocation; refer to entities by \fBindex\fR, never by pointer, because a loaded save (or a \fB*g = snapshot\fR restore) moves the bytes.
+.PP
+.SS What goes in
+.IP \(bu 2
+Anything the player would expect to still be there after quitting and continuing.
+.IP \(bu 2
+Anything the simulation reads: if update uses it, it is state.
+.IP \(bu 2
+Options the player set (volume, bindings if you support rebinding).
+.IP \(bu 2
+The RNG seed, so procedural content regenerates identically.
+.SS What does not
+.IP \(bu 2
+Pointers of any kind, including \fBTexture *\fR, \fBSound\fR, \fBFont\fR, \fBTilemap\fR (it has pointers), \fBMenu\fR, \fBDialog\fR, \fBTween\fR.
+.IP \(bu 2
+Anything derived: the camera position (recompute from the player), the current animation frame's screen rectangle, cached text sizes.
+.IP \(bu 2
+Anything about the window: fullscreen, fps.
+.SS Growing it
+Add fields freely; bump \fBSAVE_VERSION\fR when you do, so older files are rejected instead of misread (gge\-saves(7)). A GameState of a few hundred kilobytes is normal; it is a single static in main.c and costs nothing to pass around by pointer.
+.PP
+.SH PRESENTATION STATE: SCENE STATICS
+How a scene looks right now: the menu and its highlight, the camera, active tweens, the screen shake, the loaded sprite sheets and fonts, the previous\-tick positions used for interpolation, the tilemap struct built for the current level. File\-level \fBstatic\fR variables in the scene's .c file, reset in \fBon_enter\fR:
+.PP
+.RS 4
+.EX
+static Camera  cam;
+static Sprite  hero, tiles;
+static Font    ui;
+static Tilemap map;
+static Vec2    prev_player;      /* for alpha interpolation */
+static Shake   shake;
+\&
+static void on_enter(Engine *e, Scene *s) {
+  (void)s;
+  GameState *g = e\->user;
+  camera_init(&cam, e\->logical_w, e\->logical_h);
+  hero  = sprite_from(assets_texture("sprites/hero.png"), 16, 16);
+  tiles = sprite_from(assets_texture("tiles/world.png"), 16, 16);
+  ui    = text_load_font("fonts/ui.ttf", 12);
+  load_level(&map, g\->level);                 /* your function: picks a CSV by level */
+  camera_set_bounds(&cam, 0, 0, map.w * map.tile, map.h * map.tile);
+  camera_follow(&cam, g\->player.pos, 0, 0);   /* snap */
+  prev_player = g\->player.pos;
+  shake = (Shake){0};
+}
+.EE
+.RE
+.PP
+Statics keep their values between visits to the scene, which is exactly why on_enter must reset them. Statics are also why a scene cannot appear on the stack twice in a useful way.
+.PP
+.SH RESOURCES: ENGINE CACHES
+Textures are cached by path in \fBassets_texture\fR and freed all at once in \fBengine_shutdown\fR; ask for them whenever you like and never free them. Rendered text is cached inside \fBtext_draw\fR. Sounds are the exception: \fBaudio_load\fR returns a Sound that the caller owns; free it in \fBon_exit\fR. Tilemaps loaded from CSV own their tile array; free them in \fBon_exit\fR.
+.PP
+.SH THE TEST
+Quick\-save with \fBsnapshot = *g;\fR (a static GameState), play for a while, restore with \fB*g = snapshot;\fR. Anything that did not come back (the enemy that stayed dead, the door that stayed open) was living in a scene static and belongs in GameState. Anything that came back wrong (a stale pointer, a camera pointing at nothing) was a pointer or derived data in GameState and belongs in a static, recomputed from state. Bind the two lines to F5/F9 during development; they cost nothing.
+.PP
+.SH RANDOMNESS
+\fBGameState.rng\fR is a uint64_t seed; every \fBrng_range\fR, \fBrng_float\fR, \fBrng_chance\fR call takes its address. Seed once at new game (from the clock, or a constant for repeatable testing) and never again. Roll only from \fBupdate\fR (or from functions update calls): \fBrender\fR and \fBhandle_input\fR run at display rate, so rolling there desynchronises the state from the seed and makes bugs unreproducible. For content that must be the same every time regardless of player actions (a level layout), derive a temporary seed: \fBuint64_t s = g\->world_seed ^ (uint64_t)level * 7919; ... rng_range(&s, ...)\fR.
+.PP
+.SH GLOBAL VERSUS PER\-SCENE
+There is one GameState for the whole game; scenes read and write the parts they own. A title scene reads \fBsave_exists\fR to enable Continue and calls \fBgame_state_init\fR for New Game; the gameplay scene simulates; the pause scene only pops. A scene that needs a parameter (which shop, which dialog) receives it through an opener function that stores an index in a static (gge\-scenes(7)).
+.PP
+.SH DATA TABLES
+Constant data that never changes at run time (enemy stats, item names, level file names, animation definitions, dialog lines) is not state. Put it in \fBstatic const\fR arrays indexed by the enums stored in GameState:
+.PP
+.RS 4
+.EX
+typedef enum { ENEMY_SLIME, ENEMY_BAT, ENEMY_COUNT } EnemyKind;
+static const struct { const char *name; int hp; float speed; } enemy_table[ENEMY_COUNT] = {
+  [ENEMY_SLIME] = { "slime", 2, 20 },
+  [ENEMY_BAT]   = { "bat",   1, 60 },
+};
+.EE
+.RE
+.PP
+GameState stores \fBkind\fR; code looks up \fBenemy_table[en\->kind]\fR. Tables can live in a header of their own (\fBdata.h\fR) and be shared by every scene.
+.PP
 .SH SEE ALSO
-.BR gge\-scenes (7),
-.BR gge\-saves (7),
+.BR EngineConfig (3),
+.BR Engine (3),
+.BR save_write (3),
+.BR save_load (3),
 .BR rng_range (3),
-.BR save_write (3)
+.BR gge\-saves (7),
+.BR gge\-entities (7),
+.BR gge\-scenes (7)

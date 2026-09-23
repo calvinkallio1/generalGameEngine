@@ -1,0 +1,148 @@
+.TH GGE\-TWEEN 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-tween \- timers, easing curves, float tweens, and screen shake
+.SH DESCRIPTION
+tween.h holds the small time\-based helpers every game needs: a \fBTimer\fR that counts down, a \fBTween\fR that animates one float along an easing curve, the \fBease_*\fR curves themselves, and a \fBShake\fR that produces a decaying random offset. All are advanced from \fBupdate\fR with dt, so they run at the fixed tick rate and are unaffected by frame rate.
+.PP
+.SH TIMERS
+.PP
+.RS 4
+.EX
+Timer spawn;                          /* pointer\-free: fine inside GameState */
+timer_start(&g\->spawn, 2.0f);         /* start or restart */
+\&
+/* every tick */
+if (timer_tick(&g\->spawn, dt)) {      /* true exactly once, on the tick it expires */
+  spawn_enemy(g);
+  timer_start(&g\->spawn, rng_between(&g\->rng, 1.5f, 3.0f));
+}
+if (g\->invuln.running) ;              /* still active? */
+.EE
+.RE
+.PP
+A Timer is \fB{ float left; bool running; }\fR. For many small cooldowns a bare float in the entity (\fBp\->cooldown \-= dt; if (p\->cooldown <= 0) ...\fR) is just as good; Timer makes the one\-shot expiry explicit. Timers in GameState survive saves; timers in scene statics (a title\-screen blink) do not need to.
+.PP
+.SH EASING
+An \fBEaseFn\fR maps progress 0..1 to eased 0..1:
+.TP
+\fBease_linear\fR
+constant speed; progress bars, fades.
+.TP
+\fBease_in_quad\fR
+starts slow, ends fast; things leaving.
+.TP
+\fBease_out_quad\fR
+starts fast, settles; things arriving (the default choice).
+.TP
+\fBease_in_out_quad\fR
+slow, fast, slow; deliberate moves, camera pans.
+.TP
+\fBease_out_cubic\fR
+like out_quad with a harder stop.
+.TP
+\fBease_out_back\fR
+overshoots then settles; pop\-ups, punchy UI.
+.TP
+\fBease_out_bounce\fR
+bounces to rest; dropped objects, playful titles.
+They are plain functions; use them without a Tween too: \fBx = lerpf(a, b, ease_out_quad(t))\fR with \fBt = clampf(elapsed / duration, 0, 1)\fR.
+.PP
+.SH TWEENS
+A Tween drives one float through a pointer:
+.PP
+.RS 4
+.EX
+static float panel_x;                 /* presentation state */
+static Tween panel_tw;
+\&
+/* on_enter: start off screen and slide in */
+panel_x = \-200;
+tween_start(&panel_tw, &panel_x, 16, 0.4f, ease_out_back);
+\&
+/* update */
+tween_update(&panel_tw, dt);
+\&
+/* render */
+draw_rect(rect(panel_x, 40, 180, 100), rgba(0, 0, 0, 200));
+\&
+/* later: slide out, then pop the scene when done */
+if (closing && tween_done(&panel_tw)) engine_pop(e);
+.EE
+.RE
+.PP
+tween_start(3) records the current value as \fBfrom\fR, so retargeting a running tween is smooth. The target must outlive the tween: a scene static or a GameState float, never a local. One Tween per float: a Vec2 needs two, a color four. A tween that has finished (or was never started) reports tween_done(3); an inactive tween costs nothing to update.
+.PP
+.SS Chaining and sequencing
+Start the next tween when the previous reports done, from update. For longer sequences, an index into a small table of (target, to, duration, ease) advanced on done is a tiny timeline. Fades between scenes are a full\-screen rectangle whose alpha is a tweened float (gge\-drawing(7)); a whole cutscene of fades, waits and moves is gge\-cutscene(7).
+.PP
+.SS Tweens on GameState
+Tweening a gameplay value (health bar catching up to real health, a slow\-motion time scale) is fine, but the Tween struct itself holds a pointer and belongs in a scene static; after a save is loaded the tween is simply gone and the value stays where it was. For values the simulation depends on, move them explicitly with \fBlerpf\fR and \fBsmooth_t\fR each tick instead; that is stateless and saves cleanly.
+.PP
+.SH SMOOTH FOLLOWING WITHOUT A TWEEN
+\fBvalue = lerpf(value, target, smooth_t(0.2f, dt))\fR approaches a moving target with a time constant of 0.2 s, at any tick rate, with no start or end bookkeeping. Health bars, cameras (camera_follow does this), a cursor that glides to the selected item, a speedometer needle. See smooth_t(3).
+.PP
+.SH SCREEN SHAKE
+.PP
+.RS 4
+.EX
+static Shake shake;
+shake_start(&shake, 6, 20);           /* 6 px, losing 20 px/s \-> about 0.3 s */
+/* every tick */
+shake_update(&shake, dt);
+cam.offset = v2(shake.ox, shake.oy);  /* or add to draw positions when there is no camera */
+.EE
+.RE
+.PP
+A bigger \fBamount\fR for bigger hits; a larger \fBdecay\fR for a shorter shake. Calling shake_start during a shake sets the new amount, so stacking hits just restart it larger. For a "rumble" that lasts, call shake_start each tick with a small amount and a huge decay. Shake through the camera offset so following and bounds are untouched (gge\-camera(7)).
+.PP
+.SH HIT\-STOP AND SLOW MOTION
+Not a helper, but two lines: keep \fBg\->time_scale\fR (1 normally) and a \fBhitstop\fR timer; on a big hit set \fBtime_scale = 0\fR and start the timer for 0.05 s; each tick, \fBfloat sdt = dt * g\->time_scale;\fR feeds the entity ticks while UI and the timer use the real dt; when the timer expires, \fBtime_scale = 1\fR. Slow motion is \fBtime_scale = 0.3f\fR tweened back to 1.
+.PP
+.SH COMMON PATTERNS
+.TP
+\fBBlink\fR
+\fBif ((int)(t * 4) % 2) draw\fR with \fBt += dt\fR.
+.TP
+\fBPulse\fR
+\fBscale = 1 + 0.1f * sinf(t * 6)\fR.
+.TP
+\fBScore roll\-up\fR
+tween a float \fBshown_score\fR to the real score with ease_out_quad; draw \fB(int)shown_score\fR.
+.TP
+\fBFade in on scene enter\fR
+\fBfade = 1; tween_start(&fade_tw, &fade, 0, 0.5f, ease_out_quad);\fR and draw the black rect with \fBfade * 255\fR alpha last.
+.TP
+\fBRespawn countdown\fR
+a Timer started at death; on expiry reset the player.
+.TP
+\fBCooldown bar\fR
+draw \fBcooldown.left / cooldown_total\fR as a width.
+.SH PITFALLS
+.IP \(bu 2
+Updating tweens or timers from render: they run at display rate, and twice per frame on 120 Hz screens relative to what you intended.
+.IP \(bu 2
+Pointing a Tween at a local variable.
+.IP \(bu 2
+Reading \fBtimer_tick\fR from two places: the true is delivered once.
+.IP \(bu 2
+Forgetting that a Tween's \fBfrom\fR is captured at start: starting one before the value is initialised tweens from garbage.
+.SH SEE ALSO
+.BR Timer (3),
+.BR timer_start (3),
+.BR timer_tick (3),
+.BR Tween (3),
+.BR tween_start (3),
+.BR tween_update (3),
+.BR tween_done (3),
+.BR EaseFn (3),
+.BR ease_out_quad (3),
+.BR ease_out_back (3),
+.BR ease_out_bounce (3),
+.BR Shake (3),
+.BR shake_start (3),
+.BR shake_update (3),
+.BR smooth_t (3),
+.BR lerpf (3),
+.BR gge\-camera (7),
+.BR gge\-cutscene (7),
+.BR gge\-drawing (7)

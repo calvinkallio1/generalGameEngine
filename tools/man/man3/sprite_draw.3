@@ -1,21 +1,19 @@
 .TH SPRITE_DRAW 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-sprite_draw \- engine function
+sprite_draw \- Draw one frame of s with its top\-left corner at x,y (logical pixels), rotated by angle degrees clockwise about the frame's center, mirrored by flip
 .SH SYNOPSIS
 .nf
 .B #include \(dqsprite.h\(dq
 .BI "void sprite_draw(const Sprite *s, int frame, float x, float y, double angle, Flip flip);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/sprite/sprite.h and run 'gge genman'.
+Draw one frame of s with its top\-left corner at x,y (logical pixels), rotated by angle degrees clockwise about the frame's center, mirrored by flip. Frames are drawn at their natural size. Under a camera, convert the position first with camera_to_screen(). Draw order is call order: draw the ground before the player and the player before the HUD.
 .SH MODULE
 sprite (src/engine/sprite/sprite.h)
 .SH SEE ALSO
-.BR sprite_from (3),
-.BR anim_set (3),
-.BR anim_step (3),
-.BR anim_frame (3),
 .BR sprite_draw_scaled (3),
 .BR sprite_draw_tinted (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR anim_frame (3),
+.BR camera_to_screen (3),
+.BR gge\-api (7),
+.BR gge (1)

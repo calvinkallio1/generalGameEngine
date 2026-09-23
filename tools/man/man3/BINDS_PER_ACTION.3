@@ -1,0 +1,19 @@
+.TH BINDS_PER_ACTION 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+BINDS_PER_ACTION \- Keyboard keys per action in an ActionMap; further action_bind_key calls for the same action are ignored
+.SH SYNOPSIS
+.nf
+.B #include \(dqactions.h\(dq
+.ft B
+#define BINDS_PER_ACTION 3
+.ft R
+.fi
+.SH DESCRIPTION
+Keyboard keys per action in an ActionMap; further action_bind_key calls for the same action are ignored.
+.SH MODULE
+input (src/engine/input/actions.h)
+.SH SEE ALSO
+.BR action_bind_key (3),
+.BR ActionMap (3),
+.BR gge\-api (7),
+.BR gge (1)

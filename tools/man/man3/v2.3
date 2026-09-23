@@ -1,25 +1,20 @@
 .TH V2 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-v2 \- engine function
+v2 \- Build a Vec2 from two floats
 .SH SYNOPSIS
 .nf
 .B #include \(dqmathx.h\(dq
 .BI "Vec2 v2(float x, float y);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/mathx.h and run 'gge genman'.
+Build a Vec2 from two floats. Equivalent to (Vec2){ x, y } but readable inside an expression: v2_add(pos, v2(0, \-8)).
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the vector.
 .SH MODULE
 math (src/engine/math/mathx.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2_add (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Vec2 (3),
+.BR gge\-api (7),
+.BR gge (1)

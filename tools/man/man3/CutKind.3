@@ -1,0 +1,38 @@
+.TH CUTKIND 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+CutKind \- What one cutscene step does
+.SH SYNOPSIS
+.nf
+.B #include \(dqcutscene.h\(dq
+.ft B
+typedef enum { CUT_WAIT, CUT_MOVE, CUT_SAY, CUT_FADE_OUT, CUT_FADE_IN, CUT_CALL } CutKind;
+.ft R
+.fi
+.SH DESCRIPTION
+What one cutscene step does. Each kind reads different CutStep fields; the CUT_* macros fill them for you.
+.SH VALUES
+.TP
+.B CUT_WAIT
+pause for duration seconds
+.TP
+.B CUT_MOVE
+ease *actor from where it is to `to` over duration seconds
+.TP
+.B CUT_SAY
+show a dialog line (speaker, text) and wait for the player to dismiss it
+.TP
+.B CUT_FADE_OUT
+fade the screen to black over duration seconds (the black stays until a fade in)
+.TP
+.B CUT_FADE_IN
+fade from black back to the scene over duration seconds
+.TP
+.B CUT_CALL
+call fn(e, ctx) once and move on immediately (change a level, give an item, play a sound)
+.SH MODULE
+cutscene (src/engine/cutscene/cutscene.h)
+.SH SEE ALSO
+.BR CutStep (3),
+.BR cutscene_start (3),
+.BR gge\-api (7),
+.BR gge (1)

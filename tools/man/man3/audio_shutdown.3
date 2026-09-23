@@ -1,23 +1,16 @@
 .TH AUDIO_SHUTDOWN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-audio_shutdown \- engine function
+audio_shutdown \- Engine\-internal: destroy the mixer channels and close the device
 .SH SYNOPSIS
 .nf
 .B #include \(dqaudio.h\(dq
 .BI "void audio_shutdown(void);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/audio/audio.h and run 'gge genman'.
+Engine\-internal: destroy the mixer channels and close the device. Called by engine_shutdown(); games never call it.
 .SH MODULE
 audio (src/engine/audio/audio.h)
 .SH SEE ALSO
-.BR audio_load (3),
-.BR audio_free (3),
-.BR audio_play (3),
-.BR audio_music (3),
-.BR audio_music_stop (3),
-.BR audio_set_master (3),
-.BR audio_init (3),
-.BR audio_update (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_shutdown (3),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,0 +1,34 @@
+.TH SPRITE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Sprite \- A texture sliced into a grid of equal frames
+.SH SYNOPSIS
+.nf
+.B #include \(dqsprite.h\(dq
+.ft B
+typedef struct Sprite { Texture *tex; int frame_w, frame_h; int columns; } Sprite;
+.ft R
+.fi
+.SH DESCRIPTION
+A texture sliced into a grid of equal frames. Frames are numbered left to right, top to bottom, starting at 0: frame = column + row * columns. A Sprite is a small value type: copy it freely, keep one per sheet in a scene static, and never free it (the Texture belongs to the asset cache). Build it with sprite_from().
+.SH FIELDS
+.TP
+.B tex
+the sheet; NULL draws nothing
+.TP
+.B frame_w
+width of one frame in pixels
+.TP
+.B frame_h
+height of one frame in pixels
+.TP
+.B columns
+frames per row, computed from the texture width by sprite_from()
+.SH MODULE
+sprite (src/engine/sprite/sprite.h)
+.SH SEE ALSO
+.BR sprite_from (3),
+.BR sprite_draw (3),
+.BR Anim (3),
+.BR gge\-sprite (7),
+.BR gge\-api (7),
+.BR gge (1)

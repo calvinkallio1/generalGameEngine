@@ -1,20 +1,21 @@
 .TH DIALOG_DONE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-dialog_done \- engine function
+dialog_done \- True when no line is showing: initially, and after the player dismissed the last one
 .SH SYNOPSIS
 .nf
 .B #include \(dqdialog.h\(dq
 .BI "bool dialog_done(const Dialog *d);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/dialog/dialog.h and run 'gge genman'.
+True when no line is showing: initially, and after the player dismissed the last one. Poll it in update to start the next line of a conversation or to resume gameplay.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+!d\->active.
 .SH MODULE
 dialog (src/engine/dialog/dialog.h)
 .SH SEE ALSO
 .BR dialog_show (3),
 .BR dialog_update (3),
-.BR dialog_render (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

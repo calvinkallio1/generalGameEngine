@@ -7,10 +7,11 @@ engine_toggle_fullscreen \- Switch between windowed and borderless fullscreen
 .BI "void engine_toggle_fullscreen(Engine *e);"
 .fi
 .SH DESCRIPTION
-Switch between windowed and borderless fullscreen. Logical size is unchanged; the frame is letterboxed. Bound to F11 by the engine.
+Switch between windowed and borderless fullscreen. Logical size is unchanged; the frame is letterboxed. Bound to F11 by the engine, so an options menu item usually just calls this.
 .SH MODULE
 core (src/engine/core/engine.h)
 .SH SEE ALSO
 .BR engine_init (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR EngineConfig (3),
+.BR gge\-api (7),
+.BR gge (1)

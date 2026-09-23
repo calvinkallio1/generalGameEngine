@@ -1,16 +1,17 @@
 .TH CAMERA_SET_BOUNDS 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-camera_set_bounds \- Clamp the camera so it never shows outside the given world rectangle (the level edges)
+camera_set_bounds \- Clamp the camera so it never shows outside the given world rectangle (the level edges): for a tilemap, camera_set_bounds(&cam, 0, 0, map.w * map.tile, map.h * map.tile)
 .SH SYNOPSIS
 .nf
 .B #include \(dqcamera.h\(dq
 .BI "void camera_set_bounds(Camera *c, float x, float y, float w, float h);"
 .fi
 .SH DESCRIPTION
-Clamp the camera so it never shows outside the given world rectangle (the level edges).
+Clamp the camera so it never shows outside the given world rectangle (the level edges): for a tilemap, camera_set_bounds(&cam, 0, 0, map.w * map.tile, map.h * map.tile). Applied by camera_follow(); setting pos directly bypasses it. Pass a zero\-size rectangle to disable.
 .SH MODULE
 camera (src/engine/camera/camera.h)
 .SH SEE ALSO
 .BR camera_follow (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Tilemap (3),
+.BR gge\-api (7),
+.BR gge (1)

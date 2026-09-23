@@ -1,25 +1,22 @@
 .TH RNG_FLOAT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rng_float \- [0,1)
+rng_float \- A random float in [0, 1)
 .SH SYNOPSIS
 .nf
 .B #include \(dqrng.h\(dq
 .BI "float rng_float(uint64_t *s);"
 .fi
 .SH DESCRIPTION
-[0,1)
+A random float in [0, 1). Scale it yourself, or use rng_between() and rng_chance().
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+a value from 0 up to but not including 1.
 .SH MODULE
 math (src/engine/math/rng.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR rng_between (3),
+.BR rng_chance (3),
+.BR rng_next (3),
+.BR gge\-api (7),
+.BR gge (1)

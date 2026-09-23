@@ -1,25 +1,22 @@
 .TH V2_NORM 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-v2_norm \- engine function
+v2_norm \- a scaled to length 1, or a itself (the zero vector) when its length is 0, so there is never a division by zero
 .SH SYNOPSIS
 .nf
 .B #include \(dqmathx.h\(dq
 .BI "Vec2 v2_norm(Vec2 a);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/mathx.h and run 'gge genman'.
+a scaled to length 1, or a itself (the zero vector) when its length is 0, so there is never a division by zero. Turns any vector into a pure direction: normalize the input vector before multiplying by speed so diagonals are not faster, and normalize v2_sub(target, pos) to chase something.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the unit vector, or zero.
 .SH MODULE
 math (src/engine/math/mathx.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR v2_scale (3),
+.BR v2_len (3),
+.BR action_axis (3),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,18 +1,19 @@
 .TH DEBUG_RECT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-debug_rect \- engine function
+debug_rect \- Queue a rectangle outline to be drawn on top of everything this frame, but only while the F3 debug overlay is on
 .SH SYNOPSIS
 .nf
 .B #include \(dqdebug.h\(dq
 .BI "void debug_rect(Rect r, Color c);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/debug/debug.h and run 'gge genman'.
+Queue a rectangle outline to be drawn on top of everything this frame, but only while the F3 debug overlay is on. Hitboxes, trigger zones, camera bounds: call it from update or render wherever the data is handy, and the shapes appear over the finished frame. The queue holds 256 shapes per frame; extra calls are dropped. Coordinates are logical screen pixels, so convert world rectangles with camera_rect() first. Costs nothing when the overlay is off besides the queue write.
 .SH MODULE
 debug (src/engine/debug/debug.h)
 .SH SEE ALSO
 .BR debug_line (3),
 .BR debug_text (3),
-.BR debug_flush (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR draw_rect_outline (3),
+.BR camera_rect (3),
+.BR gge\-api (7),
+.BR gge (1)

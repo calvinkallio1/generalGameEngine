@@ -1,0 +1,87 @@
+.TH PADBUTTON 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+PadButton \- Gamepad buttons, named by position on the controller so one binding works on Xbox, PlayStation and Nintendo pads
+.SH SYNOPSIS
+.nf
+.B #include \(dqkeys.h\(dq
+.ft B
+typedef enum PadButton {
+  PAD_SOUTH = SDL_GAMEPAD_BUTTON_SOUTH,   /* A on Xbox, Cross on PlayStation, B on Nintendo */
+  PAD_EAST  = SDL_GAMEPAD_BUTTON_EAST,    /* B / Circle / A */
+  PAD_WEST  = SDL_GAMEPAD_BUTTON_WEST,    /* X / Square / Y */
+  PAD_NORTH = SDL_GAMEPAD_BUTTON_NORTH,   /* Y / Triangle / X */
+  PAD_BACK  = SDL_GAMEPAD_BUTTON_BACK,
+  PAD_GUIDE = SDL_GAMEPAD_BUTTON_GUIDE,
+  PAD_START = SDL_GAMEPAD_BUTTON_START,
+  PAD_LSTICK = SDL_GAMEPAD_BUTTON_LEFT_STICK, PAD_RSTICK = SDL_GAMEPAD_BUTTON_RIGHT_STICK,
+  PAD_LB = SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, PAD_RB = SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER,
+  PAD_DPAD_UP = SDL_GAMEPAD_BUTTON_DPAD_UP, PAD_DPAD_DOWN = SDL_GAMEPAD_BUTTON_DPAD_DOWN,
+  PAD_DPAD_LEFT = SDL_GAMEPAD_BUTTON_DPAD_LEFT, PAD_DPAD_RIGHT = SDL_GAMEPAD_BUTTON_DPAD_RIGHT,
+  PAD_NONE = SDL_GAMEPAD_BUTTON_INVALID,
+  PAD_BUTTON_COUNT = SDL_GAMEPAD_BUTTON_COUNT,
+} PadButton;
+.ft R
+.fi
+.SH DESCRIPTION
+Gamepad buttons, named by position on the controller so one binding works on Xbox, PlayStation and Nintendo pads. Pass to pad_down(), pad_pressed() and action_bind_pad(). PAD_NONE means unbound in an ActionMap; PAD_BUTTON_COUNT sizes the Input arrays.
+.SH VALUES
+.TP
+.B PAD_SOUTH
+bottom face button: A on Xbox, Cross on PlayStation, B on Nintendo. The conventional confirm/jump.
+.TP
+.B PAD_EAST
+right face button: B / Circle / A. The conventional cancel/back.
+.TP
+.B PAD_WEST
+left face button: X / Square / Y
+.TP
+.B PAD_NORTH
+top face button: Y / Triangle / X
+.TP
+.B PAD_BACK
+Back / Share / Minus
+.TP
+.B PAD_GUIDE
+the Xbox / PS / Home button; often intercepted by the OS
+.TP
+.B PAD_START
+Start / Options / Plus. The conventional pause.
+.TP
+.B PAD_LSTICK
+clicking the left stick
+.TP
+.B PAD_RSTICK
+clicking the right stick
+.TP
+.B PAD_LB
+left shoulder bumper
+.TP
+.B PAD_RB
+right shoulder bumper
+.TP
+.B PAD_DPAD_UP
+directional pad up
+.TP
+.B PAD_DPAD_DOWN
+directional pad down
+.TP
+.B PAD_DPAD_LEFT
+directional pad left
+.TP
+.B PAD_DPAD_RIGHT
+directional pad right
+.TP
+.B PAD_NONE
+no button (unbound)
+.TP
+.B PAD_BUTTON_COUNT
+array size
+.SH MODULE
+input (src/engine/input/keys.h)
+.SH SEE ALSO
+.BR pad_down (3),
+.BR pad_pressed (3),
+.BR action_bind_pad (3),
+.BR PadAxis (3),
+.BR gge\-api (7),
+.BR gge (1)

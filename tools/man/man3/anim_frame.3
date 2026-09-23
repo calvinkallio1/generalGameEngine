@@ -1,21 +1,19 @@
 .TH ANIM_FRAME 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-anim_frame \- absolute sheet frame
+anim_frame \- The absolute sheet frame to draw right now: a\->first + st\->frame
 .SH SYNOPSIS
 .nf
 .B #include \(dqsprite.h\(dq
 .BI "int anim_frame(const AnimState *st, const Anim *a);"
 .fi
 .SH DESCRIPTION
-absolute sheet frame
+The absolute sheet frame to draw right now: a\->first + st\->frame. Pass the result to sprite_draw().
+.SH RETURN VALUE
+the frame index on the sheet.
 .SH MODULE
 sprite (src/engine/sprite/sprite.h)
 .SH SEE ALSO
-.BR sprite_from (3),
-.BR anim_set (3),
 .BR anim_step (3),
 .BR sprite_draw (3),
-.BR sprite_draw_scaled (3),
-.BR sprite_draw_tinted (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

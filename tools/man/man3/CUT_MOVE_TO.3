@@ -1,0 +1,20 @@
+.TH CUT_MOVE_TO 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+CUT_MOVE_TO \- CutStep initializer: ease the Vec2 that p points to from its current position to (x, y) over sec seconds with ease_in_out_quad
+.SH SYNOPSIS
+.nf
+.B #include \(dqcutscene.h\(dq
+.ft B
+#define CUT_MOVE_TO(p, x, y, sec) { .kind = CUT_MOVE, .actor = (p), .to = { (x), (y) }, .duration = (sec) }
+.ft R
+.fi
+.SH DESCRIPTION
+CutStep initializer: ease the Vec2 that p points to from its current position to (x, y) over sec seconds with ease_in_out_quad. p is usually the pos of an entity in GameState, so this step must be built at run time (see CutStep).
+.SH MODULE
+cutscene (src/engine/cutscene/cutscene.h)
+.SH SEE ALSO
+.BR CutStep (3),
+.BR cutscene_start (3),
+.BR ease_in_out_quad (3),
+.BR gge\-api (7),
+.BR gge (1)

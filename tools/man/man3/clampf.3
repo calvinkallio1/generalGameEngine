@@ -1,25 +1,22 @@
 .TH CLAMPF 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-clampf \- engine function
+clampf \- Limit v to the range lo..hi
 .SH SYNOPSIS
 .nf
 .B #include \(dqmathx.h\(dq
 .BI "float clampf(float v, float lo, float hi);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/mathx.h and run 'gge genman'.
+Limit v to the range lo..hi. Keeping a position inside the world, health inside 0..max, a menu index inside its list.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+lo if v < lo, hi if v > hi, else v.
 .SH MODULE
 math (src/engine/math/mathx.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR clampi (3),
+.BR minf (3),
+.BR maxf (3),
+.BR gge\-api (7),
+.BR gge (1)

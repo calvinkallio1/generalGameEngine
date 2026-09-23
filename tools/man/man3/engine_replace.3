@@ -1,17 +1,17 @@
 .TH ENGINE_REPLACE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-engine_replace \- Queue a swap of the top scene for s: the old scene's on_exit runs, then s is pushed
+engine_replace \- Queue a swap of the top scene for s: the old scene's on_exit runs, then s is pushed and its on_enter runs
 .SH SYNOPSIS
 .nf
 .B #include \(dqengine.h\(dq
 .BI "void engine_replace(Engine *e, Scene *s);"
 .fi
 .SH DESCRIPTION
-Queue a swap of the top scene for s: the old scene's on_exit runs, then s is pushed. Use for title \-> game transitions where the old scene should not remain underneath.
+Queue a swap of the top scene for s: the old scene's on_exit runs, then s is pushed and its on_enter runs. Use for title \-> game and game \-> game\-over transitions where the old scene should not remain underneath. Equivalent to engine_pop followed by engine_push in the same callback.
 .SH MODULE
 core (src/engine/core/engine.h)
 .SH SEE ALSO
 .BR engine_push (3),
 .BR engine_pop (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

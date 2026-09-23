@@ -7,10 +7,12 @@ draw_rect \- Filled rectangle
 .BI "void draw_rect(Rect r, Color c);"
 .fi
 .SH DESCRIPTION
-Filled rectangle. Alpha blending is always on, so a translucent full\-screen rect dims everything drawn before it.
+Filled rectangle. Alpha blending is always on, so a translucent full\-screen rect dims everything drawn before it: draw_rect(rect(0, 0, e\->logical_w, e\->logical_h), rgba(0, 0, 0, 160)) is the standard pause\-menu backdrop. Placeholder art, health bars, UI panels and fade\-to\-black all reduce to this call.
 .SH MODULE
 draw (src/engine/draw/draw.h)
 .SH SEE ALSO
 .BR draw_rect_outline (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR rect (3),
+.BR rgba (3),
+.BR gge\-api (7),
+.BR gge (1)

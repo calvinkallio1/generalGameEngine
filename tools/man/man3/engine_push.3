@@ -7,15 +7,16 @@ engine_push \- Queue s to be placed on top of the scene stack
 .BI "void engine_push(Engine *e, Scene *s);"
 .fi
 .SH DESCRIPTION
-Queue s to be placed on top of the scene stack. Applied after the current callback returns, so it is safe from handle_input, update, or a menu action. The scene's on_enter runs when the push is applied, not when this is called. Scenes are singletons: pushing one already on the stack shares its state.
+Queue s to be placed on top of the scene stack. Applied after the current callback returns, so it is safe from handle_input, update, or a menu action. The scene's on_enter runs when the push is applied, not when this is called. Scenes are singletons: pushing one already on the stack shares its state, and pushing it twice puts the same Scene struct on the stack twice, so guard with engine_top(e) != s when a repeat is possible. The scene below keeps rendering (and updating) unless s sets blocks_render_below (blocks_update_below).
 .SH RETURN VALUE
-none; a full stack (8 scenes) drops the push and logs.
+none; a full stack (8 scenes) or a full queue (8 changes in one callback) drops the push and logs.
 .SH MODULE
 core (src/engine/core/engine.h)
 .SH SEE ALSO
 .BR engine_pop (3),
 .BR engine_replace (3),
 .BR engine_top (3),
+.BR Scene (3),
 .BR gge\-scenes (7),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

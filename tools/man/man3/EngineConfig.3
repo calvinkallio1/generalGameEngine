@@ -1,0 +1,73 @@
+.TH ENGINECONFIG 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+EngineConfig \- Everything the engine needs to know about your game, passed once to engine_init()
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.ft B
+typedef struct EngineConfig {
+  const char *title;
+  int   logical_w, logical_h;  /* the resolution your game code thinks in (0 -> 640x360) */
+  int   window_scale;          /* initial window = logical * scale (0 -> 2) */
+  int   tick_rate;             /* fixed updates per second (0 -> 60) */
+  void *user;                  /* your game's state; the engine stores it, never reads it */
+\&
+  const char *org, *app;       /* per-user save directory via SDL_GetPrefPath; NULL -> cwd */
+  bool   audio;                /* open an audio device */
+  bool   text;                 /* init SDL_ttf (only if built with ENGINE_WITH_TTF) */
+  bool   gamepad;              /* open gamepads as they appear */
+  Scene *pause_scene;          /* pushed automatically when the window loses focus (NULL = don't) */
+  Color  clear_color;          /* zero alpha -> dark blue-grey */
+} EngineConfig;
+.ft R
+.fi
+.SH DESCRIPTION
+Everything the engine needs to know about your game, passed once to engine_init(). Zero fields take defaults, so a designated initializer naming only what you care about is the normal way to build one: (EngineConfig){ .title = "Cats", .user = &state, .audio = true }. The struct is read once during engine_init and never again; it may live on the stack of main().
+.SH FIELDS
+.TP
+.B title
+window title; NULL \-> "Game"
+.TP
+.B logical_w
+width in logical pixels, the resolution your game code thinks in; 0 \-> 640. The window is scaled to fit and letterboxed, so drawing never has to know the real window size.
+.TP
+.B logical_h
+height in logical pixels; 0 \-> 360
+.TP
+.B window_scale
+initial window size = logical size x this; 0 \-> 2. The window stays resizable and F11 toggles fullscreen.
+.TP
+.B tick_rate
+fixed simulation updates per second; 0 \-> 60. Scene.update receives dt = 1/tick_rate every call regardless of the display's refresh rate.
+.TP
+.B user
+pointer to your game state (normally a static GameState in main.c). The engine stores it in Engine.user and never reads it; scenes cast it back with GameState *g = e\->user.
+.TP
+.B org
+organization name for the per\-user save folder (SDL_GetPrefPath); with app, e.g. "mystudio". NULL \-> saves are written to the current working directory.
+.TP
+.B app
+application name for the per\-user save folder; see org
+.TP
+.B audio
+open the default audio device so audio_load/audio_play/audio_music work. If no device exists the engine logs it and Engine.has_audio stays false; audio calls then do nothing.
+.TP
+.B text
+initialize SDL_ttf so text_load_font can open .ttf files. Only effective when the engine was built with ENGINE_WITH_TTF; otherwise fonts fall back to the built\-in 8x8 font.
+.TP
+.B gamepad
+open the first gamepad that appears (and any that replaces it). Input.pad_* fields stay zero without it.
+.TP
+.B pause_scene
+a scene the engine pushes by itself when the window loses focus (alt\-tab, clicking another window); NULL \-> nothing happens. Normally your pause overlay.
+.TP
+.B clear_color
+the color the frame is cleared to before any scene renders; an alpha of 0 (the zero value) \-> dark blue\-grey { 20, 20, 30 }
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR engine_init (3),
+.BR Engine (3),
+.BR gge\-engine (7),
+.BR gge\-api (7),
+.BR gge (1)

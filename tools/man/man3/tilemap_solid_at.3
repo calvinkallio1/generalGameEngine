@@ -1,21 +1,19 @@
 .TH TILEMAP_SOLID_AT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-tilemap_solid_at \- engine function
+tilemap_solid_at \- Whether the tile under world position wx, wy is solid
 .SH SYNOPSIS
 .nf
 .B #include \(dqtilemap.h\(dq
 .BI "bool tilemap_solid_at(const Tilemap *m, float wx, float wy);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/tilemap/tilemap.h and run 'gge genman'.
+Whether the tile under world position wx, wy is solid. Point tests: is the pixel under the mouse a wall, is the ground below a foot solid. Outside the map is not solid.
+.SH RETURN VALUE
+true if solid.
 .SH MODULE
 tilemap (src/engine/tilemap/tilemap.h)
 .SH SEE ALSO
-.BR tilemap_at (3),
 .BR tilemap_box_hits (3),
-.BR tilemap_draw (3),
-.BR tilemap_move (3),
-.BR tilemap_load_csv (3),
-.BR tilemap_free (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR tilemap_at (3),
+.BR gge\-api (7),
+.BR gge (1)

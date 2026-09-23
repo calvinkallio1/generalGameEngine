@@ -1,0 +1,40 @@
+.TH ACTIONMAP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+ActionMap \- A table from your game's action ids (an enum you define, values 0..ACTION_MAX\-1) to the physical inputs that trigger them: up to three keys, one gamepad button and one signed gamepad axis per action
+.SH SYNOPSIS
+.nf
+.B #include \(dqactions.h\(dq
+.ft B
+typedef struct ActionMap {
+  Key       keys[ACTION_MAX][BINDS_PER_ACTION];   /* KEY_NONE = unbound */
+  PadButton pad[ACTION_MAX];                      /* PAD_NONE = unbound */
+  PadAxis   axis[ACTION_MAX];                     /* AXIS_NONE = none */
+  float     axis_sign[ACTION_MAX];                /* +1 / -1: which direction counts */
+} ActionMap;
+.ft R
+.fi
+.SH DESCRIPTION
+A table from your game's action ids (an enum you define, values 0..ACTION_MAX\-1) to the physical inputs that trigger them: up to three keys, one gamepad button and one signed gamepad axis per action. Scenes then ask action_down(&map, in, ACT_JUMP) and never name a key, which is what makes rebinding, alternate layouts and controller support free. Keep one ActionMap per control scheme, usually a static in the gameplay scene filled in on_enter, or one in GameState if bindings should be saved (the struct is pointer\-free).
+.SH FIELDS
+.TP
+.B keys
+per action, up to BINDS_PER_ACTION keys; KEY_NONE marks an empty slot
+.TP
+.B pad
+per action, one gamepad button or PAD_NONE
+.TP
+.B axis
+per action, one gamepad axis or AXIS_NONE
+.TP
+.B axis_sign
++1 or \-1: which direction of the axis counts as this action (a left stick pushed left is AXIS_LEFT_X with sign \-1)
+.SH MODULE
+input (src/engine/input/actions.h)
+.SH SEE ALSO
+.BR action_map_init (3),
+.BR action_bind_key (3),
+.BR action_down (3),
+.BR action_axis (3),
+.BR gge\-input (7),
+.BR gge\-api (7),
+.BR gge (1)

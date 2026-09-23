@@ -1,13 +1,11 @@
 .TH GGE\-SCENES 7 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-gge\-scenes \- how scenes and the scene stack work
+gge\-scenes \- scenes, the scene stack, and the callback protocol
 .SH DESCRIPTION
-A scene is one mode of the game: title, gameplay, pause, inventory, dialog.
-It is a
-.B Scene
-struct holding up to five callbacks and two flags:
-.nf
-.ft B
+A scene is one mode of the game: title, gameplay, pause, inventory, shop, dialog, game over, credits. It is a \fBScene\fR struct (scene.h) holding up to five callbacks and two flags:
+.PP
+.RS 4
+.EX
 typedef struct Scene {
   const char *name;
   void (*on_enter)(Engine *, Scene *);
@@ -18,78 +16,177 @@ typedef struct Scene {
   bool blocks_update_below;
   bool blocks_render_below;
 } Scene;
-.ft R
-.fi
-NULL callbacks are skipped. Each scene is a singleton: a static
-.B Scene
-inside a getter such as
-.BR title_scene() ,
-which returns its address.
-.SS The stack
-The engine keeps a stack of at most 8 scenes.
-.BR engine_push (3),
-.BR engine_pop (3)
-and
-.BR engine_replace (3)
-queue changes that are applied after the current callback returns, so a scene
-may pop itself from its own handle_input. The loop ends when the stack empties
-or
-.BR engine_quit (3)
-is called.
-.SS Per-frame order
-.IP 1. 3
-.B handle_input
-on the top scene only.
-.IP 2. 3
+.EE
+.RE
+.PP
+NULL callbacks are skipped. The engine keeps a stack of at most SCENE_STACK_MAX (8) scenes and calls their callbacks every frame in a fixed order (gge\-engine(7)). Scenes own \fBbehavior\fR, not data: the world lives in GameState (gge\-state(7)).
+.PP
+.SH ONE SCENE, ONE FILE
+Each scene is a singleton: a \fBstatic Scene\fR inside a getter function that returns its address, so every other file can name it without a global variable. \fBgge scene <name>\fR writes this skeleton (gge(1)):
+.PP
+.RS 4
+.EX
+/* src/scenes/scene_pause.c */
+#include "engine.h"
+#include "scenes.h"
+#include "game_state.h"
+#include "draw.h"
+#include "menu.h"
+\&
+static Menu menu;                       /* presentation state: reset in on_enter */
+\&
+static void resume(Engine *e) { engine_pop(e); }
+static void quit_to_title(Engine *e) { engine_pop(e); engine_replace(e, title_scene()); }
+\&
+static void on_enter(Engine *e, Scene *s) {
+  (void)s;
+  menu_init(&menu, 0, 0, (Font){0});
+  menu_add(&menu, "Resume", resume);
+  menu_add(&menu, "Quit to title", quit_to_title);
+  menu_center(&menu, e);
+}
+static void handle_input(Engine *e, Scene *s, const Input *in) {
+  (void)s;
+  if (key_pressed(in, KEY_ESCAPE) || pad_pressed(in, PAD_START)) { engine_pop(e); return; }
+  menu_handle_input(&menu, e, in);
+}
+static void render(Engine *e, Scene *s, float alpha) {
+  (void)s; (void)alpha;
+  draw_rect(rect(0, 0, (float)e\->logical_w, (float)e\->logical_h), rgba(0, 0, 0, 160));
+  menu_render(&menu);
+}
+\&
+Scene *pause_scene(void) {
+  static Scene sc = {
+    .name = "pause", .on_enter = on_enter, .handle_input = handle_input, .render = render,
+    .blocks_update_below = true,    /* the game freezes underneath */
+    .blocks_render_below = false,   /* but stays visible */
+  };
+  return &sc;
+}
+.EE
+.RE
+.PP
+\fBscenes.h\fR declares every getter (\fBScene *pause_scene(void);\fR) so any scene can push any other. Note \fBquit_to_title\fR: it pops the pause scene and replaces the gameplay scene beneath it in one go; queued operations apply in order.
+.PP
+.SH THE STACK
+.TP
+\fBengine_push(e, s)\fR
+Put s on top. Its on_enter runs when the push applies. The scenes beneath keep rendering unless s blocks rendering, and keep updating unless s blocks updating.
+.TP
+\fBengine_pop(e)\fR
+Remove the top scene; its on_exit runs. A scene normally pops itself. When the last scene is popped the game ends.
+.TP
+\fBengine_replace(e, s)\fR
+Pop the top scene and push s. For transitions where the old scene should not remain underneath: title to game, game to game over, level to level.
+.TP
+\fBengine_top(e)\fR
+The scene currently on top, or NULL. Guard against double pushes: \fBif (engine_top(e) != shop_scene()) engine_push(e, shop_scene());\fR.
+All three changes are \fBqueued\fR and applied after the current callback returns (and again after each update tick), so they are safe from handle_input, from update, from a menu action, and from the scene being removed. Up to PENDING_MAX (8) changes may be queued in one callback. Because scenes are singletons, pushing a scene that is already on the stack puts the same struct there twice, sharing its statics; avoid it with engine_top or a flag.
+.PP
+.SH PER\-FRAME ORDER
+.IP \(bu 2
+\fBhandle_input\fR on the top scene only.
+.IP \(bu 2
 Queued stack changes applied.
-.IP 3. 3
-.B update(dt)
-zero or more times at the fixed tick rate, walking down from the top and
-stopping after the first scene whose
-.B blocks_update_below
-is true.
-.IP 4. 3
-Queued stack changes applied.
-.IP 5. 3
-.B render(alpha)
-once, from the lowest scene whose
-.B blocks_render_below
-is true up to the top.
-.SS The two flags
-.TS
-l l l.
-update	render	use
-true	true	title, game over, gameplay itself
-true	false	pause menu, dialog, confirm, shop
-false	false	HUD, toast, minimap
-.TE
-.SS on_enter / on_exit
-.B on_enter
-runs when the scene actually lands on the stack; reset scene\-private
-statics, load assets, build menus, snap the camera.
-.B on_exit
-runs when it leaves, by pop, replace, or shutdown; free sounds, stop music,
-turn off text input.
-.SS alpha
-.B render
-receives how far the simulation is between the last tick and the next, 0..1.
-Draw moving things at
-.BR v2_lerp "(prev, now, alpha)"
-so motion is smooth above the tick rate. It has nothing to do with
-transparency.
-.SS Passing data to a scene
-Give the scene an opener that stores what it needs in a static and pushes:
-.nf
-.ft B
-static int target;
-void shop_scene_open(Engine *e, int cat) { target = cat; engine_push(e, shop_scene()); }
-.ft R
-.fi
-Store indices, never pointers into GameState; a loaded save moves the data.
+.IP \(bu 2
+\fBupdate(dt)\fR zero or more times at the fixed tick rate, walking down from the top and stopping after the first scene whose \fBblocks_update_below\fR is true. Queued changes are applied after every tick.
+.IP \(bu 2
+\fBrender(alpha)\fR once, from the lowest scene that must be drawn (the topmost with \fBblocks_render_below\fR true) up to the top, each painting over the last.
+Only the top scene ever receives input. A HUD scene pushed over gameplay therefore steals the keyboard; either let the HUD scene forward what it does not use, or draw the HUD from the gameplay scene's render instead (usually simpler).
+.PP
+.SH THE TWO FLAGS
+Pick the pair from what the scene is:
+.PP
+.RS 4
+.EX
+blocks_update  blocks_render  typical scenes                       gge scene \-t
+true           true           title, gameplay, game over, credits  full
+true           false          pause, options, confirm, shop,        overlay
+                              inventory, dialog, cutscene
+false          false          HUD, toast, minimap, debug console   hud
+.EE
+.RE
+.PP
+\fBfalse / true\fR (draw only me, but keep simulating below) is rare: a loading or transition screen that hides a level while it keeps running.
+.PP
+.SH THE CALLBACKS
+.TP
+\fBon_enter\fR
+Runs once when the scene lands on the stack. Reset every scene\-private static (they keep old values from the previous visit), load textures and fonts, build menus, load sounds, snap the camera to the player, start music, turn on text input. It runs after the push applies, so it can read GameState that the pushing scene prepared.
+.TP
+\fBon_exit\fR
+Runs once when the scene leaves, whether by pop, by replace, or by engine_shutdown at the end of the program. Free sounds (\fBaudio_free\fR), stop music if the next scene should be silent, free CSV tilemaps, turn off text input. Not called when another scene is pushed on top; the scene is still alive underneath.
+.TP
+\fBhandle_input\fR
+Once per displayed frame, top scene only. One\-shot reactions: open a menu, confirm, pause, advance dialog, place a tile under the mouse. Do not move things here; the display rate varies.
+.TP
+\fBupdate\fR
+Fixed\-rate simulation: movement, gravity, collisions, timers, AI, animation stepping, camera following, tween updates. Read held keys through \fB&e\->input\fR here for movement. Everything that changes GameState belongs here.
+.TP
+\fBrender\fR
+Draw the scene in logical pixels. Read\-only with respect to GameState. Use \fBalpha\fR to draw moving things between ticks (gge\-drawing(7)). Draw order is call order.
+.SH ALPHA
+\fBrender\fR receives how far the simulation is between the last tick and the next, 0..1. Keep each moving thing's previous\-tick position and draw at \fBv2_lerp(prev, now, alpha)\fR; motion is then smooth on any display, including 120 Hz and 144 Hz screens where the 60 Hz simulation would otherwise stutter. It has nothing to do with transparency. See gge\-drawing(7) for the pattern.
+.PP
+.SH PASSING DATA TO A SCENE
+A getter takes no arguments, so give the scene an opener that stores what it needs in a static and then pushes:
+.PP
+.RS 4
+.EX
+/* scene_shop.c */
+static int shop_id;
+void shop_scene_open(Engine *e, int id) { shop_id = id; engine_push(e, shop_scene()); }
+.EE
+.RE
+.PP
+Declare the opener in scenes.h next to the getter. Store ids and indices, never pointers into GameState (gge\-state(7)). Results flow back through GameState: the shop writes the purchase into \fBg\->inventory\fR, pops itself, and the gameplay scene simply sees the new state.
+.PP
+.SH COMMON SHAPES
+.TP
+\fBTitle \-> game\fR
+\fBengine_replace(e, game_scene())\fR from the Play item.
+.TP
+\fBGame \-> pause \-> game\fR
+push pause (overlay), pop it.
+.TP
+\fBGame \-> options from pause\fR
+push options over pause; ESC pops back to pause.
+.TP
+\fBGame over\fR
+\fBengine_replace(e, gameover_scene())\fR; its Retry item does \fBengine_replace(e, game_scene())\fR after \fBgame_state_init\fR.
+.TP
+\fBLevel transition\fR
+Keep one gameplay scene. Set \fBg\->level\fR and call \fBengine_replace(e, game_scene())\fR (on_exit then on_enter run, rebuilding the tilemap), or reload the map in place from update and skip the scene change.
+.TP
+\fBConfirm dialog\fR
+A small overlay scene with two items; the action writes a flag into GameState or calls a function pointer stored by its opener.
+.TP
+\fBDialog / cutscene\fR
+\fBdialog_show\fR inside gameplay for a line or two; \fBcutscene_start\fR for anything scripted (it pushes its own scene, gge\-cutscene(7)).
+.TP
+\fBRoom\-based worlds\fR
+One gameplay scene; the room index lives in GameState and the tilemap/camera are rebuilt when it changes.
+.SH PITFALLS
+.IP \(bu 2
+Forgetting to reset a static in on_enter: the second visit to the scene starts with stale menu selection, camera position or timers.
+.IP \(bu 2
+Popping the wrong number of scenes: from options\-over\-pause\-over\-game, "quit to title" needs pop, pop, replace. Each call is one operation.
+.IP \(bu 2
+Calling \fBengine_push\fR every frame from update because a condition stays true: guard with \fBengine_top\fR.
+.IP \(bu 2
+Reading input in a scene under a blocking overlay: it never arrives; that is the point.
+.IP \(bu 2
+Heavy work in render: it runs at display rate; precompute in update or on_enter.
 .SH SEE ALSO
+.BR Scene (3),
 .BR engine_push (3),
 .BR engine_pop (3),
 .BR engine_replace (3),
 .BR engine_top (3),
+.BR engine_quit (3),
+.BR SCENE_STACK_MAX (3),
+.BR gge\-engine (7),
 .BR gge\-state (7),
+.BR gge\-drawing (7),
 .BR gge (1)

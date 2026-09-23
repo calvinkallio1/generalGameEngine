@@ -1,18 +1,18 @@
 .TH DIALOG_SHOW 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-dialog_show \- engine function
+dialog_show \- Start showing a line: sets speaker and text, rewinds the typewriter and marks the dialog active
 .SH SYNOPSIS
 .nf
 .B #include \(dqdialog.h\(dq
 .BI "void dialog_show(Dialog *d, const char *speaker, const char *text);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/dialog/dialog.h and run 'gge genman'.
+Start showing a line: sets speaker and text, rewinds the typewriter and marks the dialog active. speaker may be NULL. Both strings are kept by pointer, not copied, so pass literals, static buffers, or GameState arrays, never a local. Calling it while a line is active replaces that line immediately.
 .SH MODULE
 dialog (src/engine/dialog/dialog.h)
 .SH SEE ALSO
 .BR dialog_update (3),
-.BR dialog_render (3),
 .BR dialog_done (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Dialog (3),
+.BR gge\-api (7),
+.BR gge (1)

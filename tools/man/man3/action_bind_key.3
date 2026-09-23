@@ -7,7 +7,7 @@ action_bind_key \- Bind action a (your own enum value, < ACTION_MAX) to a keyboa
 .BI "void action_bind_key(ActionMap *m, int a, Key key);"
 .fi
 .SH DESCRIPTION
-Bind action a (your own enum value, < ACTION_MAX) to a keyboard key. Each action holds up to two keys; the third call replaces the second.
+Bind action a (your own enum value, < ACTION_MAX) to a keyboard key. Each action holds up to three keys, filled in order; a fourth call is ignored. Bind both arrows and WASD to the same action so either works: action_bind_key(&m, ACT_LEFT, KEY_LEFT); action_bind_key(&m, ACT_LEFT, KEY_A). To rebind, call action_map_init and bind again.
 .PP
 This is a static inline function; it is defined in the header.
 .SH MODULE
@@ -16,5 +16,6 @@ input (src/engine/input/actions.h)
 .BR action_bind_pad (3),
 .BR action_bind_axis (3),
 .BR action_down (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR action_pressed (3),
+.BR gge\-api (7),
+.BR gge (1)

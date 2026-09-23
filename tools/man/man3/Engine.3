@@ -1,0 +1,120 @@
+.TH ENGINE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Engine \- The running engine: window, renderer, this frame's input, the scene stack, and the handful of values a scene reads every frame
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.ft B
+typedef struct Engine {
+  SDL_Window   *window;      /* internal */
+  SDL_Renderer *renderer;    /* internal: games draw through draw.h */
+  Input         input;
+  bool          running;
+\&
+  int      logical_w, logical_h;
+  int      window_w, window_h;    /* real window size, tracked on resize */
+  uint64_t ns_per_tick;
+  float    dt;                    /* seconds per tick, passed to Scene.update */
+  void    *user;                  /* game state; scenes cast this to their own type */
+  Save     save;
+\&
+  bool  has_audio, has_text;
+  bool  focused;
+  bool  debug_overlay;            /* F3 */
+  float fps;                      /* smoothed */
+  uint64_t frame;
+  Color clear_color;
+  Scene *pause_scene;
+\&
+  Scene    *stack[SCENE_STACK_MAX];
+  int       stack_len;
+  PendingOp pending[PENDING_MAX];
+  int       pending_len;
+} Engine;
+.ft R
+.fi
+.SH DESCRIPTION
+The running engine: window, renderer, this frame's input, the scene stack, and the handful of values a scene reads every frame. One exists per game, created with engine_init() and passed as the first argument to every scene callback and most engine calls. Fields marked read\-only are maintained by the engine; writing them does nothing useful or breaks the loop. Game code normally touches only input, user, save, logical_w/h, dt, fps, frame and debug_overlay.
+.SH FIELDS
+.TP
+.B window
+the SDL window. Internal; the engine already handles resize, fullscreen (F11) and focus.
+.TP
+.B renderer
+the SDL renderer. Internal; games draw through draw.h, sprite.h and text.h, which target it.
+.TP
+.B input
+this frame's snapshot of every input device, also passed to handle_input. Read it from update via &e\->input when movement must run at tick rate.
+.TP
+.B running
+true while the main loop should continue. engine_quit() clears it; the loop also ends when the scene stack becomes empty.
+.TP
+.B logical_w
+width of the logical canvas in pixels (from EngineConfig or the 640 default). Use it to center things and to size full\-screen rectangles.
+.TP
+.B logical_h
+height of the logical canvas in pixels
+.TP
+.B window_w
+real window width in pixels, updated on resize. Rarely needed; drawing happens in logical pixels.
+.TP
+.B window_h
+real window height in pixels
+.TP
+.B ns_per_tick
+nanoseconds per fixed update (1e9 / tick_rate). Read\-only.
+.TP
+.B dt
+seconds per fixed update, the same value every Scene.update receives. Read\-only.
+.TP
+.B user
+your game state, exactly the pointer given as EngineConfig.user. Scenes cast it: GameState *g = e\->user.
+.TP
+.B save
+the save\-slot directory handle for save_write()/save_load(); pass &e\->save.
+.TP
+.B has_audio
+true when the audio device opened; audio_* calls are silently ignored otherwise
+.TP
+.B has_text
+true when SDL_ttf initialized; otherwise text_load_font returns the debug font
+.TP
+.B focused
+true while the window has keyboard focus. The loop sleeps a little per frame when unfocused.
+.TP
+.B debug_overlay
+whether the F3 overlay (fps, scene stack, queued debug_rect/debug_line/debug_text) is drawn; F3 toggles it, code may set it
+.TP
+.B fps
+smoothed frames per second, for the overlay or your own HUD
+.TP
+.B frame
+frames presented so far; a cheap "every N frames" counter
+.TP
+.B clear_color
+color the frame is cleared to before rendering
+.TP
+.B pause_scene
+the scene pushed on focus loss, or NULL
+.TP
+.B stack
+the scene stack, bottom at index 0. Internal; use engine_top() and the push/pop/replace calls.
+.TP
+.B stack_len
+number of scenes on the stack
+.TP
+.B pending
+stack changes queued by engine_push/pop/replace, applied after the current callback
+.TP
+.B pending_len
+number of queued changes
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR engine_init (3),
+.BR engine_run (3),
+.BR EngineConfig (3),
+.BR Scene (3),
+.BR gge\-engine (7),
+.BR gge\-api (7),
+.BR gge (1)

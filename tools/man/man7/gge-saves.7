@@ -1,29 +1,85 @@
 .TH GGE\-SAVES 7 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-gge\-saves \- saving and loading GameState
+gge\-saves \- writing, reading, versioning and organizing saves of GameState
 .SH DESCRIPTION
-The save system writes a pointer\-free struct to disk with a header carrying a
-version number.
-.nf
-.ft B
-save_write(&e->save, "slot1", g, sizeof *g, SAVE_VERSION);
-save_load (&e->save, "slot1", g, sizeof *g, SAVE_VERSION);
-save_exists(&e->save, "slot1");
-.ft R
-.fi
-Files live in the per\-user folder derived from
-.B EngineConfig.org
-and
-.B app
-(or the working directory when both are NULL).
-.SS Rules
-GameState must contain no pointers: use fixed arrays and indices. Bump
-SAVE_VERSION whenever the struct layout changes; loads of an older version
-fail cleanly. Scene statics are not saved, so reset them in
-.B on_enter
-from the loaded state.
+save.h writes a pointer\-free struct to a slot file with a small header (magic, version, size) and reads it back only when all three match. Because GameState is designed to be pointer\-free (gge\-state(7)), saving the whole game is one call and loading is another; there is no serialization code to write or maintain.
+.PP
+.RS 4
+.EX
+save_write (&e\->save, "slot1", g, sizeof *g, SAVE_VERSION);   /* true on success */
+save_load  (&e\->save, "slot1", g, sizeof *g, SAVE_VERSION);   /* false: missing, wrong version, wrong size */
+save_exists(&e\->save, "slot1");                                /* enable Continue */
+save_delete(&e\->save, "slot1");                                /* permadeath, "erase save" */
+.EE
+.RE
+.PP
+.SH WHERE FILES GO
+\fBEngine.save\fR is filled by engine_init from \fBEngineConfig.org\fR and \fB.app\fR: a per\-user folder such as \fB~/.local/share/<org>/<app>/\fR on Linux, \fB~/Library/Application Support/<org>/<app>/\fR on macOS, \fB%APPDATA%\e<org>\e<app>\e\fR on Windows, created if needed. With either NULL, files go to the current working directory, which is convenient during development (\fB./slot1.sav\fR next to the build). Slot names become file names (\fB<slot>.sav\fR); keep them to letters, digits and underscores.
+.PP
+.SH VERSIONING
+\fBSAVE_VERSION\fR is a number you define (the \fBgge init\fR template puts it in game_state.h). Bump it every time GameState's layout changes: a field added, removed, reordered or resized, an array capacity changed, a nested struct changed. An older file then fails to load cleanly instead of being read into the wrong fields. The size check catches most layout changes even without a bump, but not a reorder of same\-sized fields, so bump anyway.
+.PP
+Migration (loading an old save into a new layout) is not provided. If it matters for a shipped game: keep the old struct definition under a different name, load with the old version and size into it, and copy field by field. For a game in development, deleting old saves is the right answer.
+.PP
+.SH WHEN TO SAVE
+.TP
+\fBCheckpoint / autosave\fR
+on level start, on picking up a key item, on entering a safe room: \fBsave_write\fR from update.
+.TP
+\fBManual\fR
+a Save item in the pause menu.
+.TP
+\fBOn quit\fR
+from the title\-return path or engine_quit, but not from on_exit during engine_shutdown of a crashed state; prefer explicit points.
+.TP
+\fBContinuous (idle games)\fR
+every N seconds from a Timer; a few hundred kilobytes is instant.
+.SH LOADING INTO A RUNNING GAME
+\fBsave_load\fR writes the bytes into \fB*g\fR and nothing else. Scene statics (camera, sprites, tilemap, menus) still describe the previous state, so load \fIbefore\fR entering the gameplay scene, or replace the scene afterwards so on_enter rebuilds them:
+.PP
+.RS 4
+.EX
+static void cont(Engine *e) {
+  if (save_load(&e\->save, "slot1", e\->user, sizeof(GameState), SAVE_VERSION))
+    engine_replace(e, game_scene());        /* on_enter rebuilds camera, map, sprites from g */
+  else
+    LOG("no valid save");
+}
+.EE
+.RE
+.PP
+Loading from inside the gameplay scene (a quick\-load key) works if the scene then does what its on_enter does: reload the map for \fBg\->level\fR, snap the camera, reset \fBprev\fR positions.
+.PP
+.SH MULTIPLE SLOTS AND PROFILES
+Slots are names: "slot1", "slot2", "auto", "profile_cal". A slot\-select menu calls save_exists for each and shows "empty" or a summary. For a summary without loading the whole file, keep a small header struct in its own slot ("slot1_meta": level, playtime, name) written alongside.
+.PP
+.SH WHAT A SAVE CONTAINS
+Exactly \fBsizeof(GameState)\fR bytes after the header, laid out as this compiler laid them out. That is portable across runs of the same build on the same platform, which is what a game needs. It is not portable across compilers, architectures or struct changes; treat saves as belonging to one build. Floats and ints are stored raw; booleans as bytes; padding bytes are included (zero them by initializing with \fB(GameState){0}\fR if the file's contents matter for comparison).
+.PP
+.SH OPTIONS ARE STATE
+Volume, difficulty, key bindings and other settings live in GameState so they save with everything else. Games that want settings independent of the play save keep a second, tiny struct in its own slot ("settings") with its own version.
+.PP
+.SH QUICK SAVE IN MEMORY
+\fBstatic GameState snapshot; snapshot = *g; ... *g = snapshot;\fR is a save without the disk, useful for debugging, for "retry from checkpoint" without files, and for turn\-based undo (a small ring of snapshots). GameState must be small enough to copy freely for this to be cheap; under a megabyte, it is.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+A pointer in GameState: it is saved as a number and points at garbage after load. The compiler cannot detect this; review the struct.
+.IP \(bu 2
+Forgetting the version bump: fields silently shift.
+.IP \(bu 2
+Saving from render: once per frame, forever.
+.IP \(bu 2
+Assuming save_write succeeded: a read\-only folder or a full disk returns false and logs; tell the player.
+.IP \(bu 2
+Loading and staying in the old scene: stale camera and map.
 .SH SEE ALSO
+.BR Save (3),
 .BR save_write (3),
 .BR save_load (3),
 .BR save_exists (3),
-.BR gge\-state (7)
+.BR save_delete (3),
+.BR EngineConfig (3),
+.BR gge\-state (7),
+.BR gge\-scenes (7),
+.BR gge\-menu (7)

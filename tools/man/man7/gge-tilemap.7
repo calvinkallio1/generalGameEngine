@@ -1,0 +1,147 @@
+.TH GGE\-TILEMAP 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-tilemap \- tile grids from code or Tiled, drawing them, and moving through them
+.SH DESCRIPTION
+A \fBTilemap\fR (tilemap.h) is a w x h grid of 8\-bit tile ids, a 256\-entry table saying which ids are solid, and a tileset Sprite whose frame index is the tile id. Tile (tx, ty) covers the world rectangle from (tx*tile, ty*tile) with size tile x tile. Id 0 is empty and is never drawn. The module draws visible tiles through a camera and moves boxes through the grid with collision; everything else (what tiles mean, enemies, doors) is game code reading the grid.
+.PP
+.SH BUILDING A MAP FROM CODE
+.PP
+.RS 4
+.EX
+#define W 20
+#define H 12
+static const uint8_t level1[W * H] = {
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+  ...
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+};
+static const bool solid[256] = { [1] = true, [2] = true, [7] = true };
+static Tilemap map;
+\&
+static void on_enter(Engine *e, Scene *s) {
+  map = (Tilemap){ .w = W, .h = H, .tile = 16, .tiles = level1, .solid = solid,
+                   .tileset = sprite_from(assets_texture("tiles/world.png"), 16, 16) };
+}
+.EE
+.RE
+.PP
+The map struct holds pointers, so it is a scene static; which level is loaded is the number in GameState. A map generated at run time (a roguelike) writes into a \fBstatic uint8_t tiles[W * H]\fR array and points \fBmap.tiles\fR at it; the level's seed (not the tiles) is what the save stores, and on_enter regenerates from it.
+.PP
+.SH LOADING FROM TILED
+Draw the level in Tiled with a tileset image whose tiles are \fBtile\fR pixels square, then File > Export As > CSV; Tiled writes one .csv per layer. Put the file under assets/ and:
+.PP
+.RS 4
+.EX
+static bool load_level(Tilemap *m, int n) {
+  char path[64]; snprintf(path, sizeof path, "tiles/level%d.csv", n);
+  return tilemap_load_csv(m, path, 16, assets_texture("tiles/world.png"), solid);
+}
+/* on_exit */ tilemap_free(&map);
+.EE
+.RE
+.PP
+tilemap_load_csv(3) allocates the tile array and subtracts 1 from Tiled's global ids, so tile N in Tiled is frame N on the sheet and Tiled's empty (0) stays 0; keep frame 0 of the sheet blank. The CSV carries no properties, so \fBsolid\fR is your table. Several layers are several Tilemaps sharing the tileset: draw the background one first, then entities, then a foreground one.
+.PP
+.SH DRAWING
+.PP
+.RS 4
+.EX
+tilemap_draw(&map, &cam);
+.EE
+.RE
+.PP
+Draws every non\-empty tile inside camera_visible(3) (plus one tile of margin) at the camera's zoom. Cost is proportional to the screen, not the map. For animated tiles (water), swap the tileset's frame indices by drawing a second map whose ids alternate every N ticks, or draw those few tiles yourself with sprite_draw over the map.
+.PP
+.SH READING THE GRID
+.TP
+\fBtilemap_at(m, tx, ty)\fR
+the id at tile coordinates; 0 outside the map.
+.TP
+\fBtilemap_solid_at(m, wx, wy)\fR
+whether the tile under a world point is solid.
+.TP
+\fBtilemap_box_hits(m, &box)\fR
+whether a world\-space rectangle overlaps any solid tile.
+Convert world to tile with \fB(int)floorf(wx / m\->tile)\fR. Since the grid is just an array, game logic reads it directly: a door is id 9, a spike is id 12, water is 20..23, and \fBtilemap_at\fR answers "what is here". Tile ids are the simplest possible level script.
+.PP
+.SH MOVING THROUGH THE MAP
+tilemap_move(3) is the platformer and top\-down movement core. Give it the entity's box, its velocity and dt; it moves x then y, stopping flush against solid tiles, zeroing the blocked velocity component, and reporting whether the box landed on something:
+.PP
+.RS 4
+.EX
+#define GRAVITY   900.0f
+#define RUN_SPEED 120.0f
+#define JUMP_V    280.0f
+\&
+static void player_tick(Player *p, const Tilemap *m, float move_x, bool jump, float dt) {
+  p\->vel.x = move_x * RUN_SPEED;
+  p\->vel.y += GRAVITY * dt;
+  if (p\->vel.y > 400) p\->vel.y = 400;                         /* terminal velocity */
+  if (jump && p\->on_ground) p\->vel.y = \-JUMP_V;
+  Rect box = rect_at(p\->pos, PLAYER_W, PLAYER_H);
+  tilemap_move(m, &box, &p\->vel, dt, &p\->on_ground);
+  p\->pos = v2(box.x, box.y);
+}
+.EE
+.RE
+.PP
+For top\-down movement drop gravity and pass NULL for on_ground; walls stop the player and sliding along them works because the axes are resolved separately. Keep speeds below \fBtile / dt\fR (16 px tiles at 60 Hz: under 960 px/s) so a box never skips a tile in one step; for faster things, call tilemap_move several times with dt/4.
+.PP
+.SS Feel
+.TP
+\fBVariable jump height\fR
+on jump release while rising, \fBif (p\->vel.y < 0) p\->vel.y *= 0.5f\fR.
+.TP
+\fBCoyote time and jump buffering\fR
+two timers in GameState (gge\-input(7)).
+.TP
+\fBAcceleration\fR
+\fBp\->vel.x = lerpf(p\->vel.x, move_x * RUN_SPEED, smooth_t(0.08f, dt))\fR instead of setting it directly.
+.TP
+\fBSlopes\fR
+not supported by tilemap_move; fake them with stair\-step tiles or handle a "slope" tile id yourself by adjusting y from the x position within the tile.
+.TP
+\fBOne\-way platforms\fR
+a tile id that is solid only when the box is above it and moving down: keep it out of \fBsolid\fR and test it yourself before calling tilemap_move (clamp box.y and zero vel.y when the box's bottom crosses the tile's top).
+.SS Other entities
+Every walking entity uses the same call with its own box; flying ones skip it. A crate the player pushes is an entity moved by tilemap_move too, with the player's push added to its velocity when their boxes touch.
+.PP
+.SH TILE PROPERTIES BEYOND SOLID
+Add tables indexed by id alongside \fBsolid\fR: \fBstatic const bool hazard[256]\fR, \fBstatic const uint8_t friction[256]\fR, or a struct table \fBtile_info[256]\fR with several fields. Look them up with \fBtilemap_at\fR. For tiles that change (a broken block, an opened door) the map must be writable: copy the level into a \fBstatic uint8_t\fR working array on_enter, or record the changes in GameState (a list of (x, y, new_id)) and replay them after loading, so a save remembers them.
+.PP
+.SH TILE COORDINATES IN GAMESTATE
+Grid\-based games (puzzles, roguelikes, tactics) store positions as tile ints and animate with a separate draw position: \fBint tx, ty; Vec2 draw_pos;\fR with \fBdraw_pos\fR tweened toward \fBv2(tx * tile, ty * tile)\fR each tick (gge\-tween(7)). The map itself may then be the game board, an array of small structs in GameState rather than a Tilemap, with a Tilemap or plain sprite_draw calls used only to show it.
+.PP
+.SH WORLD BOUNDS
+\fBcamera_set_bounds(&cam, 0, 0, map.w * map.tile, map.h * map.tile)\fR keeps the view inside the level (gge\-camera(7)). Outside the map every tile reads as 0 and non\-solid, so surround levels with a solid border row and column, or clamp positions yourself.
+.PP
+.SH LARGE WORLDS
+A uint8_t grid of 1000 x 1000 is a megabyte; fine. Ids are limited to 256 tiles per map; use several maps (layers) for more variety, or a second grid of "variant" bytes. For open worlds, load one chunk (a CSV) per region and switch when the player crosses an edge.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+Tile 0 drawn as a real tile: frame 0 must be blank, or use a different id for that art.
+.IP \(bu 2
+\fBsolid\fR as a local array: the map keeps the pointer; make the table static.
+.IP \(bu 2
+Moving entities by \fBpos += vel * dt\fR and \fIthen\fR checking tilemap_box_hits: they are already inside the wall. Use tilemap_move, which moves and resolves together.
+.IP \(bu 2
+A CSV with a trailing comma per row: Tiled does not write one, but hand\-edited files might; the loader then miscounts the width.
+.IP \(bu 2
+Forgetting tilemap_free in on_exit for CSV maps: a leak per level change.
+.SH SEE ALSO
+.BR Tilemap (3),
+.BR tilemap_load_csv (3),
+.BR tilemap_free (3),
+.BR tilemap_draw (3),
+.BR tilemap_move (3),
+.BR tilemap_box_hits (3),
+.BR tilemap_solid_at (3),
+.BR tilemap_at (3),
+.BR camera_set_bounds (3),
+.BR sprite_from (3),
+.BR gge\-camera (7),
+.BR gge\-sprite (7),
+.BR gge\-assets (7),
+.BR gge\-entities (7)

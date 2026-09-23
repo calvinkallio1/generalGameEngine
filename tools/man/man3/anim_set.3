@@ -1,21 +1,18 @@
 .TH ANIM_SET 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-anim_set \- no\-op if already playing
+anim_set \- Switch st to animation anim_id, restarting at its first frame with done cleared
 .SH SYNOPSIS
 .nf
 .B #include \(dqsprite.h\(dq
 .BI "void anim_set(AnimState *st, int anim_id);"
 .fi
 .SH DESCRIPTION
-no\-op if already playing
+Switch st to animation anim_id, restarting at its first frame with done cleared. A no\-op if that animation is already playing, so it is safe to call every tick from the code that decides what the entity is doing (if (moving) anim_set(&st, RUN); else anim_set(&st, IDLE);) without the animation constantly restarting.
 .SH MODULE
 sprite (src/engine/sprite/sprite.h)
 .SH SEE ALSO
-.BR sprite_from (3),
 .BR anim_step (3),
 .BR anim_frame (3),
-.BR sprite_draw (3),
-.BR sprite_draw_scaled (3),
-.BR sprite_draw_tinted (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR AnimState (3),
+.BR gge\-api (7),
+.BR gge (1)

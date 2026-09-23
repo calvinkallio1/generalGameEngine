@@ -1,25 +1,23 @@
 .TH RNG_NEXT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rng_next \- engine function
+rng_next \- Advance a 64\-bit random state and return the next raw value (splitmix64)
 .SH SYNOPSIS
 .nf
 .B #include \(dqrng.h\(dq
 .BI "uint64_t rng_next(uint64_t *s);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/rng.h and run 'gge genman'.
+Advance a 64\-bit random state and return the next raw value (splitmix64). The state is just a uint64_t you own, normally GameState.rng, seeded once at new game; every other rng_* call takes its address. Because the state is plain data it saves with the game and replays identically from the same seed: the same seed always produces the same level, the same loot, the same dice. The other helpers are what games call; this is the primitive underneath.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+a uniformly distributed 64\-bit value.
 .SH MODULE
 math (src/engine/math/rng.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR rng_float (3),
+.BR rng_range (3),
+.BR rng_chance (3),
+.BR gge\-math (7),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,0 +1,133 @@
+.TH GGE\-MENU 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-menu \- selectable lists for titles, pauses, options and shops
+.SH DESCRIPTION
+A \fBMenu\fR (menu.h) is a vertical list of up to MENU_MAX_ITEMS (12) text items. It handles keyboard (arrows or W/S, Enter or space), gamepad (dpad, PAD_SOUTH) and mouse (hover selects, click activates) and draws itself with a font you choose. Each item is a label and an action function taking the Engine. It is presentation state: one static per scene, rebuilt in on_enter.
+.PP
+.SH A TITLE SCREEN
+.PP
+.RS 4
+.EX
+#include "menu.h"
+static Menu menu;
+static Font font;
+\&
+static void play(Engine *e)     { game_state_init(e\->user); engine_replace(e, game_scene()); }
+static void cont(Engine *e)     { if (save_load(&e\->save, "slot1", e\->user, sizeof(GameState), SAVE_VERSION)) engine_replace(e, game_scene()); }
+static void options(Engine *e)  { engine_push(e, options_scene()); }
+static void quit(Engine *e)     { engine_quit(e); }
+\&
+static void on_enter(Engine *e, Scene *s) {
+  (void)s;
+  font = text_load_font("fonts/ui.ttf", 12);
+  menu_init(&menu, 0, 0, font);
+  menu_add(&menu, "New game", play);
+  if (save_exists(&e\->save, "slot1")) menu_add(&menu, "Continue", cont);
+  menu_add(&menu, "Options", options);
+  menu_add(&menu, "Quit", quit);
+  menu_center(&menu, e);
+  menu.y += 30;                          /* leave room for the title above */
+}
+static void handle_input(Engine *e, Scene *s, const Input *in) { (void)s; menu_handle_input(&menu, e, in); }
+static void render(Engine *e, Scene *s, float alpha) {
+  (void)s; (void)alpha;
+  int w, h; text_size(font, "CATS", &w, &h);
+  text_draw(font, (e\->logical_w \- w) / 2.0f, 40, COLOR_WHITE, "CATS");
+  menu_render(&menu);
+}
+.EE
+.RE
+.PP
+Labels must outlive the menu: literals or static buffers, never locals. Actions run inside menu_handle_input, so a scene change they request takes effect after handle_input returns, like any other push or pop.
+.PP
+.SH THE CALLS
+.TP
+\fBmenu_init(m, x, y, font)\fR
+reset: no items, position, font (a zero Font is the debug font), default colors and spacing.
+.TP
+\fBmenu_add(m, label, action)\fR
+append; action may be NULL for a heading or a disabled line.
+.TP
+\fBmenu_center(m, e)\fR
+center the block on the logical screen from its widest label and item count.
+.TP
+\fBmenu_handle_input(m, e, in)\fR
+navigation and activation; from handle_input.
+.TP
+\fBmenu_render(m)\fR
+draw; from render, after the backdrop.
+Fields you may set after menu_init: \fBx\fR, \fBy\fR (position), \fBline_h\fR (spacing), \fBhit_w\fR (click width), \fBcolor\fR and \fBcolor_selected\fR, and \fBselected\fR to preselect an item.
+.PP
+.SH DYNAMIC LABELS
+For values that change (volume, difficulty, a key binding), point the label at a static buffer and rewrite it in the action:
+.PP
+.RS 4
+.EX
+static char diff_label[32];
+static const char *names[] = { "Easy", "Normal", "Hard" };
+static void cycle_difficulty(Engine *e) {
+  GameState *g = e\->user;
+  g\->difficulty = (g\->difficulty + 1) % 3;
+  snprintf(diff_label, sizeof diff_label, "Difficulty: %s", names[g\->difficulty]);
+}
+/* on_enter: fill it once, then */ menu_add(&menu, diff_label, cycle_difficulty);
+.EE
+.RE
+.PP
+Left/right adjustment is not built in; either cycle on activate as above, or read \fBkey_pressed(in, KEY_LEFT/RIGHT)\fR in the scene's handle_input, check \fBmenu.selected\fR, and adjust the matching value.
+.PP
+.SH MENUS THAT DEPEND ON STATE
+A shop, a level select or an inventory list is rebuilt from GameState each time the scene is entered (menu_init clears it). The action needs to know which item was chosen: read \fBmenu.selected\fR inside a shared action, or keep a parallel array mapping item index to item id:
+.PP
+.RS 4
+.EX
+static int shop_ids[MENU_MAX_ITEMS];
+static void rebuild(Engine *e);
+static void buy(Engine *e) { GameState *g = e\->user; try_buy(g, shop_ids[menu.selected]); rebuild(e); }
+static void rebuild(Engine *e) {
+  GameState *g = e\->user;
+  menu_init(&menu, 20, 20, font);
+  for (int i = 0; i < g\->shop_count && menu.count < MENU_MAX_ITEMS \- 1; ++i) {
+    shop_ids[menu.count] = g\->shop[i].id;
+    menu_add(&menu, item_label(g\->shop[i].id), buy);   /* item_label returns a static or table string */
+  }
+  menu_add(&menu, "Leave", leave);
+}
+.EE
+.RE
+.PP
+Rebuilding resets \fBselected\fR to 0; save and restore it around the rebuild if the cursor should stay put. More than 12 entries: paginate (Next/Previous items) or build your own list with text_draw and a selection index; the menu module is for short lists.
+.PP
+.SH BACKDROPS AND DECORATION
+The menu draws only its labels. Draw a panel first: \fBdraw_rect(rect(menu.x \- 16, menu.y \- 8, menu.hit_w + 32, menu.count * menu.line_h + 16), rgba(0, 0, 0, 200))\fR. A pause menu dims the whole game with a translucent full\-screen rectangle. A cursor sprite goes at \fB(menu.x \- 12, menu.y + menu.selected * menu.line_h)\fR.
+.PP
+.SH CONFIRMATIONS
+A two\-item menu in its own overlay scene ("Quit without saving?" Yes / No) is the standard confirm dialog. Pass the pending decision through an opener that stores a function pointer in a static; Yes calls it and pops, No pops.
+.PP
+.SH MOUSE BEHAVIOR
+While the pointer rests over an item that item stays selected, which overrides keyboard movement until the mouse leaves the list. Games that are keyboard\-first can leave the mouse parked outside the menu block; otherwise it feels natural.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+A label that is a local array: it dangles after on_enter returns. Use a static.
+.IP \(bu 2
+Calling menu_init in render: the menu resets every frame.
+.IP \(bu 2
+More than 12 items: silently dropped.
+.IP \(bu 2
+Forgetting the ESC handling: menus do not pop themselves; the scene's handle_input decides what ESC does.
+.IP \(bu 2
+Two menus in one scene: possible (two statics), but only one should receive input at a time.
+.SH SEE ALSO
+.BR Menu (3),
+.BR MenuItem (3),
+.BR menu_init (3),
+.BR menu_add (3),
+.BR menu_center (3),
+.BR menu_handle_input (3),
+.BR menu_render (3),
+.BR MENU_MAX_ITEMS (3),
+.BR text_load_font (3),
+.BR gge\-scenes (7),
+.BR gge\-text (7),
+.BR gge\-audio (7)

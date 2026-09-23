@@ -1,25 +1,22 @@
 .TH RECT_HIT_SIDE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rect_hit_side \- engine function
+rect_hit_side \- Given two overlapping rectangles, the side of b that a is shallowest on, i.e. the side a most likely arrived from
 .SH SYNOPSIS
 .nf
 .B #include \(dqcollide.h\(dq
 .BI "HitSide rect_hit_side(Rect a, Rect b);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/collide.h and run 'gge genman'.
+Given two overlapping rectangles, the side of b that a is shallowest on, i.e. the side a most likely arrived from. Decides what a collision means: a player HIT_TOP of an enemy stomps it, any other side takes damage; a ball HIT_LEFT or HIT_RIGHT of a paddle reverses its x velocity, HIT_TOP or HIT_BOTTOM its y. Only meaningful when rect_overlaps(a, b) is true. For sliding along solid tiles use tilemap_move() instead, which resolves each axis properly.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the HitSide.
 .SH MODULE
 math (src/engine/math/collide.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
 .BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR v2 (3),
-.BR v2_add (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR HitSide (3),
+.BR tilemap_move (3),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,0 +1,28 @@
+.TH FONT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Font \- A loaded TrueType font at one point size, returned by text_load_font()
+.SH SYNOPSIS
+.nf
+.B #include \(dqtext.h\(dq
+.ft B
+typedef struct Font { TTF_Font *ttf; float line_h; } Font;
+.ft R
+.fi
+.SH DESCRIPTION
+A loaded TrueType font at one point size, returned by text_load_font(). A small value type: copy it freely, keep one static per size you use. A zero Font ((Font){0}, or the result of a failed load, or any Font when the engine was built without ENGINE_WITH_TTF) is valid everywhere a Font is accepted and means "the built\-in 8x8 debug font". Fonts are never freed by the game; SDL_ttf shuts down with the engine.
+.SH FIELDS
+.TP
+.B ttf
+the underlying font handle; NULL means the debug font
+.TP
+.B line_h
+height of one line in pixels, as text_line_height() reports it
+.SH MODULE
+text (src/engine/text/text.h)
+.SH SEE ALSO
+.BR text_load_font (3),
+.BR text_draw (3),
+.BR text_size (3),
+.BR gge\-text (7),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,0 +1,19 @@
+.TH CUT_DO 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+CUT_DO \- CutStep initializer: call f(e, ctx) once, where ctx is the pointer given to cutscene_start(), then continue immediately
+.SH SYNOPSIS
+.nf
+.B #include \(dqcutscene.h\(dq
+.ft B
+#define CUT_DO(f) { .kind = CUT_CALL, .fn = (f) }
+.ft R
+.fi
+.SH DESCRIPTION
+CutStep initializer: call f(e, ctx) once, where ctx is the pointer given to cutscene_start(), then continue immediately. Use for anything the script needs to change in the game: give an item, set a flag, play a sound, teleport the player.
+.SH MODULE
+cutscene (src/engine/cutscene/cutscene.h)
+.SH SEE ALSO
+.BR CutStep (3),
+.BR cutscene_start (3),
+.BR gge\-api (7),
+.BR gge (1)

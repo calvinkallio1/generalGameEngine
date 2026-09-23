@@ -1,20 +1,18 @@
 .TH TEXT_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-text_init \- Draw with the built\-in 8x8 font regardless of TTF availability
+text_init \- Engine\-internal: initialize SDL_ttf when EngineConfig.text is set
 .SH SYNOPSIS
 .nf
 .B #include \(dqtext.h\(dq
 .BI "bool text_init(void);"
 .fi
 .SH DESCRIPTION
-Draw with the built\-in 8x8 font regardless of TTF availability.
-/
-void  text_draw_debug(float x, float y, Color color, const char *s);
-
-/* engine\-internal
+Engine\-internal: initialize SDL_ttf when EngineConfig.text is set. Called by engine_init(); games never call it.
+.SH RETURN VALUE
+true on success.
 .SH MODULE
 text (src/engine/text/text.h)
 .SH SEE ALSO
-.BR draw_debug_text (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_init (3),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,0 +1,48 @@
+.TH TILEMAP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Tilemap \- A grid of square tiles: a w x h array of 8\-bit tile ids, a table saying which ids are solid, and the tileset sprite whose frame index equals the tile id
+.SH SYNOPSIS
+.nf
+.B #include \(dqtilemap.h\(dq
+.ft B
+typedef struct Tilemap {
+  int w, h;                 /* in tiles */
+  int tile;                 /* tile size in pixels (square) */
+  const uint8_t *tiles;     /* w*h ids, row-major; 0 = empty */
+  const bool    *solid;     /* indexed by tile id (256 entries) */
+  Sprite tileset;           /* frame index == tile id */
+} Tilemap;
+.ft R
+.fi
+.SH DESCRIPTION
+A grid of square tiles: a w x h array of 8\-bit tile ids, a table saying which ids are solid, and the tileset sprite whose frame index equals the tile id. Tile (tx, ty) sits at world position (tx * tile, ty * tile). Id 0 is empty and never drawn; solid[0] should be false. Fill one from code (point tiles at a static const uint8_t array and solid at a static const bool[256]) or from a Tiled CSV export with tilemap_load_csv(). The struct holds pointers, so it belongs in a scene static, not in GameState; store which level is loaded in GameState and rebuild the map in on_enter.
+.SH FIELDS
+.TP
+.B w
+width in tiles
+.TP
+.B h
+height in tiles
+.TP
+.B tile
+size of one tile in pixels (tiles are square)
+.TP
+.B tiles
+w*h ids, row\-major (index = ty * w + tx); 0 = empty
+.TP
+.B solid
+256 entries indexed by tile id; true blocks tilemap_move() and tilemap_box_hits()
+.TP
+.B tileset
+sheet sliced into tile x tile frames; frame index == tile id
+.SH MODULE
+tilemap (src/engine/tilemap/tilemap.h)
+.SH SEE ALSO
+.BR tilemap_load_csv (3),
+.BR tilemap_draw (3),
+.BR tilemap_move (3),
+.BR tilemap_at (3),
+.BR Sprite (3),
+.BR gge\-tilemap (7),
+.BR gge\-api (7),
+.BR gge (1)

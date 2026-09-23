@@ -1,0 +1,20 @@
+.TH LOG 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+LOG \- printf\-style message to the terminal (stderr): LOG("loaded level %d", n)
+.SH SYNOPSIS
+.nf
+.B #include \(dqdebug.h\(dq
+.ft B
+#define LOG(...) SDL_Log(__VA_ARGS__)
+.ft R
+.fi
+.SH DESCRIPTION
+printf\-style message to the terminal (stderr): LOG("loaded level %d", n). The engine's own messages (missing assets, save failures) use it too, so run the game from a terminal to see them. No newline needed.
+.SH MODULE
+debug (src/engine/debug/debug.h)
+.SH SEE ALSO
+.BR WARN (3),
+.BR ASSERT (3),
+.BR debug_text (3),
+.BR gge\-api (7),
+.BR gge (1)

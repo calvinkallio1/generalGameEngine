@@ -1,21 +1,20 @@
 .TH TILEMAP_LOAD_CSV 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-tilemap_load_csv \- engine function
+tilemap_load_csv \- Load a Tiled "CSV" layer export from assets/ (File > Export As > CSV writes one file per layer; any comma\-separated grid of integers with one row per line works)
 .SH SYNOPSIS
 .nf
 .B #include \(dqtilemap.h\(dq
 .BI "bool tilemap_load_csv(Tilemap *m, const char *relative_path, int tile_size, Texture *tileset, const bool *solid);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/tilemap/tilemap.h and run 'gge genman'.
+Load a Tiled "CSV" layer export from assets/ (File > Export As > CSV writes one file per layer; any comma\-separated grid of integers with one row per line works). Allocates m\->tiles; call tilemap_free() when done (in on_exit). Tiled writes global ids (0 = empty, first tile = 1); they are stored as id \- 1 so tileset frame N is the tile Tiled shows as N. Frame 0 of the sheet is therefore the "empty" tile and is never drawn. solid is your own 256\-entry table, indexed by the stored id (CSV carries no tile properties); tileset is the sheet texture, sliced into tile_size cells. Ids above 255 wrap; keep tilesets to 256 tiles.
+.SH RETURN VALUE
+true on success; false (and logs) if the file is missing, empty, or a cell is not a number.
 .SH MODULE
 tilemap (src/engine/tilemap/tilemap.h)
 .SH SEE ALSO
-.BR tilemap_at (3),
-.BR tilemap_solid_at (3),
-.BR tilemap_box_hits (3),
-.BR tilemap_draw (3),
-.BR tilemap_move (3),
 .BR tilemap_free (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR assets_texture (3),
+.BR Tilemap (3),
+.BR gge\-api (7),
+.BR gge (1)

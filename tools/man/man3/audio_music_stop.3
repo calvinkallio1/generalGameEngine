@@ -1,16 +1,16 @@
 .TH AUDIO_MUSIC_STOP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-audio_music_stop \- Stop the music track
+audio_music_stop \- Stop the music track immediately
 .SH SYNOPSIS
 .nf
 .B #include \(dqaudio.h\(dq
 .BI "void audio_music_stop(void);"
 .fi
 .SH DESCRIPTION
-Stop the music track.
+Stop the music track immediately. Safe when nothing is playing.
 .SH MODULE
 audio (src/engine/audio/audio.h)
 .SH SEE ALSO
 .BR audio_music (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,18 +1,22 @@
 .TH PAD_DOWN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-pad_down \- True while the gamepad button is held (requires EngineConfig.gamepad)
+pad_down \- True while the gamepad button is held (requires EngineConfig.gamepad and a connected pad; false otherwise)
 .SH SYNOPSIS
 .nf
 .B #include \(dqinput.h\(dq
 .BI "bool pad_down(const Input *in, PadButton b);"
 .fi
 .SH DESCRIPTION
-True while the gamepad button is held (requires EngineConfig.gamepad). Axes are in in\->axes[AXIS_*] as \-1..1.
+True while the gamepad button is held (requires EngineConfig.gamepad and a connected pad; false otherwise). Axes are in in\->pad_axis[AXIS_*] as \-1..1. Button names are positional (PAD_SOUTH is A on Xbox, Cross on PlayStation, B on Nintendo) so the same code works on every controller.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+true if button b is held this frame.
 .SH MODULE
 input (src/engine/input/input.h)
 .SH SEE ALSO
 .BR pad_pressed (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR PadButton (3),
+.BR PadAxis (3),
+.BR gge\-api (7),
+.BR gge (1)

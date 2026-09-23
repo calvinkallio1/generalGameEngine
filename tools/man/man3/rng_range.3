@@ -1,25 +1,21 @@
 .TH RNG_RANGE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rng_range \- [lo,hi]
+rng_range \- A random integer in [lo, hi], both ends inclusive: rng_range(&g\->rng, 1, 6) is a die
 .SH SYNOPSIS
 .nf
 .B #include \(dqrng.h\(dq
 .BI "int rng_range(uint64_t *s, int lo, int hi);"
 .fi
 .SH DESCRIPTION
-[lo,hi]
+A random integer in [lo, hi], both ends inclusive: rng_range(&g\->rng, 1, 6) is a die. hi must be >= lo.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+an integer from lo to hi.
 .SH MODULE
 math (src/engine/math/rng.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR rng_float (3),
+.BR rng_between (3),
+.BR gge\-api (7),
+.BR gge (1)

@@ -1,0 +1,49 @@
+.TH CUTSTEP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+CutStep \- One instruction in a cutscene script
+.SH SYNOPSIS
+.nf
+.B #include \(dqcutscene.h\(dq
+.ft B
+typedef struct CutStep {
+  CutKind     kind;
+  float       duration;
+  Vec2       *actor;
+  Vec2        to;
+  const char *speaker, *text;
+  void      (*fn)(Engine *, void *ctx);
+} CutStep;
+.ft R
+.fi
+.SH DESCRIPTION
+One instruction in a cutscene script. Write scripts with the CUT_* macros rather than filling fields by hand. A script with no actors can be a static const array: static const CutStep intro[] = { CUT_FADE_IN_S(1), CUT_SAY_LINE("Cat", "Finally, a warm spot."), CUT_DO(give_key), CUT_FADE_OUT_S(1) };. A script that moves an entity in GameState is filled in at run time, because the entity's address is not a compile\-time constant: static CutStep walk[2]; walk[0] = (CutStep)CUT_MOVE_TO(&g\->player.pos, 200, 100, 2); walk[1] = (CutStep)CUT_SAY_LINE("Cat", "Here."); (each macro expands to a brace initializer, so a cast turns it into a compound literal). Which fields matter depends on kind.
+.SH FIELDS
+.TP
+.B kind
+what the step does
+.TP
+.B duration
+seconds, for WAIT, MOVE and the fades
+.TP
+.B actor
+pointer to the Vec2 to move, for MOVE; must stay valid for the cutscene's life (an entity in GameState is fine; a local is not)
+.TP
+.B to
+destination for MOVE
+.TP
+.B speaker
+name for SAY, or NULL
+.TP
+.B text
+line for SAY
+.TP
+.B fn
+callback for CALL; receives the Engine and the ctx passed to cutscene_start()
+.SH MODULE
+cutscene (src/engine/cutscene/cutscene.h)
+.SH SEE ALSO
+.BR CutKind (3),
+.BR cutscene_start (3),
+.BR CUT_WAIT_S (3),
+.BR gge\-api (7),
+.BR gge (1)

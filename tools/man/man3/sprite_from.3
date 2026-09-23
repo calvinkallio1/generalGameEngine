@@ -1,21 +1,20 @@
 .TH SPRITE_FROM 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-sprite_from \- engine function
+sprite_from \- Slice a texture into frame_w x frame_h cells and return the Sprite
 .SH SYNOPSIS
 .nf
 .B #include \(dqsprite.h\(dq
 .BI "Sprite sprite_from(Texture *tex, int frame_w, int frame_h);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/sprite/sprite.h and run 'gge genman'.
+Slice a texture into frame_w x frame_h cells and return the Sprite. columns is derived from the texture width, so a 128\-pixel\-wide sheet of 16\-pixel frames has 8 columns and frame 9 is row 1, column 1. Rows are implied by the height. A NULL texture yields a Sprite that draws nothing. For a single image, pass its full width and height and always draw frame 0.
+.SH RETURN VALUE
+the Sprite, by value.
 .SH MODULE
 sprite (src/engine/sprite/sprite.h)
 .SH SEE ALSO
-.BR anim_set (3),
-.BR anim_step (3),
-.BR anim_frame (3),
 .BR sprite_draw (3),
-.BR sprite_draw_scaled (3),
-.BR sprite_draw_tinted (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR assets_texture (3),
+.BR Sprite (3),
+.BR gge\-api (7),
+.BR gge (1)

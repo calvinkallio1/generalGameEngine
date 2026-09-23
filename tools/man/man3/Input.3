@@ -1,0 +1,79 @@
+.TH INPUT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Input \- Per\-frame snapshot of every input device
+.SH SYNOPSIS
+.nf
+.B #include \(dqinput.h\(dq
+.ft B
+typedef struct Input {
+  bool  keys[KEY_COUNT];
+  bool  prev_keys[KEY_COUNT];
+\&
+  float mouse_x, mouse_y;          /* logical coordinates */
+  float wheel;
+  unsigned mouse, prev_mouse;      /* button bitmasks */
+\&
+  bool  pad_connected;
+  bool  pad_buttons[PAD_BUTTON_COUNT];
+  bool  prev_pad_buttons[PAD_BUTTON_COUNT];
+  float pad_axis[AXIS_COUNT];      /* -1..1, dead zone applied */
+\&
+  char  text[32];                  /* typed characters this frame (only while engine_text_input is on) */
+  bool  quit_requested;
+} Input;
+.ft R
+.fi
+.SH DESCRIPTION
+Per\-frame snapshot of every input device. The engine fills it once per frame at the top of the loop; scenes only read it, either as the const Input * passed to handle_input or as &e\->input inside update. The prev_* copies are last frame's values, which is what makes "pressed this frame" a comparison rather than an event queue. Because the snapshot is taken per displayed frame, a key tapped and released between two frames can be missed at very low frame rates; at 60 fps this does not happen in practice.
+.SH FIELDS
+.TP
+.B keys
+true for every key currently held, indexed by Key
+.TP
+.B prev_keys
+keys as of the previous frame
+.TP
+.B mouse_x
+mouse x in logical pixels (already converted from the window, so it lines up with what you draw even when the window is resized or letterboxed)
+.TP
+.B mouse_y
+mouse y in logical pixels
+.TP
+.B wheel
+scroll wheel movement this frame: positive away from the user (up), negative toward; 0 when idle. Accumulates if several wheel events arrive in one frame.
+.TP
+.B mouse
+bitmask of held mouse buttons; query with mouse_down() rather than reading it
+.TP
+.B prev_mouse
+the mask as of the previous frame
+.TP
+.B pad_connected
+true while a gamepad is open (requires EngineConfig.gamepad)
+.TP
+.B pad_buttons
+true for every held gamepad button, indexed by PadButton
+.TP
+.B prev_pad_buttons
+buttons as of the previous frame
+.TP
+.B pad_axis
+stick and trigger values, indexed by PadAxis, \-1..1 with a 0.2 dead zone already applied (values inside the dead zone read as exactly 0). Sticks: negative is left/up. Triggers: 0..1.
+.TP
+.B text
+characters typed this frame as a UTF\-8 string, only while engine_text_input() is on; empty otherwise. At most 31 bytes.
+.TP
+.B quit_requested
+true once the window's close button (or the OS quit shortcut) was used; the engine ends the loop itself, so scenes rarely need it
+.SH MODULE
+input (src/engine/input/input.h)
+.SH SEE ALSO
+.BR key_down (3),
+.BR key_pressed (3),
+.BR mouse_pressed (3),
+.BR pad_down (3),
+.BR action_down (3),
+.BR engine_text_input (3),
+.BR gge\-input (7),
+.BR gge\-api (7),
+.BR gge (1)

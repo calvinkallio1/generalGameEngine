@@ -1,0 +1,157 @@
+.TH GGE\-BUILD 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-build \- project layout, CMake, engine options, gge.conf, and extending the engine
+.SH DESCRIPTION
+A game is a directory with a CMakeLists.txt, a src/ tree, an assets/ tree, and the engine checked out as a git submodule under vendored/engine. The engine builds as a static library together with SDL3 (and optionally SDL_image and SDL_ttf), and the game links it. \fBgge init\fR (gge(1)) creates all of this; this page explains what it made and how to change it.
+.PP
+.SH LAYOUT
+.PP
+.RS 4
+.EX
+my_game/
+  CMakeLists.txt
+  gge.conf                 project settings \-> src/gge_config.h (generated, not committed)
+  .clangd                  points clangd at build/compile_commands.json
+  src/
+    main.c                 EngineConfig, engine_init/run/shutdown
+    game_state.h           GameState, SAVE_VERSION, game_state_init
+    scenes.h               one 'Scene *x_scene(void);' per scene
+    scenes/scene_title.c   one file per scene
+    scenes/scene_game.c
+    entities/dog.h, dog.c  one pair per entity kind (gge entity)
+    data.h                 static const tables (optional)
+  assets/
+    sprites/ tiles/ fonts/ sfx/ music/
+  vendored/
+    engine/                the engine submodule (never edited from the game)
+      src/engine/<module>/ one folder per module
+      tools/gge            this tool; tools/man/ these pages
+      vendored/SDL, SDL_image, SDL_ttf
+  build/                   CMake output (ignored)
+.EE
+.RE
+.PP
+Every .c under src/ is compiled into the game automatically (\fBfile(GLOB_RECURSE ... CONFIGURE_DEPENDS)\fR), so adding a scene or entity file needs no CMake edit; just build again. Headers are found by bare name from anywhere in src/ and from the engine (\fB#include "engine.h"\fR, \fB#include "dog.h"\fR).
+.PP
+.SH CMAKELISTS.TXT
+The one \fBgge init\fR writes:
+.PP
+.RS 4
+.EX
+cmake_minimum_required(VERSION 3.21)
+project(my_game LANGUAGES C)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+\&
+set(ENGINE_WITH_IMAGE ON CACHE BOOL "" FORCE)     # PNG/JPG via SDL_image
+set(ENGINE_WITH_TTF   ON CACHE BOOL "" FORCE)     # fonts via SDL_ttf
+add_subdirectory(vendored/engine)
+\&
+add_custom_command(                               # gge.conf \-> src/gge_config.h
+  OUTPUT  ${CMAKE_CURRENT_SOURCE_DIR}/src/gge_config.h
+  COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/vendored/engine/tools/gge config
+          \-f ${CMAKE_CURRENT_SOURCE_DIR}/gge.conf \-e ${CMAKE_CURRENT_SOURCE_DIR}/src/gge_config.h
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/gge.conf)
+\&
+file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
+add_executable(${PROJECT_NAME} ${GAME_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/src/gge_config.h)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(${PROJECT_NAME} PRIVATE engine)      # engine headers, SDL3, SDL_image, SDL_ttf
+target_compile_options(${PROJECT_NAME} PRIVATE \-Wall \-Wextra)
+\&
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD       # assets/ next to the executable
+    COMMAND ${CMAKE_COMMAND} \-E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets)
+.EE
+.RE
+.PP
+The two \fBset(... CACHE BOOL "" FORCE)\fR lines must come before \fBadd_subdirectory(vendored/engine)\fR. Linking \fBengine\fR brings every engine module folder onto the include path and links SDL statically, so the executable has no .dll/.dylib/.so to ship.
+.PP
+.SH BUILDING
+.PP
+.RS 4
+.EX
+cmake \-S . \-B build \-DCMAKE_BUILD_TYPE=Debug      # once, and after changing CMakeLists or options
+cmake \-\-build build \-j                            # every time
+\&./build/my_game                                   # run from anywhere; assets are found next to the binary
+.EE
+.RE
+.PP
+The first build compiles SDL (a few minutes); later builds take seconds. \fB\-DCMAKE_BUILD_TYPE=Release\fR turns on optimization and defines NDEBUG (ASSERT disappears). Ninja (\fB\-G Ninja\fR) is faster than Make when installed. Delete \fBbuild/\fR to start over.
+.PP
+Requirements: CMake 3.21+, a C17 compiler (clang or gcc; on Windows, MinGW\-w64 or MSVC through the Visual Studio generator), git. On Linux, SDL needs the X11/Wayland development packages listed in vendored/engine/vendored/SDL/docs/README\-linux.md. On macOS, Xcode command line tools suffice. MSVC does not understand the GCC\-style \fB\-Wall \-Wextra\fR flags (it warns and ignores them); wrap that line in \fBif(NOT MSVC)\fR for a clean Windows build.
+.PP
+.SH ENGINE OPTIONS
+.TP
+\fBENGINE_WITH_IMAGE\fR
+builds SDL_image; assets_texture loads PNG/JPG. Off: BMP only.
+.TP
+\fBENGINE_WITH_TTF\fR
+builds SDL_ttf with its bundled FreeType; text_load_font works. Off: every Font is the 8x8 debug font.
+Both default to OFF inside the engine and are turned on from the game's CMakeLists (\fBgge init \-I \-T\fR writes them ON). Changing an option requires re\-running the configure step. The matching submodule must be checked out: \fBgit submodule update \-\-init \-\-recursive\fR from the game root fetches SDL, SDL_image and SDL_ttf through the engine.
+.PP
+.SH GGE.CONF
+.PP
+.RS 4
+.EX
+title=My Game
+logical_w=640
+logical_h=360
+window_scale=2
+tick_rate=60
+tile=16
+org=cal
+app=my_game
+.EE
+.RE
+.PP
+\fBgge config\fR turns it into src/gge_config.h as \fBGGE_TITLE\fR, \fBGGE_LOGICAL_W\fR, ... (strings quoted, numbers bare), which main.c uses to fill EngineConfig. The build regenerates the header whenever gge.conf changes. \fBgge config tick_rate 120\fR edits a value; \fBgge config\fR alone prints them all. Add your own keys freely (\fBmax_lives=3\fR becomes \fBGGE_MAX_LIVES\fR). Do not edit or commit gge_config.h.
+.PP
+.SH THE ENGINE AS A SUBMODULE
+\fBvendored/engine\fR is a git submodule pinned to a commit. To take a newer engine: \fBcd vendored/engine && git pull origin main && cd ../.. && git add vendored/engine && git commit \-m "engine update"\fR. Cloning a game elsewhere needs \fBgit clone \-\-recursive\fR, or \fBgit submodule update \-\-init \-\-recursive\fR afterwards. Fixes to the engine belong in the engine repository, committed there and then pulled into games; editing files under vendored/engine from a game leaves the game pointing at a dirty submodule.
+.PP
+.SH ADDING A MODULE TO THE ENGINE
+Inside the engine repository, a module is a folder under src/engine/ with a header and, if needed, a .c file; the engine's CMakeLists globs every folder into the library and adds each as a public include directory, so nothing else changes:
+.PP
+.RS 4
+.EX
+src/engine/particles/particles.h
+src/engine/particles/particles.c
+.EE
+.RE
+.PP
+Conventions the existing modules follow:
+.IP \(bu 2
+One prefix per module (\fBparticles_\fR), a struct the caller owns (\fBParticles\fR), init/update/draw functions taking a pointer to it, no hidden global state unless the module is a singleton by nature (assets cache, audio device).
+.IP \(bu 2
+No SDL types in the public header where an engine type exists (Color, Rect, Texture, Input).
+.IP \(bu 2
+Failures log and return false/NULL/zero; nothing aborts.
+.IP \(bu 2
+Anything a game may need to save is pointer\-free; anything with pointers is documented as presentation state.
+.IP \(bu 2
+A \fB/** ... */\fR comment above every public prototype, struct and macro, with \fB@return\fR, \fB@field\fR and \fB@see\fR lines, then \fBgge genman\fR to regenerate the section\-3 pages and gge\-api(7); a section\-7 page in tools/man/man7/gge\-<module>.7 for how the pieces fit.
+Game\-specific code stays in the game; the engine takes only what two games would both use.
+.PP
+.SH DEMOS INSIDE THE ENGINE
+The engine's own CMakeLists builds \fBsrc/game/*.c\fR into an executable named \fBgame_engine\fR when such files exist, with \fBassets/\fR copied beside it. It is a scratch space for trying engine changes without a separate project; it ships empty.
+.PP
+.SH EDITOR SUPPORT
+\fBCMAKE_EXPORT_COMPILE_COMMANDS ON\fR writes build/compile_commands.json; the \fB.clangd\fR file points clangd at it, so any editor with clangd (Neovim, VS Code, Emacs, Zed) gets completion and diagnostics for engine and SDL headers after the first configure.
+.PP
+.SH RELEASE CHECKLIST
+.IP \(bu 2
+Configure with \fB\-DCMAKE_BUILD_TYPE=Release\fR; build; run once from a fresh terminal to confirm assets resolve.
+.IP \(bu 2
+Zip the executable and its \fBassets/\fR folder together; nothing else is needed.
+.IP \(bu 2
+On macOS, users may need to right\-click > Open the first time (unsigned binary). On Windows, MinGW builds are standalone; MSVC builds may need the VC redistributable.
+.IP \(bu 2
+Lowercase asset names, \fBorg\fR/\fBapp\fR set so saves go to the user folder, F3 overlay off by default (it is), version in the title or the title screen.
+.SH SEE ALSO
+.BR gge (1),
+.BR gge\-overview (7),
+.BR gge\-assets (7),
+.BR gge\-engine (7),
+.BR EngineConfig (3)

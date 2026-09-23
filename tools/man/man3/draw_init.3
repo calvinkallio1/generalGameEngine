@@ -1,20 +1,16 @@
 .TH DRAW_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-draw_init \- Text in the built\-in 8x8 font
+draw_init \- Engine\-internal: remember the renderer and turn on alpha blending
 .SH SYNOPSIS
 .nf
 .B #include \(dqdraw.h\(dq
 .BI "void draw_init(SDL_Renderer *r);"
 .fi
 .SH DESCRIPTION
-Text in the built\-in 8x8 font. Always available; ideal for overlays and placeholder UI.
-/
-void draw_debug_text(float x, float y, Color c, const char *s);  /* built\-in 8x8 font */
-
-/* engine\-internal
+Engine\-internal: remember the renderer and turn on alpha blending. Called once by engine_init(); games never call it.
 .SH MODULE
 draw (src/engine/draw/draw.h)
 .SH SEE ALSO
-.BR text_draw (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_init (3),
+.BR gge\-api (7),
+.BR gge (1)

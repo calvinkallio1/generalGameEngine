@@ -1,25 +1,22 @@
 .TH SMOOTH_T 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-smooth_t \- engine function
+smooth_t \- Framerate\-independent smoothing: the fraction of the remaining distance to move toward a target this tick, given a time constant
 .SH SYNOPSIS
 .nf
 .B #include \(dqmathx.h\(dq
 .BI "float smooth_t(float smoothing, float dt);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/mathx.h and run 'gge genman'.
+Framerate\-independent smoothing: the fraction of the remaining distance to move toward a target this tick, given a time constant. value = lerpf(value, target, smooth_t(0.2f, dt)) approaches target with the same feel at any tick rate, reaching about 63% of the way in `smoothing` seconds. 0 or negative smoothing snaps (returns 1). camera_follow() is built on it.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+a fraction in 0..1.
 .SH MODULE
 math (src/engine/math/mathx.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR lerpf (3),
+.BR v2_lerp (3),
+.BR camera_follow (3),
+.BR gge\-api (7),
+.BR gge (1)

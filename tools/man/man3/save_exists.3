@@ -1,16 +1,18 @@
 .TH SAVE_EXISTS 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-save_exists \- Whether a slot file exists; use to enable a Continue item
+save_exists \- Whether a slot file exists; use to enable a Continue item on the title menu
 .SH SYNOPSIS
 .nf
 .B #include \(dqsave.h\(dq
 .BI "bool save_exists(const Save *s, const char *slot);"
 .fi
 .SH DESCRIPTION
-Whether a slot file exists; use to enable a Continue item.
+Whether a slot file exists; use to enable a Continue item on the title menu. Does not check the version; a stale file makes save_load() fail, so handle that too.
+.SH RETURN VALUE
+true if <slot>.sav exists.
 .SH MODULE
 save (src/engine/save/save.h)
 .SH SEE ALSO
 .BR save_load (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

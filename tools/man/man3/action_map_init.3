@@ -7,12 +7,13 @@ action_map_init \- Clear an ActionMap so every action is unbound
 .BI "void action_map_init(ActionMap *m);"
 .fi
 .SH DESCRIPTION
-Clear an ActionMap so every action is unbound. Call once in on_enter before binding.
+Clear an ActionMap so every action is unbound. Call once (in on_enter, or at new game) before binding; a zeroed struct is not the same as an initialized one because KEY_NONE, PAD_NONE and AXIS_NONE are not zero.
 .PP
 This is a static inline function; it is defined in the header.
 .SH MODULE
 input (src/engine/input/actions.h)
 .SH SEE ALSO
 .BR action_bind_key (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR ActionMap (3),
+.BR gge\-api (7),
+.BR gge (1)

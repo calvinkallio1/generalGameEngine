@@ -1,16 +1,17 @@
 .TH DRAW_RECT_OUTLINE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-draw_rect_outline \- One\-pixel outline of r
+draw_rect_outline \- One\-pixel outline of r, in logical pixels (so it scales up with the window)
 .SH SYNOPSIS
 .nf
 .B #include \(dqdraw.h\(dq
 .BI "void draw_rect_outline(Rect r, Color c);"
 .fi
 .SH DESCRIPTION
-One\-pixel outline of r.
+One\-pixel outline of r, in logical pixels (so it scales up with the window). Handy for selection boxes and for seeing hitboxes; for the latter prefer debug_rect(), which only shows with the F3 overlay.
 .SH MODULE
 draw (src/engine/draw/draw.h)
 .SH SEE ALSO
 .BR draw_rect (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR debug_rect (3),
+.BR gge\-api (7),
+.BR gge (1)

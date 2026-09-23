@@ -1,25 +1,22 @@
 .TH V2_SUB 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-v2_sub \- engine function
+v2_sub \- Component\-wise difference a \- b: the vector from b to a
 .SH SYNOPSIS
 .nf
 .B #include \(dqmathx.h\(dq
 .BI "Vec2 v2_sub(Vec2 a, Vec2 b);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/mathx.h and run 'gge genman'.
+Component\-wise difference a \- b: the vector from b to a. v2_sub(target, pos) points from pos toward target.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+a \- b.
 .SH MODULE
 math (src/engine/math/mathx.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR v2_add (3),
+.BR v2_dist (3),
+.BR v2_norm (3),
+.BR gge\-api (7),
+.BR gge (1)

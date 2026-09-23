@@ -1,0 +1,19 @@
+.TH SCENE_STACK_MAX 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+SCENE_STACK_MAX \- Maximum number of scenes on the stack at once
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.ft B
+#define SCENE_STACK_MAX 8
+.ft R
+.fi
+.SH DESCRIPTION
+Maximum number of scenes on the stack at once. A push beyond it is dropped and logged. Eight is plenty: gameplay, pause, options, confirm is four.
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR engine_push (3),
+.BR Engine (3),
+.BR gge\-api (7),
+.BR gge (1)

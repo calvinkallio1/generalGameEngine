@@ -1,21 +1,16 @@
 .TH TEXT_SHUTDOWN 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-text_shutdown \- engine function
+text_shutdown \- Engine\-internal: free the string cache and quit SDL_ttf
 .SH SYNOPSIS
 .nf
 .B #include \(dqtext.h\(dq
 .BI "void text_shutdown(void);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/text/text.h and run 'gge genman'.
+Engine\-internal: free the string cache and quit SDL_ttf. Called by engine_shutdown(); games never call it.
 .SH MODULE
 text (src/engine/text/text.h)
 .SH SEE ALSO
-.BR text_load_font (3),
-.BR text_draw (3),
-.BR text_size (3),
-.BR text_line_height (3),
-.BR text_draw_debug (3),
-.BR text_init (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR engine_shutdown (3),
+.BR gge\-api (7),
+.BR gge (1)

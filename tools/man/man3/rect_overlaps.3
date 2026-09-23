@@ -1,25 +1,22 @@
 .TH RECT_OVERLAPS 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rect_overlaps \- engine function
+rect_overlaps \- Whether two rectangles overlap (share any area)
 .SH SYNOPSIS
 .nf
 .B #include \(dqcollide.h\(dq
 .BI "bool rect_overlaps(Rect a, Rect b);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/collide.h and run 'gge genman'.
+Whether two rectangles overlap (share any area). The everyday collision test: bullet vs enemy, player vs pickup, entity vs trigger zone. Touching edges do not count. Test every pair with two loops; that is fast enough for hundreds of entities.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+true if a and b overlap.
 .SH MODULE
 math (src/engine/math/collide.h)
 .SH SEE ALSO
-.BR rect_at (3),
-.BR rect_centered (3),
-.BR rect_center (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
 .BR rect_hit_side (3),
-.BR v2 (3),
-.BR v2_add (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR circle_overlaps (3),
+.BR rect_contains (3),
+.BR gge\-api (7),
+.BR gge (1)

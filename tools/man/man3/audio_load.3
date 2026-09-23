@@ -1,20 +1,21 @@
 .TH AUDIO_LOAD 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-audio_load \- Load a .wav from assets/
+audio_load \- Load a .wav from assets/ (e.g. "sfx/jump.wav"; any sample rate or channel count, converted at play time)
 .SH SYNOPSIS
 .nf
 .B #include \(dqaudio.h\(dq
 .BI "Sound audio_load(const char *relative_path);"
 .fi
 .SH DESCRIPTION
-Load a .wav from assets/. Requires EngineConfig.audio = true.
+Load a .wav from assets/ (e.g. "sfx/jump.wav"; any sample rate or channel count, converted at play time). Requires EngineConfig.audio = true; without it, or when no audio device exists, the result is a zero Sound and playing it is silent. Not cached: two loads of the same file are two copies, so load each sound once per scene, in on_enter, into a static.
 .SH RETURN VALUE
 a Sound; zero (and logged) on failure. Free with audio_free in on_exit.
 .SH MODULE
 audio (src/engine/audio/audio.h)
 .SH SEE ALSO
 .BR audio_play (3),
+.BR audio_music (3),
 .BR audio_free (3),
 .BR gge\-assets (7),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR gge\-api (7),
+.BR gge (1)

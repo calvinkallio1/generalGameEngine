@@ -1,25 +1,22 @@
 .TH RECT_AT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rect_at \- engine function
+rect_at \- Build a Rect with its top\-left corner at pos and the given size: the hitbox of an entity whose pos is its top\-left
 .SH SYNOPSIS
 .nf
 .B #include \(dqcollide.h\(dq
 .BI "Rect rect_at(Vec2 pos, float w, float h);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/math/collide.h and run 'gge genman'.
+Build a Rect with its top\-left corner at pos and the given size: the hitbox of an entity whose pos is its top\-left. The entity template's hitbox helper is exactly this.
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the Rect.
 .SH MODULE
 math (src/engine/math/collide.h)
 .SH SEE ALSO
 .BR rect_centered (3),
-.BR rect_center (3),
 .BR rect_overlaps (3),
-.BR rect_contains (3),
-.BR circle_overlaps (3),
-.BR rect_hit_side (3),
-.BR v2 (3),
-.BR v2_add (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Rect (3),
+.BR gge\-api (7),
+.BR gge (1)

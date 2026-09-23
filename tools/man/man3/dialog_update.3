@@ -1,18 +1,18 @@
 .TH DIALOG_UPDATE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-dialog_update \- engine function
+dialog_update \- Advance the typewriter by dt and handle dismissal
 .SH SYNOPSIS
 .nf
 .B #include \(dqdialog.h\(dq
 .BI "void dialog_update(Dialog *d, const Input *in, float dt);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/dialog/dialog.h and run 'gge genman'.
+Advance the typewriter by dt and handle dismissal. SPACE, ENTER, a left click, or PAD_SOUTH pressed this frame first completes the line (if still typing) and then, on the next press, closes it. Call from the owning scene's handle_input with e\->dt, or from update with &e\->input, but from only one of them. Does nothing when inactive.
 .SH MODULE
 dialog (src/engine/dialog/dialog.h)
 .SH SEE ALSO
 .BR dialog_show (3),
-.BR dialog_render (3),
 .BR dialog_done (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR key_pressed (3),
+.BR gge\-api (7),
+.BR gge (1)

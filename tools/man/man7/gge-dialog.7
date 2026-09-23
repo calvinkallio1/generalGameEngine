@@ -1,0 +1,99 @@
+.TH GGE\-DIALOG 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-dialog \- typewriter speech boxes and conversations
+.SH DESCRIPTION
+A \fBDialog\fR (dialog.h) shows one line of speech in a box across the bottom of the screen: an optional speaker name in yellow, the text revealed character by character, word\-wrapped to three lines. The player presses SPACE, ENTER, PAD_SOUTH or clicks to complete the line, then again to dismiss it. One Dialog shows one line at a time; a conversation is a sequence of lines driven by dialog_done(3). It is presentation state (it keeps pointers to the strings), so it lives in a scene static.
+.PP
+.SH ONE LINE
+.PP
+.RS 4
+.EX
+#include "dialog.h"
+static Dialog dlg;                                  /* zero: debug font, 40 chars/s */
+\&
+static void on_enter(Engine *e, Scene *s) { dlg = (Dialog){ .font = font, .chars_per_sec = 50 }; }
+\&
+/* somewhere in update, when the player talks to a sign */
+dialog_show(&dlg, NULL, "The cat cafe is closed on Mondays.");
+\&
+static void handle_input(Engine *e, Scene *s, const Input *in) {
+  if (!dialog_done(&dlg)) { dialog_update(&dlg, in, e\->dt); return; }   /* the box eats input */
+  ... normal input ...
+}
+static void render(Engine *e, Scene *s, float alpha) {
+  ... world, HUD ...
+  dialog_render(&dlg, e);                            /* last, so it is on top */
+}
+.EE
+.RE
+.PP
+While a line is showing, the scene decides what else happens: the example above swallows all input, and update can check \fBdialog_done\fR to freeze the player while keeping enemies moving, or freeze everything, as the game wants. dialog_render draws nothing when inactive, so it can always be called.
+.PP
+.SH CONVERSATIONS
+Lines are data; the scene walks them:
+.PP
+.RS 4
+.EX
+typedef struct Line { const char *who, *text; } Line;
+static const Line shopkeeper[] = {
+  { "Shopkeeper", "Welcome. Fish is on sale." },
+  { "You",        "Do you take yarn?" },
+  { "Shopkeeper", "Only the good kind." },
+};
+static const Line *convo; static int convo_len, convo_at;
+\&
+static void start_convo(const Line *lines, int n) { convo = lines; convo_len = n; convo_at = 0; dialog_show(&dlg, lines[0].who, lines[0].text); }
+\&
+static void update(Engine *e, Scene *s, float dt) {
+  if (convo && dialog_done(&dlg)) {
+    if (++convo_at < convo_len) dialog_show(&dlg, convo[convo_at].who, convo[convo_at].text);
+    else { convo = NULL; on_convo_end(e); }        /* give the item, set the flag */
+  }
+  ...
+}
+.EE
+.RE
+.PP
+Branching: a conversation's last line can open a two\-item menu scene (gge\-menu(7)) whose actions start the next conversation. Conditions: pick the array from GameState flags before starting (\fBg\->flags[MET_SHOPKEEPER] ? repeat_lines : first_lines\fR). For cutscene\-style delivery with movement and fades between lines, use gge\-cutscene(7), whose CUT_SAY steps use this module.
+.PP
+.SH TEXT FROM GAMESTATE
+The Dialog keeps the string pointer, not a copy. Literals and static tables are safe; a line built with snprintf must go into a static buffer that stays untouched until the line is dismissed:
+.PP
+.RS 4
+.EX
+static char line[128];
+snprintf(line, sizeof line, "You found %d coins!", n);
+dialog_show(&dlg, NULL, line);
+.EE
+.RE
+.PP
+.SH APPEARANCE
+The box is drawn from the engine's defaults: translucent black with a white outline, 8 px inset from the screen edges, tall enough for the speaker plus three lines of the font. Change the font and speed through the struct; for a differently styled box (portrait, custom frame), draw your own panel and portrait in render \fIbefore\fR dialog_render, sized to match, or reimplement the few lines of dialog_render with text_draw (gge\-text(7)) and keep dialog_update for the typing and input logic.
+.PP
+.SH SPEED AND SKIPPING
+\fBchars_per_sec\fR (0 = 40) sets the typewriter rate; 30 reads slowly, 60 quickly, 1000 is effectively instant. The first advance press completes the line, the second dismisses it, so an impatient player double\-taps. A "skip all" is the scene setting \fBconvo = NULL\fR and \fBdlg.active = false\fR on a key.
+.PP
+.SH SOUND
+Play a short blip from update every few characters: keep \fBlast_shown\fR in a static, and when \fB(int)dlg.chars_shown / 3\fR changes, \fBaudio_play(&blip, 0.5f)\fR.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+Calling dialog_update from both handle_input and update: the typing runs twice as fast and presses count twice. One or the other.
+.IP \(bu 2
+Passing a local buffer: the text is dangling by the next frame.
+.IP \(bu 2
+Lines longer than three wrapped lines: cut off. Split them into two dialog_show calls.
+.IP \(bu 2
+Forgetting to call dialog_render last: the box sits under the HUD.
+.IP \(bu 2
+Reading the advance keys yourself while a dialog is active: both fire.
+.SH SEE ALSO
+.BR Dialog (3),
+.BR dialog_show (3),
+.BR dialog_update (3),
+.BR dialog_render (3),
+.BR dialog_done (3),
+.BR text_load_font (3),
+.BR gge\-cutscene (7),
+.BR gge\-menu (7),
+.BR gge\-text (7)

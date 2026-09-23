@@ -1,0 +1,204 @@
+.TH GGE\-ENTITIES 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-entities \- the entity pattern: arrays, indices, init/tick/hitbox, spawning, interaction
+.SH DESCRIPTION
+The engine has no entity system, and does not need one. An entity is a plain struct inside GameState; a kind of entity is a fixed\-size array of them with an \fBalive\fR flag; behavior is a \fBtick\fR function you write. This page is the pattern the entity template (\fBgge entity <name>\fR, gge(1)) follows, and how it scales from one player to hundreds of bullets, enemies and particles.
+.PP
+.SH ONE ENTITY
+.PP
+.RS 4
+.EX
+/* src/entities/dog.h */
+#pragma once
+#include <stdint.h>
+#include <stdbool.h>
+#include "mathx.h"
+#include "collide.h"
+#include "sprite.h"
+\&
+#define DOG_W 16
+#define DOG_H 12
+\&
+typedef enum { DOG_IDLE, DOG_WANDER, DOG_CHASE } DogState;
+\&
+typedef struct Dog {          /* pointer\-free: lives inside GameState */
+  Vec2 pos, vel;
+  int  hp;
+  DogState state;
+  float think;                /* seconds until next decision */
+  AnimState anim;
+  bool alive;
+} Dog;
+\&
+void dog_init(Dog *d, Vec2 pos);
+void dog_tick(Dog *d, uint64_t *rng, Vec2 player, float dt);
+static inline Rect dog_hitbox(const Dog *d) { return rect_at(d\->pos, DOG_W, DOG_H); }
+.EE
+.RE
+.PP
+.PP
+.RS 4
+.EX
+/* src/entities/dog.c */
+#include "dog.h"
+#include "rng.h"
+#include <string.h>
+\&
+void dog_init(Dog *d, Vec2 pos) {
+  memset(d, 0, sizeof *d);
+  d\->pos = pos; d\->hp = 3; d\->alive = true;
+}
+\&
+void dog_tick(Dog *d, uint64_t *rng, Vec2 player, float dt) {
+  d\->think \-= dt;
+  switch (d\->state) {
+    case DOG_IDLE:
+      if (d\->think <= 0) { d\->state = DOG_WANDER; d\->vel = v2(rng_between(rng, \-30, 30), rng_between(rng, \-30, 30)); d\->think = 1.5f; }
+      break;
+    case DOG_WANDER:
+      if (d\->think <= 0) { d\->state = DOG_IDLE; d\->vel = v2(0, 0); d\->think = rng_between(rng, 0.5f, 2.0f); }
+      break;
+    case DOG_CHASE:
+      d\->vel = v2_scale(v2_norm(v2_sub(player, d\->pos)), 50);
+      if (v2_dist(player, d\->pos) > 120) d\->state = DOG_IDLE;
+      break;
+  }
+  if (d\->state != DOG_CHASE && v2_dist(player, d\->pos) < 80) d\->state = DOG_CHASE;
+  d\->pos = v2_add(d\->pos, v2_scale(d\->vel, dt));
+}
+.EE
+.RE
+.PP
+Three rules make this work everywhere: the struct holds no pointers; \fBtick\fR takes what it needs as arguments (the RNG, the player's position, the map) instead of reaching for globals; drawing is not in the entity file, because drawing is presentation (the scene knows the camera and the sprite sheet).
+.PP
+.SH MANY ENTITIES
+A kind of entity is an array in GameState with a capacity, and every slot has \fBalive\fR:
+.PP
+.RS 4
+.EX
+#define MAX_DOGS 32
+typedef struct GameState { ...; Dog dogs[MAX_DOGS]; ... } GameState;
+\&
+/* spawn: first free slot, or fail */
+int dog_spawn(GameState *g, Vec2 pos) {
+  for (int i = 0; i < MAX_DOGS; ++i)
+    if (!g\->dogs[i].alive) { dog_init(&g\->dogs[i], pos); return i; }
+  return \-1;
+}
+\&
+/* tick every live one (in the scene's update) */
+for (int i = 0; i < MAX_DOGS; ++i)
+  if (g\->dogs[i].alive) dog_tick(&g\->dogs[i], &g\->rng, g\->player.pos, dt);
+\&
+/* despawn: clear the flag; the slot is reused later */
+g\->dogs[i].alive = false;
+.EE
+.RE
+.PP
+No allocation, no lists, no fragmentation, nothing to free, and it saves by memcpy. Iterating 32 or 512 slots each tick is negligible. Choose the capacity from the design (how many can exist at once) and add a WARN when \fBspawn\fR returns \-1 so you notice.
+.PP
+.SS Referring to entities
+Use the index: \fBint target = ...; Dog *t = &g\->dogs[target];\fR. Store the index in GameState (\fBg\->player.locked_target = i\fR). Check \fBalive\fR before using a stored index, because the slot may have been reused since. Never store \fBDog *\fR anywhere that outlives the current function.
+.PP
+.SS Spawning during a tick
+Spawning into the array you are iterating is safe (the new entity is ticked this frame if its index is higher, next frame otherwise); despawning is safe too. Keep it simple; do not try to compact the array.
+.PP
+.SH INTERACTION
+Pairs of kinds meet in the scene's update, after both have ticked:
+.PP
+.RS 4
+.EX
+for (int b = 0; b < MAX_BULLETS; ++b) {
+  if (!g\->bullets[b].alive) continue;
+  Rect br = bullet_hitbox(&g\->bullets[b]);
+  for (int d = 0; d < MAX_DOGS; ++d) {
+    if (!g\->dogs[d].alive) continue;
+    if (rect_overlaps(br, dog_hitbox(&g\->dogs[d]))) {
+      g\->dogs[d].hp \-= 1;
+      g\->bullets[b].alive = false;
+      if (g\->dogs[d].hp <= 0) { g\->dogs[d].alive = false; g\->player.score += 10; }
+      break;
+    }
+  }
+}
+.EE
+.RE
+.PP
+Nested loops over a few hundred entities each are fine at 60 ticks per second. For thousands (bullet hell), test bullets against a coarse grid or only against entities near the camera. rect_overlaps(3), circle_overlaps(3) and rect_hit_side(3) cover the tests; tilemap_move(3) handles entity\-versus\-level.
+.PP
+.SH DRAWING ENTITIES
+In render, convert through the camera and pick the frame from the entity's AnimState:
+.PP
+.RS 4
+.EX
+for (int i = 0; i < MAX_DOGS; ++i) {
+  const Dog *d = &g\->dogs[i];
+  if (!d\->alive) continue;
+  Vec2 s = camera_to_screen(&cam, d\->pos);
+  sprite_draw(&dog_sheet, anim_frame(&d\->anim, &dog_anims[d\->anim.anim]), s.x, s.y, 0,
+              d\->vel.x < 0 ? FLIP_H : FLIP_NONE);
+}
+.EE
+.RE
+.PP
+For smooth motion between ticks keep a parallel array of previous positions in a scene static (\fBstatic Vec2 prev_dogs[MAX_DOGS];\fR), copy \fBpos\fR into it at the top of update, and draw at \fBv2_lerp(prev_dogs[i], d\->pos, alpha)\fR (gge\-drawing(7)).
+.PP
+.SH SHAPES OF ENTITY
+.TP
+\fBPlayer\fR
+One struct, not an array. Input is read by the scene and turned into intent (\fBmove_x\fR, \fBjump_pressed\fR) before the tick, so the tick function is testable and the same for a replay.
+.TP
+\fBEnemy with AI\fR
+A state enum and a \fBthink\fR timer, as above; a state machine per kind. Perception is a distance check or a tilemap line\-of\-sight walk.
+.TP
+\fBBullet / projectile\fR
+pos, vel, \fBlife\fR seconds; despawn when life runs out or it leaves the camera's visible rect.
+.TP
+\fBPickup\fR
+pos, kind, alive; collected on overlap with the player.
+.TP
+\fBParticle\fR
+pos, vel, life, color; hundreds of them; purely visual, so the array may live in a scene static rather than GameState (they need not survive a save).
+.TP
+\fBTrigger / zone\fR
+a Rect and a flag; fires once when the player enters.
+.TP
+\fBTurn\-based unit\fR
+pos in tile coordinates (ints), stats; no vel; a separate \fBVec2 draw_pos\fR that tweens toward \fBpos\fR for animation.
+.TP
+\fBGrid cell (puzzle, board game)\fR
+not an entity at all: a 2D array of small structs or ints in GameState, indexed by tile.
+.SH A GENERIC ENTITY, IF YOU WANT ONE
+Games with many interacting kinds can use one struct with a \fBkind\fR enum and a union or shared fields:
+.PP
+.RS 4
+.EX
+typedef enum { E_NONE, E_PLAYER, E_DOG, E_BULLET, E_COIN } Kind;
+typedef struct Entity { Kind kind; Vec2 pos, vel; int hp; float life; AnimState anim; bool alive; } Entity;
+#define MAX_ENTITIES 256
+.EE
+.RE
+.PP
+and one \fBentity_tick\fR that switches on kind. Collision loops then compare every live pair once. The per\-kind arrays above are simpler when kinds are few and behave differently; the generic array wins when many kinds share movement and hit rules.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+A pointer stored across frames. It points into GameState, and GameState is copied by saves and by the quick\-save test; store the index.
+.IP \(bu 2
+Ticking a dead entity: always test \fBalive\fR first.
+.IP \(bu 2
+Reading input inside a tick: pass intent in as arguments; the tick should not know about keys.
+.IP \(bu 2
+Spawning from render: render runs at display rate and must not change state.
+.IP \(bu 2
+Forgetting to clear \fBalive\fR in \fBgame_state_init\fR: the \fB*g = (GameState){0}\fR line does it for every array.
+.SH SEE ALSO
+.BR gge\-state (7),
+.BR rect_overlaps (3),
+.BR rect_hit_side (3),
+.BR circle_overlaps (3),
+.BR tilemap_move (3),
+.BR anim_step (3),
+.BR rng_between (3),
+.BR gge (1),
+.BR gge\-drawing (7)

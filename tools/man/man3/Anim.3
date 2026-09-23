@@ -1,0 +1,34 @@
+.TH ANIM 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Anim \- One named animation: a contiguous run of frames on a sheet and how fast to play them
+.SH SYNOPSIS
+.nf
+.B #include \(dqsprite.h\(dq
+.ft B
+typedef struct Anim   { int first, count; float frame_time; bool loop; } Anim;
+.ft R
+.fi
+.SH DESCRIPTION
+One named animation: a contiguous run of frames on a sheet and how fast to play them. Define them as static const data, one per action, usually in an array indexed by an enum: static const Anim cat_anims[] = { [CAT_IDLE] = { 0, 4, 0.25f, true }, [CAT_RUN] = { 4, 6, 0.08f, true } };. An Anim holds no playback position; that is AnimState.
+.SH FIELDS
+.TP
+.B first
+sheet index of the first frame
+.TP
+.B count
+number of frames; 1 is a still
+.TP
+.B frame_time
+seconds each frame is shown
+.TP
+.B loop
+true to wrap around forever, false to stop on the last frame and set AnimState.done
+.SH MODULE
+sprite (src/engine/sprite/sprite.h)
+.SH SEE ALSO
+.BR AnimState (3),
+.BR anim_step (3),
+.BR anim_frame (3),
+.BR Sprite (3),
+.BR gge\-api (7),
+.BR gge (1)

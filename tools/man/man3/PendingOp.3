@@ -1,0 +1,26 @@
+.TH PENDINGOP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+PendingOp \- One queued scene\-stack change, stored in Engine.pending until the current callback returns
+.SH SYNOPSIS
+.nf
+.B #include \(dqengine.h\(dq
+.ft B
+typedef struct PendingOp { SceneOp op; Scene *scene; } PendingOp;
+.ft R
+.fi
+.SH DESCRIPTION
+One queued scene\-stack change, stored in Engine.pending until the current callback returns. Internal; documented so the Engine struct reads clearly.
+.SH FIELDS
+.TP
+.B op
+what to do
+.TP
+.B scene
+the scene to push (NULL for a pop)
+.SH MODULE
+core (src/engine/core/engine.h)
+.SH SEE ALSO
+.BR SceneOp (3),
+.BR Engine (3),
+.BR gge\-api (7),
+.BR gge (1)

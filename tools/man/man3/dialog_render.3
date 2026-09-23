@@ -1,18 +1,17 @@
 .TH DIALOG_RENDER 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-dialog_render \- engine function
+dialog_render \- Draw the box: a translucent black panel with a white outline across the bottom of the logical screen, the speaker in yellow, and up to three word\-wrapped lines of the revealed text
 .SH SYNOPSIS
 .nf
 .B #include \(dqdialog.h\(dq
 .BI "void dialog_render(Dialog *d, Engine *e);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/dialog/dialog.h and run 'gge genman'.
+Draw the box: a translucent black panel with a white outline across the bottom of the logical screen, the speaker in yellow, and up to three word\-wrapped lines of the revealed text. Text beyond three lines is cut off; keep lines short or split them. Draws nothing when inactive. Call last in render so it sits above the world.
 .SH MODULE
 dialog (src/engine/dialog/dialog.h)
 .SH SEE ALSO
-.BR dialog_show (3),
 .BR dialog_update (3),
-.BR dialog_done (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR text_draw (3),
+.BR gge\-api (7),
+.BR gge (1)

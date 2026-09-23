@@ -1,0 +1,25 @@
+.TH SAVE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Save \- The folder save slots are written to
+.SH SYNOPSIS
+.nf
+.B #include \(dqsave.h\(dq
+.ft B
+typedef struct Save { char dir[512]; } Save;
+.ft R
+.fi
+.SH DESCRIPTION
+The folder save slots are written to. The engine fills Engine.save during engine_init() from EngineConfig.org and app (a per\-user folder such as ~/.local/share/org/app/ or the platform equivalent), or the current directory when either is NULL. Games only ever pass &e\->save.
+.SH FIELDS
+.TP
+.B dir
+absolute path with a trailing separator
+.SH MODULE
+save (src/engine/save/save.h)
+.SH SEE ALSO
+.BR save_write (3),
+.BR save_load (3),
+.BR EngineConfig (3),
+.BR gge\-saves (7),
+.BR gge\-api (7),
+.BR gge (1)

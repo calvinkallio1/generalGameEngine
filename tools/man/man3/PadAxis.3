@@ -1,0 +1,51 @@
+.TH PADAXIS 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+PadAxis \- Gamepad analog axes, indexes into Input.pad_axis
+.SH SYNOPSIS
+.nf
+.B #include \(dqkeys.h\(dq
+.ft B
+typedef enum PadAxis {
+  AXIS_LEFT_X  = SDL_GAMEPAD_AXIS_LEFTX,  AXIS_LEFT_Y  = SDL_GAMEPAD_AXIS_LEFTY,
+  AXIS_RIGHT_X = SDL_GAMEPAD_AXIS_RIGHTX, AXIS_RIGHT_Y = SDL_GAMEPAD_AXIS_RIGHTY,
+  AXIS_LT = SDL_GAMEPAD_AXIS_LEFT_TRIGGER, AXIS_RT = SDL_GAMEPAD_AXIS_RIGHT_TRIGGER,
+  AXIS_NONE = SDL_GAMEPAD_AXIS_INVALID,
+  AXIS_COUNT = SDL_GAMEPAD_AXIS_COUNT,
+} PadAxis;
+.ft R
+.fi
+.SH DESCRIPTION
+Gamepad analog axes, indexes into Input.pad_axis. Sticks read \-1..1 on each axis (negative = left or up), triggers 0..1. A 0.2 dead zone is applied by the engine so a resting stick reads exactly 0. AXIS_NONE means none in an ActionMap; AXIS_COUNT sizes the array.
+.SH VALUES
+.TP
+.B AXIS_LEFT_X
+left stick horizontal
+.TP
+.B AXIS_LEFT_Y
+left stick vertical (negative = up)
+.TP
+.B AXIS_RIGHT_X
+right stick horizontal
+.TP
+.B AXIS_RIGHT_Y
+right stick vertical
+.TP
+.B AXIS_LT
+left trigger, 0..1
+.TP
+.B AXIS_RT
+right trigger, 0..1
+.TP
+.B AXIS_NONE
+no axis (unbound)
+.TP
+.B AXIS_COUNT
+array size
+.SH MODULE
+input (src/engine/input/keys.h)
+.SH SEE ALSO
+.BR action_bind_axis (3),
+.BR action_axis (3),
+.BR Input (3),
+.BR gge\-api (7),
+.BR gge (1)

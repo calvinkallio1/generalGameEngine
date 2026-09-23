@@ -1,0 +1,34 @@
+.TH COLOR 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Color \- An RGBA color with 8\-bit channels, 0..255 each
+.SH SYNOPSIS
+.nf
+.B #include \(dqtypes.h\(dq
+.ft B
+typedef SDL_Color   Color;     /* { uint8_t r, g, b, a } */
+.ft R
+.fi
+.SH DESCRIPTION
+An RGBA color with 8\-bit channels, 0..255 each. Alpha 255 is opaque, 0 is invisible; every draw call blends, so alpha between the two is translucent. Build one with rgb(), rgba() or a COLOR_* constant. A Color whose alpha is 0 is treated as "unset" by several modules (EngineConfig.clear_color, Menu.color), which then substitute a default.
+.SH FIELDS
+.TP
+.B r
+red, 0..255
+.TP
+.B g
+green, 0..255
+.TP
+.B b
+blue, 0..255
+.TP
+.B a
+alpha (opacity), 0..255
+.SH MODULE
+types (src/engine/types/types.h)
+.SH SEE ALSO
+.BR rgb (3),
+.BR rgba (3),
+.BR draw_rect (3),
+.BR gge\-types (7),
+.BR gge\-api (7),
+.BR gge (1)

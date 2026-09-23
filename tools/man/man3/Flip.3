@@ -1,0 +1,33 @@
+.TH FLIP 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Flip \- How to mirror an image when drawing it
+.SH SYNOPSIS
+.nf
+.B #include \(dqtypes.h\(dq
+.ft B
+typedef enum Flip {
+  FLIP_NONE = SDL_FLIP_NONE,
+  FLIP_H    = SDL_FLIP_HORIZONTAL,
+  FLIP_V    = SDL_FLIP_VERTICAL,
+} Flip;
+.ft R
+.fi
+.SH DESCRIPTION
+How to mirror an image when drawing it. Combine with | for both axes (FLIP_H | FLIP_V). Flipping happens about the destination rectangle's center, after rotation.
+.SH VALUES
+.TP
+.B FLIP_NONE
+draw as stored
+.TP
+.B FLIP_H
+mirror left\-right (a right\-facing sprite faces left)
+.TP
+.B FLIP_V
+mirror top\-bottom
+.SH MODULE
+types (src/engine/types/types.h)
+.SH SEE ALSO
+.BR draw_texture_ex (3),
+.BR sprite_draw (3),
+.BR gge\-api (7),
+.BR gge (1)

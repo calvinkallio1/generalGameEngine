@@ -1,18 +1,20 @@
 .TH ASSETS_PATH 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-assets_path \- absolute path helper
+assets_path \- Build the absolute path of a file under assets/ into buf (n bytes) and return buf
 .SH SYNOPSIS
 .nf
 .B #include \(dqassets.h\(dq
 .BI "const char  * assets_path(const char *relative_path, char *buf, size_t n);"
 .fi
 .SH DESCRIPTION
-absolute path helper
+Build the absolute path of a file under assets/ into buf (n bytes) and return buf. assets/ is located next to the executable, where CMake copies the project's assets/ folder after each build. Use it to open your own data files (level text, dialogue scripts, CSV tables) with fopen: char p[1024]; FILE *f = fopen(assets_path("levels/1.txt", p, sizeof p), "rb");.
+.SH RETURN VALUE
+buf, for use directly inside a call.
 .SH MODULE
 assets (src/engine/assets/assets.h)
 .SH SEE ALSO
 .BR assets_texture (3),
-.BR assets_init (3),
-.BR assets_unload_all (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR tilemap_load_csv (3),
+.BR gge\-assets (7),
+.BR gge\-api (7),
+.BR gge (1)

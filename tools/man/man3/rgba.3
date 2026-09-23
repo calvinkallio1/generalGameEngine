@@ -1,19 +1,21 @@
 .TH RGBA 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-rgba \- engine function
+rgba \- Build a Color with an explicit alpha (0 invisible 
 .SH SYNOPSIS
 .nf
 .B #include \(dqtypes.h\(dq
 .BI "Color rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a);"
 .fi
 .SH DESCRIPTION
-No description yet. Add a /** ... */ comment above the prototype in src/engine/types/types.h and run 'gge genman'.
+Build a Color with an explicit alpha (0 invisible .. 255 opaque). rgba(0,0,0,160) over the whole screen is the usual "dim the game behind a pause menu".
 .PP
 This is a static inline function; it is defined in the header.
+.SH RETURN VALUE
+the Color.
 .SH MODULE
 types (src/engine/types/types.h)
 .SH SEE ALSO
 .BR rgb (3),
-.BR rect (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR Color (3),
+.BR gge\-api (7),
+.BR gge (1)

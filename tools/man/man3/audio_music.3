@@ -7,10 +7,12 @@ audio_music \- Loop s as the music track at gain, replacing any current music
 .BI "void audio_music(const Sound *s, float gain);"
 .fi
 .SH DESCRIPTION
-Loop s as the music track at gain, replacing any current music. s must outlive the playback.
+Loop s as the music track at gain, replacing any current music. s must outlive the playback: keep it in a static and stop the music before freeing it. Restarts from the beginning; there is no crossfade, so a level with the same track as the previous one should not call it again. Loops seamlessly if the file loops cleanly.
 .SH MODULE
 audio (src/engine/audio/audio.h)
 .SH SEE ALSO
 .BR audio_music_stop (3),
-.BR gge (1),
-.BR gge\-scenes (7)
+.BR audio_free (3),
+.BR audio_set_master (3),
+.BR gge\-api (7),
+.BR gge (1)

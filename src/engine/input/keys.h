@@ -3,6 +3,9 @@
  * the SDL code underneath, so they index the same tables; games just never see "SDL_". */
 #include <SDL3/SDL.h>
 
+/** Keyboard keys by physical position (scancodes): KEY_W is the key where W sits on a US layout, wherever the user's layout puts the letter, which keeps WASD usable on AZERTY and Dvorak keyboards. Pass to key_down(), key_pressed(), key_released() and action_bind_key(). KEY_NONE means "no key" in an ActionMap; KEY_COUNT sizes the Input arrays. Letters, digits, F1-F12, arrows, SPACE, ENTER, ESCAPE, TAB, BACKSPACE, DELETE, both SHIFT/CTRL/ALT, common punctuation and HOME/END/PAGEUP/PAGEDOWN are named. F3 and F11 are consumed by the engine (debug overlay, fullscreen) before scenes see them, though they still appear in Input.keys.
+ *  @see key_down, key_pressed, action_bind_key, Input, gge-input
+ */
 typedef enum Key {
   KEY_A = SDL_SCANCODE_A, KEY_B = SDL_SCANCODE_B, KEY_C = SDL_SCANCODE_C, KEY_D = SDL_SCANCODE_D,
   KEY_E = SDL_SCANCODE_E, KEY_F = SDL_SCANCODE_F, KEY_G = SDL_SCANCODE_G, KEY_H = SDL_SCANCODE_H,
@@ -32,12 +35,38 @@ typedef enum Key {
   KEY_COUNT = SDL_SCANCODE_COUNT,
 } Key;
 
+/** Mouse buttons for mouse_down(), mouse_pressed() and mouse_released().
+ *  @field MOUSE_LEFT primary button
+ *  @field MOUSE_MIDDLE wheel click
+ *  @field MOUSE_RIGHT secondary button
+ *  @see mouse_pressed, Input
+ */
 typedef enum MouseButton {
   MOUSE_LEFT   = SDL_BUTTON_LEFT,
   MOUSE_MIDDLE = SDL_BUTTON_MIDDLE,
   MOUSE_RIGHT  = SDL_BUTTON_RIGHT,
 } MouseButton;
 
+/** Gamepad buttons, named by position on the controller so one binding works on Xbox, PlayStation and Nintendo pads. Pass to pad_down(), pad_pressed() and action_bind_pad(). PAD_NONE means unbound in an ActionMap; PAD_BUTTON_COUNT sizes the Input arrays.
+ *  @field PAD_SOUTH bottom face button: A on Xbox, Cross on PlayStation, B on Nintendo. The conventional confirm/jump.
+ *  @field PAD_EAST right face button: B / Circle / A. The conventional cancel/back.
+ *  @field PAD_WEST left face button: X / Square / Y
+ *  @field PAD_NORTH top face button: Y / Triangle / X
+ *  @field PAD_BACK Back / Share / Minus
+ *  @field PAD_GUIDE the Xbox / PS / Home button; often intercepted by the OS
+ *  @field PAD_START Start / Options / Plus. The conventional pause.
+ *  @field PAD_LSTICK clicking the left stick
+ *  @field PAD_RSTICK clicking the right stick
+ *  @field PAD_LB left shoulder bumper
+ *  @field PAD_RB right shoulder bumper
+ *  @field PAD_DPAD_UP directional pad up
+ *  @field PAD_DPAD_DOWN directional pad down
+ *  @field PAD_DPAD_LEFT directional pad left
+ *  @field PAD_DPAD_RIGHT directional pad right
+ *  @field PAD_NONE no button (unbound)
+ *  @field PAD_BUTTON_COUNT array size
+ *  @see pad_down, pad_pressed, action_bind_pad, PadAxis
+ */
 typedef enum PadButton {
   PAD_SOUTH = SDL_GAMEPAD_BUTTON_SOUTH,   /* A on Xbox, Cross on PlayStation, B on Nintendo */
   PAD_EAST  = SDL_GAMEPAD_BUTTON_EAST,    /* B / Circle / A */
@@ -54,6 +83,17 @@ typedef enum PadButton {
   PAD_BUTTON_COUNT = SDL_GAMEPAD_BUTTON_COUNT,
 } PadButton;
 
+/** Gamepad analog axes, indexes into Input.pad_axis. Sticks read -1..1 on each axis (negative = left or up), triggers 0..1. A 0.2 dead zone is applied by the engine so a resting stick reads exactly 0. AXIS_NONE means none in an ActionMap; AXIS_COUNT sizes the array.
+ *  @field AXIS_LEFT_X left stick horizontal
+ *  @field AXIS_LEFT_Y left stick vertical (negative = up)
+ *  @field AXIS_RIGHT_X right stick horizontal
+ *  @field AXIS_RIGHT_Y right stick vertical
+ *  @field AXIS_LT left trigger, 0..1
+ *  @field AXIS_RT right trigger, 0..1
+ *  @field AXIS_NONE no axis (unbound)
+ *  @field AXIS_COUNT array size
+ *  @see action_bind_axis, action_axis, Input
+ */
 typedef enum PadAxis {
   AXIS_LEFT_X  = SDL_GAMEPAD_AXIS_LEFTX,  AXIS_LEFT_Y  = SDL_GAMEPAD_AXIS_LEFTY,
   AXIS_RIGHT_X = SDL_GAMEPAD_AXIS_RIGHTX, AXIS_RIGHT_Y = SDL_GAMEPAD_AXIS_RIGHTY,
