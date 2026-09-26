@@ -4,8 +4,9 @@
 /** A scrolling, selectable grid of equal-sized cells: an inventory, a party roster, a level select, a shop. The grid owns layout and the cursor only; what each cell shows is the game's business, drawn into the box grid_cell_rect returns. Items are numbered 0..count-1 and laid out left to right, top to bottom, cols per row. When there are more rows than fit in the window the extra ones scroll, and the cursor always stays visible (scroll follows selection). Keep one in a scene static, set it up in on_enter (grid_init, grid_set_count), feed it input in handle_input (grid_handle_input) and draw it in render (grid_render, then your cell contents).
  *  @field x left edge of the window in logical pixels
  *  @field y top edge of the window
- *  @field cell pitch of one cell: its size plus the gap to the next
- *  @field gap space between cells, taken out of cell; grid_init sets 4. 0 = cells touch.
+ *  @field cell_w horizontal pitch: a cell's drawn width plus the gap to the next column
+ *  @field cell_h vertical pitch: a cell's drawn height plus the gap to the next row. Equal to cell_w for square tiles; much larger cell_w than cell_h with cols 1 makes a list of wide rows.
+ *  @field gap space between cells, taken out of both pitches; grid_init sets 4. 0 = cells touch.
  *  @field cols cells per row
  *  @field rows rows that fit in the window; more items than cols*rows scroll
  *  @field count items in the grid; set with grid_set_count, never directly
@@ -18,7 +19,8 @@
  */
 typedef struct Grid {
   float x, y;                     /* window top-left */
-  float cell, gap;                /* pitch, spacing; gap 0 = touching */
+  float cell_w, cell_h;           /* pitch in each direction: drawn size + gap */
+  float gap;                      /* spacing between cells; 0 = touching */
   int   cols, rows;               /* cells across, visible rows down */
   int   count;                    /* items; rows beyond the window scroll */
   int   selected;                 /* item index; -1 when empty */
@@ -27,10 +29,10 @@ typedef struct Grid {
   Color color, color_selected;    /* zero = defaults */
 } Grid;
 
-/** Reset a Grid: window at x,y, cells cell pixels apart with a 4-pixel gap, cols across and rows visible, no items, selection -1, clamping cursor, default colors. Call in on_enter, then grid_set_count with the number of items; calling it again rebuilds the grid from scratch.
+/** Reset a Grid: window at x,y, cells cell_w apart across and cell_h apart down (pass the same value for square tiles; cols 1 with a wide cell_w and a short cell_h is a list of rows), a 4-pixel gap, cols across and rows visible, no items, selection -1, clamping cursor, default colors. Call in on_enter, then grid_set_count with the number of items; calling it again rebuilds the grid from scratch.
  *  @see grid_set_count, Grid
  */
-void grid_init(Grid *g, float x, float y, float cell, int cols, int rows);
+void grid_init(Grid *g, float x, float y, float cell_w, float cell_h, int cols, int rows);
 /** Tell the grid how many items it holds. Clamps selected into range (-1 when empty, otherwise 0..count-1) and scroll so the selection stays visible. Call after grid_init and again whenever the underlying list changes length, so a stale cursor can never point past the end.
  *  @see grid_init, grid_select
  */
@@ -44,7 +46,7 @@ int  grid_total_rows(const Grid *g);
  *  @see grid_scroll_by, grid_total_rows
  */
 int  grid_max_scroll(const Grid *g);
-/** The window rectangle on screen: cols*cell wide and rows*cell tall from x,y, including the trailing gap. Draw a panel behind it, or hit-test it to see whether the mouse is over the grid at all.
+/** The window rectangle on screen: cols*cell_w wide and rows*cell_h tall from x,y, including the trailing gap. Draw a panel behind it, or hit-test it to see whether the mouse is over the grid at all.
  *  @see grid_cell_rect
  */
 Rect grid_window(const Grid *g);

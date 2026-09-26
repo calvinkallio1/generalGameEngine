@@ -24,7 +24,7 @@ static void rebuild(const GameState *g) {
 \&
 static void on_enter(Engine *e, Scene *s) {
   (void)s;
-  grid_init(&grid, 40, 80, 80, 6, 4);        /* 6 across, 4 rows visible, 80 px pitch */
+  grid_init(&grid, 40, 80, 80, 80, 6, 4);    /* 6 across, 4 rows visible, 80 px square tiles */
   rebuild(e\->user);
 }
 static void handle_input(Engine *e, Scene *s, const Input *in) {
@@ -56,8 +56,8 @@ grid_handle_input returns true on the frame the selection is activated; the scen
 .PP
 .SH THE CALLS
 .TP
-\fBgrid_init(g, x, y, cell, cols, rows)\fR
-reset: window position, cell pitch, columns, visible rows; no items, cursor \-1.
+\fBgrid_init(g, x, y, cell_w, cell_h, cols, rows)\fR
+reset: window position, horizontal and vertical pitch, columns, visible rows; no items, cursor \-1.
 .TP
 \fBgrid_set_count(g, n)\fR
 how many items; clamps cursor and scroll. Call whenever the list changes length.
@@ -77,6 +77,9 @@ move the cursor or the window from code: preselect, restore after a rebuild, pag
 \fBgrid_hit(g, mx, my)\fR, \fBgrid_window(g)\fR, \fBgrid_visible(g, i)\fR
 queries for custom mouse handling or drawing.
 Fields you may set after grid_init: \fBx\fR, \fBy\fR, \fBgap\fR, \fBwrap\fR, \fBcolor\fR and \fBcolor_selected\fR.
+.PP
+.SH TILES OR ROWS
+The two pitches are independent. Equal values give square tiles (an inventory, a sprite roster). A single column with a wide cell_w and a short cell_h gives a list: one item per row with room for a name, a level and a status side by side, scrolling vertically like any other grid. The cursor, wheel and hover work the same either way.
 .PP
 .SH FIXED GRIDS
 An inventory with a constant number of slots is a grid whose count never changes and whose rows equal its total rows, so nothing scrolls. Set \fBwrap\fR to true so the cursor wraps around the edges the way a small fixed grid is expected to; leave it false for anything that scrolls, where running off the bottom should stop rather than jump to the top.

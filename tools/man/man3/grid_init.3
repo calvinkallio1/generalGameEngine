@@ -1,13 +1,13 @@
 .TH GRID_INIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-grid_init \- Reset a Grid: window at x,y, cells cell pixels apart with a 4\-pixel gap, cols across and rows visible, no items, selection \-1, clamping cursor, default colors
+grid_init \- Reset a Grid: window at x,y, cells cell_w apart across and cell_h apart down (pass the same value for square tiles; cols 1 with a wide cell_w and a short cell_h is a list of rows), a 4\-pixel gap, cols across and rows visible, no items, selection \-1, clamping cursor, default colors
 .SH SYNOPSIS
 .nf
 .B #include \(dqgrid.h\(dq
-.BI "void grid_init(Grid *g, float x, float y, float cell, int cols, int rows);"
+.BI "void grid_init(Grid *g, float x, float y, float cell_w, float cell_h, int cols, int rows);"
 .fi
 .SH DESCRIPTION
-Reset a Grid: window at x,y, cells cell pixels apart with a 4\-pixel gap, cols across and rows visible, no items, selection \-1, clamping cursor, default colors. Call in on_enter, then grid_set_count with the number of items; calling it again rebuilds the grid from scratch.
+Reset a Grid: window at x,y, cells cell_w apart across and cell_h apart down (pass the same value for square tiles; cols 1 with a wide cell_w and a short cell_h is a list of rows), a 4\-pixel gap, cols across and rows visible, no items, selection \-1, clamping cursor, default colors. Call in on_enter, then grid_set_count with the number of items; calling it again rebuilds the grid from scratch.
 .SH MODULE
 grid (src/engine/grid/grid.h)
 .SH SEE ALSO

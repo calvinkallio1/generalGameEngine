@@ -1,13 +1,13 @@
 .TH GRID_WINDOW 3 "generalGameEngine" "Engine Manual" "Engine Manual"
 .SH NAME
-grid_window \- The window rectangle on screen: cols*cell wide and rows*cell tall from x,y, including the trailing gap
+grid_window \- The window rectangle on screen: cols*cell_w wide and rows*cell_h tall from x,y, including the trailing gap
 .SH SYNOPSIS
 .nf
 .B #include \(dqgrid.h\(dq
 .BI "Rect grid_window(const Grid *g);"
 .fi
 .SH DESCRIPTION
-The window rectangle on screen: cols*cell wide and rows*cell tall from x,y, including the trailing gap. Draw a panel behind it, or hit\-test it to see whether the mouse is over the grid at all.
+The window rectangle on screen: cols*cell_w wide and rows*cell_h tall from x,y, including the trailing gap. Draw a panel behind it, or hit\-test it to see whether the mouse is over the grid at all.
 .SH MODULE
 grid (src/engine/grid/grid.h)
 .SH SEE ALSO

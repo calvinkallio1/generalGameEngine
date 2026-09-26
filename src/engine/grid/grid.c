@@ -9,8 +9,8 @@ static const Color GRID_SELECTED = { 255, 220, 80, 255 };
 
 static int clampi(int v, int lo, int hi) { return v < lo ? lo : v > hi ? hi : v; }
 
-void grid_init(Grid *g, float x, float y, float cell, int cols, int rows) {
-  *g = (Grid){ .x = x, .y = y, .cell = cell, .gap = GRID_DEFAULT_GAP,
+void grid_init(Grid *g, float x, float y, float cell_w, float cell_h, int cols, int rows) {
+  *g = (Grid){ .x = x, .y = y, .cell_w = cell_w, .cell_h = cell_h, .gap = GRID_DEFAULT_GAP,
                .cols = cols > 0 ? cols : 1, .rows = rows > 0 ? rows : 1, .selected = -1 };
   g->color          = GRID_BG;
   g->color_selected = GRID_SELECTED;
@@ -39,12 +39,12 @@ void grid_set_count(Grid *g, int count) {
 }
 
 Rect grid_window(const Grid *g) {
-  return rect(g->x, g->y, (float)g->cols * g->cell, (float)g->rows * g->cell);
+  return rect(g->x, g->y, (float)g->cols * g->cell_w, (float)g->rows * g->cell_h);
 }
 
 Rect grid_cell_rect(const Grid *g, int i) {
   int col = i % g->cols, row = i / g->cols - g->scroll;
-  return rect(g->x + (float)col * g->cell, g->y + (float)row * g->cell, g->cell - g->gap, g->cell - g->gap);
+  return rect(g->x + (float)col * g->cell_w, g->y + (float)row * g->cell_h, g->cell_w - g->gap, g->cell_h - g->gap);
 }
 
 bool grid_visible(const Grid *g, int i) {

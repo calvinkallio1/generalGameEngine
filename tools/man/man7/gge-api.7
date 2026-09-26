@@ -261,7 +261,7 @@ A scrolling, selectable grid of equal\-sized cells: an inventory, a party roster
 .SS Functions
 .TP
 .BR grid_init (3)
-Reset a Grid: window at x,y, cells cell pixels apart with a 4\-pixel gap, cols across and rows visible, no items, selection \-1, clamping cursor, default colors
+Reset a Grid: window at x,y, cells cell_w apart across and cell_h apart down (pass the same value for square tiles; cols 1 with a wide cell_w and a short cell_h is a list of rows), a 4\-pixel gap, cols across and rows visible, no items, selection \-1, clamping cursor, default colors
 .TP
 .BR grid_set_count (3)
 Tell the grid how many items it holds
@@ -273,7 +273,7 @@ Rows the items occupy in total, visible or not: count divided by cols, rounded u
 The largest scroll value that still fills the window: total rows minus visible rows, never below 0
 .TP
 .BR grid_window (3)
-The window rectangle on screen: cols*cell wide and rows*cell tall from x,y, including the trailing gap
+The window rectangle on screen: cols*cell_w wide and rows*cell_h tall from x,y, including the trailing gap
 .TP
 .BR grid_cell_rect (3)
 Screen rectangle of item i with the current scroll applied and the gap removed, so it is the box to draw the item into

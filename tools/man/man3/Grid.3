@@ -7,7 +7,8 @@ Grid \- A scrolling, selectable grid of equal\-sized cells: an inventory, a part
 .ft B
 typedef struct Grid {
   float x, y;                     /* window top-left */
-  float cell, gap;                /* pitch, spacing; gap 0 = touching */
+  float cell_w, cell_h;           /* pitch in each direction: drawn size + gap */
+  float gap;                      /* spacing between cells; 0 = touching */
   int   cols, rows;               /* cells across, visible rows down */
   int   count;                    /* items; rows beyond the window scroll */
   int   selected;                 /* item index; -1 when empty */
@@ -27,11 +28,14 @@ left edge of the window in logical pixels
 .B y
 top edge of the window
 .TP
-.B cell
-pitch of one cell: its size plus the gap to the next
+.B cell_w
+horizontal pitch: a cell's drawn width plus the gap to the next column
+.TP
+.B cell_h
+vertical pitch: a cell's drawn height plus the gap to the next row. Equal to cell_w for square tiles; much larger cell_w than cell_h with cols 1 makes a list of wide rows.
 .TP
 .B gap
-space between cells, taken out of cell; grid_init sets 4. 0 = cells touch.
+space between cells, taken out of both pitches; grid_init sets 4. 0 = cells touch.
 .TP
 .B cols
 cells per row
