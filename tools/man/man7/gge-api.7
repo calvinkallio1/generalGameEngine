@@ -252,6 +252,61 @@ Engine\-internal: remember the renderer and turn on alpha blending
 .TP
 .BR draw_renderer (3)
 Engine\-internal: the renderer draw.h targets, for modules that must call SDL directly (text caching)
+.SH GRID
+src/engine/grid/ \(em see also \fBgge\-grid\fR(7).
+.SS Structs
+.TP
+.BR Grid (3)
+A scrolling, selectable grid of equal\-sized cells: an inventory, a party roster, a level select, a shop
+.SS Functions
+.TP
+.BR grid_init (3)
+Reset a Grid: window at x,y, cells cell pixels apart with a 4\-pixel gap, cols across and rows visible, no items, selection \-1, clamping cursor, default colors
+.TP
+.BR grid_set_count (3)
+Tell the grid how many items it holds
+.TP
+.BR grid_total_rows (3)
+Rows the items occupy in total, visible or not: count divided by cols, rounded up
+.TP
+.BR grid_max_scroll (3)
+The largest scroll value that still fills the window: total rows minus visible rows, never below 0
+.TP
+.BR grid_window (3)
+The window rectangle on screen: cols*cell wide and rows*cell tall from x,y, including the trailing gap
+.TP
+.BR grid_cell_rect (3)
+Screen rectangle of item i with the current scroll applied and the gap removed, so it is the box to draw the item into
+.TP
+.BR grid_visible (3)
+True if item i exists and its row is inside the window at the current scroll
+.TP
+.BR grid_first_visible (3)
+Index of the first item inside the window
+.TP
+.BR grid_end_visible (3)
+One past the last item inside the window, capped at count
+.TP
+.BR grid_hit (3)
+The visible item whose cell contains the screen point mx,my
+.TP
+.BR grid_select (3)
+Move the cursor to item i, clamped into 0..count\-1, and scroll the window so it is visible
+.TP
+.BR grid_move (3)
+Move the cursor by dx cells sideways and dy rows down (negative is left or up)
+.TP
+.BR grid_scroll_by (3)
+Scroll the window by rows (negative is up), clamped to 0..grid_max_scroll
+.TP
+.BR grid_handle_input (3)
+Move the cursor with the arrows, WASD or the dpad; scroll with the mouse wheel; hovering the mouse over a visible cell selects it
+.TP
+.BR grid_render (3)
+Draw the background of every visible cell, a grey outline round each, and the selected one outlined in color_selected
+.TP
+.BR grid_render_scrollbar (3)
+A track along the window's right edge, w pixels wide, with a thumb showing where the window sits in the list
 .SH INPUT
 src/engine/input/ \(em see also \fBgge\-input\fR(7).
 .SS Structs

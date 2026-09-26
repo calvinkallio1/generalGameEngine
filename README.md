@@ -107,7 +107,7 @@ vendored/engine/tools/gge man overview     # map of the engine: start here
 vendored/engine/tools/gge man api          # every function, type and macro, by module
 vendored/engine/tools/gge man scenes       # a module or concept page: scenes, state, entities, input,
                                            #   drawing, types, math, sprite, text, camera, tilemap, audio,
-                                           #   menu, dialog, cutscene, tween, debug, assets, saves, build
+                                           #   menu, grid, dialog, cutscene, tween, debug, assets, saves, build
 vendored/engine/tools/gge man engine_push  # one page per function ...
 vendored/engine/tools/gge man Camera       # ... per struct and enum ...
 vendored/engine/tools/gge man CUT_DO       # ... and per macro
