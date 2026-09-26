@@ -53,6 +53,20 @@ tilemap_draw(&map, &cam);
 .PP
 Draws every non\-empty tile inside camera_visible(3) (plus one tile of margin) at the camera's zoom. Cost is proportional to the screen, not the map. For animated tiles (water), swap the tileset's frame indices by drawing a second map whose ids alternate every N ticks, or draw those few tiles yourself with sprite_draw over the map.
 .PP
+.SH TINTING
+Point \fBtints\fR at an array of w*h Colors laid out like \fBtiles\fR and tilemap_draw multiplies each cell by its color, the way sprite_draw_tinted(3) does for one frame; a cell whose tint has alpha 0 (a zeroed array) is drawn unmodified. Draw the tiles you want to recolor in neutral greys: white pixels come out exactly the tint, mid greys as darker shades of it, so one grey house on the sheet becomes a red one, a blue one and a yellow one at draw time and the shading survives. Typical use is one color per building or region, filled once when the map is built:
+.PP
+.RS 4
+.EX
+static Color tints[MAP_W * MAP_H];              /* zero = untinted */
+for (each lot) for (each cell in the lot)
+  if (is_building(tiles[i])) tints[i] = lot.color;
+map.tints = tints;
+.EE
+.RE
+.PP
+Layers that share a tileset may share the tint array too (a chimney on the props layer picks up the same color as the roof under it). Runs of equal tints cost one texture state change, so a map of solid\-colored regions is nearly as cheap to draw as an untinted one; a different color on every cell is the worst case and still fine at screen size. A tint with alpha below 255 also fades the cell (fog, a ghosted preview of a placement). Only what is drawn through the tileset texture is affected; the modulation is reset to neutral when the call returns.
+.PP
 .SH READING THE GRID
 .TP
 \fBtilemap_at(m, tx, ty)\fR
@@ -141,6 +155,7 @@ Forgetting tilemap_free in on_exit for CSV maps: a leak per level change.
 .BR tilemap_at (3),
 .BR camera_set_bounds (3),
 .BR sprite_from (3),
+.BR sprite_draw_tinted (3),
 .BR gge\-camera (7),
 .BR gge\-sprite (7),
 .BR gge\-assets (7),

@@ -23,17 +23,35 @@ bool tilemap_box_hits(const Tilemap *m, const Rect *b) {
   return false;
 }
 
+static bool color_eq(Color a, Color b) { return a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a; }
+
 void tilemap_draw(const Tilemap *m, const Camera *c) {
+  if (!m->tileset.tex) return;
   Rect vis = camera_visible(c);
   int x0 = (int)floorf(vis.x / m->tile) - 1, x1 = (int)ceilf((vis.x + vis.w) / m->tile) + 1;
   int y0 = (int)floorf(vis.y / m->tile) - 1, y1 = (int)ceilf((vis.y + vis.h) / m->tile) + 1;
+  Color cur = COLOR_WHITE;                       /* the tileset texture's current modulation */
   for (int ty = y0; ty <= y1; ++ty) {
     for (int tx = x0; tx <= x1; ++tx) {
       uint8_t id = tilemap_at(m, tx, ty);
-      if (id == 0) continue;
+      if (id == 0) continue;                     /* also skips cells outside the map, so the tint index is safe */
+      Color want = COLOR_WHITE;
+      if (m->tints) {
+        Color t = m->tints[ty * m->w + tx];
+        if (t.a) want = t;                       /* alpha 0 = "untinted" for this cell */
+      }
+      if (!color_eq(want, cur)) {                /* set the modulation only when it changes */
+        SDL_SetTextureColorMod(m->tileset.tex, want.r, want.g, want.b);
+        SDL_SetTextureAlphaMod(m->tileset.tex, want.a);
+        cur = want;
+      }
       Vec2 s = camera_to_screen(c, (Vec2){ (float)(tx * m->tile), (float)(ty * m->tile) });
       sprite_draw_scaled(&m->tileset, id, s.x, s.y, c->zoom, 0, FLIP_NONE);
     }
+  }
+  if (!color_eq(cur, COLOR_WHITE)) {             /* leave the shared texture neutral for other draws */
+    SDL_SetTextureColorMod(m->tileset.tex, 255, 255, 255);
+    SDL_SetTextureAlphaMod(m->tileset.tex, 255);
   }
 }
 

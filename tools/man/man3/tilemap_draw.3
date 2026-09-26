@@ -7,12 +7,13 @@ tilemap_draw \- Draw every non\-empty tile visible through the camera, scaled by
 .BI "void tilemap_draw(const Tilemap *m, const Camera *c);"
 .fi
 .SH DESCRIPTION
-Draw every non\-empty tile visible through the camera, scaled by the camera's zoom. Culls to camera_visible() plus one tile of margin, so map size does not affect cost. Call from render before drawing entities; call twice with two maps for a background and a foreground layer.
+Draw every non\-empty tile visible through the camera, scaled by the camera's zoom. Culls to camera_visible() plus one tile of margin, so map size does not affect cost. Call from render before drawing entities; call twice with two maps for a background and a foreground layer. If the map has tints, each cell is drawn multiplied by its tint (alpha 0 or white leaves it unmodified); runs of equal tints cost one texture state change, and the tileset's modulation is restored to neutral afterwards.
 .SH MODULE
 tilemap (src/engine/tilemap/tilemap.h)
 .SH SEE ALSO
 .BR camera_visible (3),
 .BR sprite_draw_scaled (3),
+.BR sprite_draw_tinted (3),
 .BR Tilemap (3),
 .BR gge\-api (7),
 .BR gge (1)

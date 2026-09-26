@@ -12,7 +12,8 @@
  *  @field tiles w*h ids, row-major (index = ty * w + tx); 0 = empty
  *  @field solid 256 entries indexed by tile id; true blocks tilemap_move() and tilemap_box_hits()
  *  @field tileset sheet sliced into tile x tile frames; frame index == tile id
- *  @see tilemap_load_csv, tilemap_draw, tilemap_move, tilemap_at, Sprite, gge-tilemap
+ *  @field tints optional: w*h colors, one per cell, same layout as tiles; NULL for none. A cell whose tint has alpha 0 (or is white) is drawn as-is; any other tint multiplies that tile's colors and alpha, as sprite_draw_tinted() does. Draw tintable tiles in neutral greys so one tile becomes any color (a grey house, tinted per lot). Several maps may share one array.
+ *  @see tilemap_load_csv, tilemap_draw, tilemap_move, tilemap_at, Sprite, sprite_draw_tinted, gge-tilemap
  */
 typedef struct Tilemap {
   int w, h;                 /* in tiles */
@@ -20,6 +21,7 @@ typedef struct Tilemap {
   const uint8_t *tiles;     /* w*h ids, row-major; 0 = empty */
   const bool    *solid;     /* indexed by tile id (256 entries) */
   Sprite tileset;           /* frame index == tile id */
+  const Color   *tints;     /* optional w*h per-cell tints; NULL = none, alpha 0 = untinted cell */
 } Tilemap;
 
 /** The tile id at tile coordinates tx, ty. Coordinates outside the map read as 0 (empty), so callers never need bounds checks. Convert a world position first: tilemap_at(m, (int)floorf(wx / m->tile), (int)floorf(wy / m->tile)).
@@ -37,8 +39,8 @@ bool    tilemap_solid_at(const Tilemap *m, float wx, float wy);
  *  @see tilemap_move, tilemap_solid_at
  */
 bool    tilemap_box_hits(const Tilemap *m, const Rect *box);
-/** Draw every non-empty tile visible through the camera, scaled by the camera's zoom. Culls to camera_visible() plus one tile of margin, so map size does not affect cost. Call from render before drawing entities; call twice with two maps for a background and a foreground layer.
- *  @see camera_visible, sprite_draw_scaled, Tilemap
+/** Draw every non-empty tile visible through the camera, scaled by the camera's zoom. Culls to camera_visible() plus one tile of margin, so map size does not affect cost. Call from render before drawing entities; call twice with two maps for a background and a foreground layer. If the map has tints, each cell is drawn multiplied by its tint (alpha 0 or white leaves it unmodified); runs of equal tints cost one texture state change, and the tileset's modulation is restored to neutral afterwards.
+ *  @see camera_visible, sprite_draw_scaled, sprite_draw_tinted, Tilemap
  */
 void    tilemap_draw(const Tilemap *m, const Camera *c);
 /** Move an axis-aligned box through the map by vel * dt, stopping at solid tiles. Moves and resolves x first, then y, which is what makes walking along a wall and landing on a floor feel right. On a collision the box is pushed flush against the tile and that velocity component is set to 0; if on_ground is non-NULL it is set to true only when the box was moving down and hit something. Very fast objects (more than a tile per tick) can tunnel; keep speeds below tile / dt or step the call. The platformer and top-down movement core: apply gravity to vel->y, set vel->x from input, call this once per tick.

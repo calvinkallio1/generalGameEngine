@@ -11,6 +11,7 @@ typedef struct Tilemap {
   const uint8_t *tiles;     /* w*h ids, row-major; 0 = empty */
   const bool    *solid;     /* indexed by tile id (256 entries) */
   Sprite tileset;           /* frame index == tile id */
+  const Color   *tints;     /* optional w*h per-cell tints; NULL = none, alpha 0 = untinted cell */
 } Tilemap;
 .ft R
 .fi
@@ -35,6 +36,9 @@ w*h ids, row\-major (index = ty * w + tx); 0 = empty
 .TP
 .B tileset
 sheet sliced into tile x tile frames; frame index == tile id
+.TP
+.B tints
+optional: w*h colors, one per cell, same layout as tiles; NULL for none. A cell whose tint has alpha 0 (or is white) is drawn as\-is; any other tint multiplies that tile's colors and alpha, as sprite_draw_tinted() does. Draw tintable tiles in neutral greys so one tile becomes any color (a grey house, tinted per lot). Several maps may share one array.
 .SH MODULE
 tilemap (src/engine/tilemap/tilemap.h)
 .SH SEE ALSO
@@ -43,6 +47,7 @@ tilemap (src/engine/tilemap/tilemap.h)
 .BR tilemap_move (3),
 .BR tilemap_at (3),
 .BR Sprite (3),
+.BR sprite_draw_tinted (3),
 .BR gge\-tilemap (7),
 .BR gge\-api (7),
 .BR gge (1)
