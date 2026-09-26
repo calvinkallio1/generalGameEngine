@@ -1,0 +1,17 @@
+.TH GRID_SELECT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_select \- Move the cursor to item i, clamped into 0..count\-1, and scroll the window so it is visible
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "void grid_select(Grid *g, int i);"
+.fi
+.SH DESCRIPTION
+Move the cursor to item i, clamped into 0..count\-1, and scroll the window so it is visible. The way to preselect an item or to restore the cursor after rebuilding the list.
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_move (3),
+.BR grid_set_count (3),
+.BR gge\-api (7),
+.BR gge (1)

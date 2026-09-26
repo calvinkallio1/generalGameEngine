@@ -1,0 +1,17 @@
+.TH GRID_FIRST_VISIBLE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_first_visible \- Index of the first item inside the window
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "int grid_first_visible(const Grid *g);"
+.fi
+.SH DESCRIPTION
+Index of the first item inside the window. Together with grid_end_visible this is the render loop: for (i = grid_first_visible(g); i < grid_end_visible(g); i++) draw at grid_cell_rect(g, i).
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_end_visible (3),
+.BR grid_cell_rect (3),
+.BR gge\-api (7),
+.BR gge (1)

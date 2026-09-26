@@ -1,0 +1,19 @@
+.TH GRID_HIT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_hit \- The visible item whose cell contains the screen point mx,my
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "int grid_hit(const Grid *g, float mx, float my);"
+.fi
+.SH DESCRIPTION
+The visible item whose cell contains the screen point mx,my.
+.SH RETURN VALUE
+the item index, or \-1 when the point is on no cell (the gaps between cells count as no cell)
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_handle_input (3),
+.BR grid_window (3),
+.BR gge\-api (7),
+.BR gge (1)

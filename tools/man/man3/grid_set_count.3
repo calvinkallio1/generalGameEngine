@@ -1,0 +1,17 @@
+.TH GRID_SET_COUNT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_set_count \- Tell the grid how many items it holds
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "void grid_set_count(Grid *g, int count);"
+.fi
+.SH DESCRIPTION
+Tell the grid how many items it holds. Clamps selected into range (\-1 when empty, otherwise 0..count\-1) and scroll so the selection stays visible. Call after grid_init and again whenever the underlying list changes length, so a stale cursor can never point past the end.
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_init (3),
+.BR grid_select (3),
+.BR gge\-api (7),
+.BR gge (1)

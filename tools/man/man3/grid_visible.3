@@ -1,0 +1,16 @@
+.TH GRID_VISIBLE 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_visible \- True if item i exists and its row is inside the window at the current scroll
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "bool grid_visible(const Grid *g, int i);"
+.fi
+.SH DESCRIPTION
+True if item i exists and its row is inside the window at the current scroll.
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_cell_rect (3),
+.BR gge\-api (7),
+.BR gge (1)

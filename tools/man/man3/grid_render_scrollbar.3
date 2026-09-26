@@ -1,0 +1,17 @@
+.TH GRID_RENDER_SCROLLBAR 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_render_scrollbar \- A track along the window's right edge, w pixels wide, with a thumb showing where the window sits in the list
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "void grid_render_scrollbar(const Grid *g, float w);"
+.fi
+.SH DESCRIPTION
+A track along the window's right edge, w pixels wide, with a thumb showing where the window sits in the list. Draws nothing when every row already fits, so it is safe to call unconditionally.
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_render (3),
+.BR grid_max_scroll (3),
+.BR gge\-api (7),
+.BR gge (1)

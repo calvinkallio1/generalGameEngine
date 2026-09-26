@@ -1,0 +1,18 @@
+.TH GRID_CELL_RECT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_cell_rect \- Screen rectangle of item i with the current scroll applied and the gap removed, so it is the box to draw the item into
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "Rect grid_cell_rect(const Grid *g, int i);"
+.fi
+.SH DESCRIPTION
+Screen rectangle of item i with the current scroll applied and the gap removed, so it is the box to draw the item into. Defined for any i, even one scrolled out of the window; use grid_visible or the grid_first_visible..grid_end_visible range to draw only what shows.
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_visible (3),
+.BR grid_first_visible (3),
+.BR grid_end_visible (3),
+.BR gge\-api (7),
+.BR gge (1)

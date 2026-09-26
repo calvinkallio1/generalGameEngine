@@ -1,0 +1,18 @@
+.TH GRID_TOTAL_ROWS 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_total_rows \- Rows the items occupy in total, visible or not: count divided by cols, rounded up
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "int grid_total_rows(const Grid *g);"
+.fi
+.SH DESCRIPTION
+Rows the items occupy in total, visible or not: count divided by cols, rounded up.
+.SH RETURN VALUE
+0 when the grid is empty
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_max_scroll (3),
+.BR gge\-api (7),
+.BR gge (1)

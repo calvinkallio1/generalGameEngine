@@ -1,0 +1,17 @@
+.TH GRID_MAX_SCROLL 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_max_scroll \- The largest scroll value that still fills the window: total rows minus visible rows, never below 0
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "int grid_max_scroll(const Grid *g);"
+.fi
+.SH DESCRIPTION
+The largest scroll value that still fills the window: total rows minus visible rows, never below 0. scroll is kept within 0..this.
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_scroll_by (3),
+.BR grid_total_rows (3),
+.BR gge\-api (7),
+.BR gge (1)

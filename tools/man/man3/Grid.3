@@ -1,0 +1,69 @@
+.TH GRID 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+Grid \- A scrolling, selectable grid of equal\-sized cells: an inventory, a party roster, a level select, a shop
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.ft B
+typedef struct Grid {
+  float x, y;                     /* window top-left */
+  float cell, gap;                /* pitch, spacing; gap 0 = touching */
+  int   cols, rows;               /* cells across, visible rows down */
+  int   count;                    /* items; rows beyond the window scroll */
+  int   selected;                 /* item index; -1 when empty */
+  int   scroll;                   /* first visible row */
+  bool  wrap;                     /* cursor wraps at the ends (default: clamps) */
+  Color color, color_selected;    /* zero = defaults */
+} Grid;
+.ft R
+.fi
+.SH DESCRIPTION
+A scrolling, selectable grid of equal\-sized cells: an inventory, a party roster, a level select, a shop. The grid owns layout and the cursor only; what each cell shows is the game's business, drawn into the box grid_cell_rect returns. Items are numbered 0..count\-1 and laid out left to right, top to bottom, cols per row. When there are more rows than fit in the window the extra ones scroll, and the cursor always stays visible (scroll follows selection). Keep one in a scene static, set it up in on_enter (grid_init, grid_set_count), feed it input in handle_input (grid_handle_input) and draw it in render (grid_render, then your cell contents).
+.SH FIELDS
+.TP
+.B x
+left edge of the window in logical pixels
+.TP
+.B y
+top edge of the window
+.TP
+.B cell
+pitch of one cell: its size plus the gap to the next
+.TP
+.B gap
+space between cells, taken out of cell; grid_init sets 4. 0 = cells touch.
+.TP
+.B cols
+cells per row
+.TP
+.B rows
+rows that fit in the window; more items than cols*rows scroll
+.TP
+.B count
+items in the grid; set with grid_set_count, never directly
+.TP
+.B selected
+cursor as an item index; \-1 while the grid is empty
+.TP
+.B scroll
+first visible row
+.TP
+.B wrap
+true: the cursor wraps at both ends like a Menu (fine for a fixed grid such as an inventory). false, the default: it stops at the edges, which reads better for a scrolling list.
+.TP
+.B color
+background of every visible cell in grid_render; alpha 0 = default dark
+.TP
+.B color_selected
+outline of the selected cell in grid_render; alpha 0 = default yellow
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_init (3),
+.BR grid_set_count (3),
+.BR grid_handle_input (3),
+.BR grid_render (3),
+.BR grid_cell_rect (3),
+.BR gge\-grid (7),
+.BR gge\-api (7),
+.BR gge (1)

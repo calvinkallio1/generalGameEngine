@@ -1,0 +1,17 @@
+.TH GRID_RENDER 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_render \- Draw the background of every visible cell, a grey outline round each, and the selected one outlined in color_selected
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "void grid_render(const Grid *g);"
+.fi
+.SH DESCRIPTION
+Draw the background of every visible cell, a grey outline round each, and the selected one outlined in color_selected. Call from render after the backdrop and before drawing the cell contents at grid_cell_rect; skip it and draw your own cells if the look does not suit.
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_render_scrollbar (3),
+.BR grid_cell_rect (3),
+.BR gge\-api (7),
+.BR gge (1)

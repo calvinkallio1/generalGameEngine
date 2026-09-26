@@ -1,0 +1,17 @@
+.TH GRID_SCROLL_BY 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_scroll_by \- Scroll the window by rows (negative is up), clamped to 0..grid_max_scroll
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "void grid_scroll_by(Grid *g, int rows);"
+.fi
+.SH DESCRIPTION
+Scroll the window by rows (negative is up), clamped to 0..grid_max_scroll. The cursor does not move, so it may leave the window; the next cursor move brings it back.
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_max_scroll (3),
+.BR grid_move (3),
+.BR gge\-api (7),
+.BR gge (1)

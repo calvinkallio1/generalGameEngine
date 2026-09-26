@@ -1,0 +1,20 @@
+.TH GRID_HANDLE_INPUT 3 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+grid_handle_input \- Move the cursor with the arrows, WASD or the dpad; scroll with the mouse wheel; hovering the mouse over a visible cell selects it
+.SH SYNOPSIS
+.nf
+.B #include \(dqgrid.h\(dq
+.BI "bool grid_handle_input(Grid *g, const Input *in);"
+.fi
+.SH DESCRIPTION
+Move the cursor with the arrows, WASD or the dpad; scroll with the mouse wheel; hovering the mouse over a visible cell selects it. Call from the owning scene's handle_input. Nothing happens while the grid is empty.
+.SH RETURN VALUE
+true on the frame the selected item is activated: Enter, space, PAD_SOUTH, or a left click on a cell. The scene then acts on g\->selected (feed the cat, equip the item, open the level).
+.SH MODULE
+grid (src/engine/grid/grid.h)
+.SH SEE ALSO
+.BR grid_render (3),
+.BR grid_hit (3),
+.BR grid_move (3),
+.BR gge\-api (7),
+.BR gge (1)

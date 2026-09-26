@@ -1,0 +1,117 @@
+.TH GGE\-GRID 7 "generalGameEngine" "Engine Manual" "Engine Manual"
+.SH NAME
+gge\-grid \- scrolling, selectable grids for inventories, rosters and level selects
+.SH DESCRIPTION
+A \fBGrid\fR (grid.h) lays out N equal cells, cols per row, inside a window of a fixed number of rows, and keeps a cursor over one of them. Rows that do not fit scroll, and the window always follows the cursor. It handles keyboard (arrows or WASD, Enter or space), gamepad (dpad, PAD_SOUTH) and mouse (hover selects, click activates, wheel scrolls). Unlike a \fBMenu\fR it has no labels and no actions: the grid knows where cell i is on screen and which one is selected, and the game draws the contents and acts on the selection. It is presentation state: one static per scene, set up in on_enter.
+.PP
+The grid is a view over a list the game already keeps (inventory slots, a packed array of roster indices, level ids). Item i in the grid is item i in that list; the grid never stores the items themselves.
+.PP
+.SH A ROSTER SCREEN
+.PP
+.RS 4
+.EX
+#include "grid.h"
+static Grid    grid;
+static int16_t housed[CAT_ROSTER_SIZE];      /* roster indices of every cat at home */
+static int     housed_n;
+\&
+static void rebuild(const GameState *g) {
+  housed_n = 0;
+  for (int i = 0; i < CAT_ROSTER_SIZE; i++)
+    if (g\->cat_roster[i].tamed) housed[housed_n++] = (int16_t)i;
+  grid_set_count(&grid, housed_n);           /* clamps the cursor if the list shrank */
+}
+\&
+static void on_enter(Engine *e, Scene *s) {
+  (void)s;
+  grid_init(&grid, 40, 80, 80, 6, 4);        /* 6 across, 4 rows visible, 80 px pitch */
+  rebuild(e\->user);
+}
+static void handle_input(Engine *e, Scene *s, const Input *in) {
+  (void)s;
+  GameState *g = e\->user;
+  if (grid_handle_input(&grid, in) && grid.selected >= 0) {
+    toggle_party(g, housed[grid.selected]);  /* the game's action on the chosen item */
+    rebuild(g);
+  }
+  if (key_pressed(in, KEY_ESCAPE)) engine_pop(e);
+}
+static void render(Engine *e, Scene *s, float alpha) {
+  (void)s; (void)alpha;
+  GameState *g = e\->user;
+  draw_rect(rect(0, 0, e\->logical_w, e\->logical_h), rgba(0, 0, 0, 170));
+  grid_render(&grid);
+  for (int i = grid_first_visible(&grid); i < grid_end_visible(&grid); i++) {
+    Rect c = grid_cell_rect(&grid, i);
+    const Cat *cat = &g\->cat_roster[housed[i]];
+    sprite_draw(&cats, cat\->look, c.x + 8, c.y + 8, 0, FLIP_NONE);
+    draw_debug_text(c.x + 4, c.y + c.h \- 10, COLOR_WHITE, cat\->name);
+  }
+  grid_render_scrollbar(&grid, 6);
+}
+.EE
+.RE
+.PP
+grid_handle_input returns true on the frame the selection is activated; the scene reads \fBgrid.selected\fR and does whatever that means for its list. After anything that changes the list, call grid_set_count (or a rebuild that does) so the cursor cannot point past the end.
+.PP
+.SH THE CALLS
+.TP
+\fBgrid_init(g, x, y, cell, cols, rows)\fR
+reset: window position, cell pitch, columns, visible rows; no items, cursor \-1.
+.TP
+\fBgrid_set_count(g, n)\fR
+how many items; clamps cursor and scroll. Call whenever the list changes length.
+.TP
+\fBgrid_handle_input(g, in)\fR
+navigation, wheel, hover; returns true when the selection is activated. From handle_input.
+.TP
+\fBgrid_render(g)\fR, \fBgrid_render_scrollbar(g, w)\fR
+cell backgrounds and the selection outline; a scrollbar when rows overflow. From render, before your cell contents.
+.TP
+\fBgrid_cell_rect(g, i)\fR, \fBgrid_first_visible(g)\fR, \fBgrid_end_visible(g)\fR
+where to draw item i, and the range of items currently in the window.
+.TP
+\fBgrid_select(g, i)\fR, \fBgrid_move(g, dx, dy)\fR, \fBgrid_scroll_by(g, rows)\fR
+move the cursor or the window from code: preselect, restore after a rebuild, page with PAGEUP/PAGEDOWN.
+.TP
+\fBgrid_hit(g, mx, my)\fR, \fBgrid_window(g)\fR, \fBgrid_visible(g, i)\fR
+queries for custom mouse handling or drawing.
+Fields you may set after grid_init: \fBx\fR, \fBy\fR, \fBgap\fR, \fBwrap\fR, \fBcolor\fR and \fBcolor_selected\fR.
+.PP
+.SH FIXED GRIDS
+An inventory with a constant number of slots is a grid whose count never changes and whose rows equal its total rows, so nothing scrolls. Set \fBwrap\fR to true so the cursor wraps around the edges the way a small fixed grid is expected to; leave it false for anything that scrolls, where running off the bottom should stop rather than jump to the top.
+.PP
+.SH CLIPPING
+Only whole rows are ever shown: the drawing loop covers grid_first_visible..grid_end_visible and nothing else, so no clip rectangle is needed and cells never appear half cut off. A pixel\-smooth scroll (rows sliding by fractions of a cell) is not provided.
+.PP
+.SH MOUSE BEHAVIOR
+While the pointer rests over a cell that cell stays selected, overriding keyboard movement until the mouse leaves the window, as with a Menu. The wheel scrolls the window without moving the cursor, so the cursor may leave the window; the next arrow press brings the window back to it.
+.PP
+.SH PITFALLS
+.IP \(bu 2
+Setting \fBcount\fR directly: the cursor and scroll are not clamped. Use grid_set_count.
+.IP \(bu 2
+Drawing every item instead of the visible range: items scrolled out of the window get drawn above or below it.
+.IP \(bu 2
+Calling grid_init in render: the grid resets every frame.
+.IP \(bu 2
+Acting on \fBselected\fR without checking it is not \-1: an empty grid has no selection.
+.IP \(bu 2
+Using WASD for both the grid and something else in the same scene: the grid consumes nothing, so both will react.
+.SH SEE ALSO
+.BR Grid (3),
+.BR grid_init (3),
+.BR grid_set_count (3),
+.BR grid_handle_input (3),
+.BR grid_render (3),
+.BR grid_render_scrollbar (3),
+.BR grid_cell_rect (3),
+.BR grid_first_visible (3),
+.BR grid_end_visible (3),
+.BR grid_select (3),
+.BR grid_move (3),
+.BR grid_scroll_by (3),
+.BR grid_hit (3),
+.BR gge\-menu (7),
+.BR gge\-scenes (7),
+.BR gge\-drawing (7)
